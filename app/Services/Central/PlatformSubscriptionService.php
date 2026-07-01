@@ -6,6 +6,7 @@ namespace App\Services\Central;
 
 use App\Enums\Central\BillingProvider;
 use App\Enums\Central\PlatformSubscriptionStatus;
+use App\Models\Central\Plan;
 use App\Models\Central\PlatformSubscription;
 use App\Models\Central\Tenant;
 
@@ -44,8 +45,10 @@ class PlatformSubscriptionService
             'metadata' => array_merge($subscription->metadata ?? [], ['webhook' => $payload]),
         ]);
 
+        $planId = Plan::query()->where('slug', $subscription->plan_slug)->value('id');
+
         $subscription->tenant()->update([
-            'plan' => $subscription->plan_slug,
+            'plan_id' => $planId,
             'billing_provider' => $provider->value,
         ]);
 

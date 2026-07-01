@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Database\Factories\Central;
 
 use App\Enums\Central\TenantStatus;
+use App\Models\Central\Plan;
 use App\Models\Central\Tenant;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Str;
@@ -29,7 +30,7 @@ class TenantFactory extends Factory
             'email' => fake()->companyEmail(),
             'phone' => fake()->phoneNumber(),
             'status' => TenantStatus::Pending,
-            'plan' => 'starter',
+            'plan_id' => fn () => Plan::query()->where('slug', 'starter')->value('id'),
         ];
     }
 
@@ -43,6 +44,13 @@ class TenantFactory extends Factory
         return $this->state(fn (): array => [
             'status' => TenantStatus::Suspended,
             'suspended_at' => now(),
+        ]);
+    }
+
+    public function withPlan(string $slug): static
+    {
+        return $this->state(fn (): array => [
+            'plan_id' => Plan::query()->where('slug', $slug)->value('id'),
         ]);
     }
 }

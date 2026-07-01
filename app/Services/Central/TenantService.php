@@ -34,7 +34,7 @@ class TenantService
     public function paginate(array $filters = [], int $perPage = 15): LengthAwarePaginator
     {
         $query = Tenant::query()
-            ->with(['domains', 'primaryDomain'])
+            ->with(['primaryDomain', 'plan'])
             ->latest();
 
         if (!empty($filters['search'])) {
@@ -62,7 +62,7 @@ class TenantService
     public function find(string $id): Tenant
     {
         return Tenant::query()
-            ->with(['domains', 'settings', 'primaryDomain'])
+            ->with(['domains', 'plan', 'primaryDomain'])
             ->findOrFail($id);
     }
 
@@ -84,7 +84,7 @@ class TenantService
                 'email' => $data['email'] ?? null,
                 'phone' => $data['phone'] ?? null,
                 'status' => TenantStatus::Pending->value,
-                'plan' => $data['plan'] ?? null,
+                'plan_id' => $data['plan_id'] ?? null,
                 'trial_ends_at' => $data['trial_ends_at'] ?? null,
                 'created_by' => $data['created_by'] ?? null,
                 'subdomain' => $data['subdomain'] ?? $slug,
@@ -110,11 +110,11 @@ class TenantService
             'name' => $data['name'] ?? $tenant->name,
             'email' => $data['email'] ?? $tenant->email,
             'phone' => $data['phone'] ?? $tenant->phone,
-            'plan' => $data['plan'] ?? $tenant->plan,
+            'plan_id' => array_key_exists('plan_id', $data) ? $data['plan_id'] : $tenant->plan_id,
             'trial_ends_at' => $data['trial_ends_at'] ?? $tenant->trial_ends_at,
         ]);
 
-        return $tenant->fresh(['domains', 'settings', 'primaryDomain']);
+        return $tenant->fresh(['domains', 'plan', 'primaryDomain']);
     }
 
     /**
@@ -181,7 +181,7 @@ class TenantService
         ?string $startDate = null,
         ?string $endDate = null,
     ): \Illuminate\Support\Collection {
-        $query = Tenant::query()->with(['domains'])->orderBy('name');
+        $query = Tenant::query()->with(['plan'])->orderBy('name');
 
         if ($ids !== null && $ids !== []) {
             $query->whereIn('id', $ids);

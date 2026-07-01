@@ -7,6 +7,7 @@ namespace App\Models\Central;
 use App\Enums\Central\TenantStatus;
 use Database\Factories\Central\TenantFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -25,7 +26,7 @@ use Stancl\Tenancy\Database\Models\Tenant as BaseTenant;
  * @property string|null $email
  * @property string|null $phone
  * @property TenantStatus $status
- * @property string|null $plan
+ * @property int|null $plan_id
  * @property \Illuminate\Support\Carbon|null $trial_ends_at
  * @property \Illuminate\Support\Carbon|null $suspended_at
  * @property int|null $created_by
@@ -52,7 +53,7 @@ class Tenant extends BaseTenant implements TenantWithDatabase
             'email',
             'phone',
             'status',
-            'plan',
+            'plan_id',
             'billing_provider',
             'trial_ends_at',
             'suspended_at',
@@ -71,6 +72,14 @@ class Tenant extends BaseTenant implements TenantWithDatabase
             'suspended_at' => 'datetime',
             'data' => 'array',
         ];
+    }
+
+    /**
+     * @return BelongsTo<Plan, $this>
+     */
+    public function plan(): BelongsTo
+    {
+        return $this->belongsTo(Plan::class);
     }
 
     /**

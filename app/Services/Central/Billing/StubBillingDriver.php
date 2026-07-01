@@ -43,12 +43,14 @@ class StubBillingDriver implements BillingDriverInterface
      */
     public function subscriptionSummary(Tenant $tenant): array
     {
+        $tenant->loadMissing('plan');
+
         return [
             'provider' => $tenant->billing_provider,
-            'plan' => $tenant->plan,
+            'plan' => $tenant->plan?->slug,
             'on_trial' => $tenant->onTrial(),
             'trial_ends_at' => $tenant->trial_ends_at?->toIso8601String(),
-            'subscribed' => filled($tenant->plan),
+            'subscribed' => filled($tenant->plan_id),
             'subscription' => null,
         ];
     }
@@ -66,7 +68,7 @@ class StubBillingDriver implements BillingDriverInterface
         $trialDays = (int) config('billing.trial_days', 14);
 
         $tenant->update([
-            'plan' => $plan->slug,
+            'plan_id' => $plan->id,
             'trial_ends_at' => $tenant->trial_ends_at ?? now()->addDays($trialDays),
         ]);
 
@@ -125,7 +127,7 @@ class StubBillingDriver implements BillingDriverInterface
      */
     public function swapPlan(Tenant $tenant, Plan $plan): array
     {
-        $tenant->update(['plan' => $plan->slug]);
+        $tenant->update(['plan_id' => $plan->id]);
 
         return $this->subscriptionSummary($tenant->fresh());
     }

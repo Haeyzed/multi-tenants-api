@@ -24,7 +24,7 @@ class SubscribeTenantRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'plan' => ['required', 'string', Rule::exists('plans', 'slug')],
+            'plan_id' => ['required', 'integer', Rule::exists('plans', 'id')],
             'provider' => ['sometimes', 'string', Rule::in(BillingProvider::values())],
             'payment_method' => ['nullable', 'string', 'max:255'],
         ];

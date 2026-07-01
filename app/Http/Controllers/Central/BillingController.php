@@ -63,7 +63,7 @@ class BillingController extends ApiController
             $provider = BillingProvider::from($request->string('provider', config('billing.default_provider', BillingProvider::Stripe->value))->toString());
             $result = $this->billingService->subscribe(
                 $tenant,
-                $request->validated('plan'),
+                $request->validated('plan_id'),
                 $provider,
                 $request->validated('payment_method'),
             );
@@ -122,7 +122,7 @@ class BillingController extends ApiController
         $this->authorize('manageBilling', $tenant);
 
         try {
-            $summary = $this->billingService->swapPlan($tenant, $request->validated('plan'), BillingProvider::tryFrom($request->string('provider')->toString()));
+            $summary = $this->billingService->swapPlan($tenant, $request->validated('plan_id'), BillingProvider::tryFrom($request->string('provider')->toString()));
         } catch (RuntimeException $exception) {
             return $this->error($exception->getMessage(), 422);
         }

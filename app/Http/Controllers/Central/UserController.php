@@ -5,27 +5,30 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Central;
 
 use App\Exports\Central\UsersExport;
+use App\Exports\Central\UsersImportSample;
 use App\Http\Controllers\ApiController;
+use App\Http\Controllers\Central\Concerns\ExportsSpreadsheets;
+use App\Http\Requests\Central\ExportResourceRequest;
 use App\Http\Requests\Central\StoreUserRequest;
 use App\Http\Requests\Central\UpdateUserRequest;
 use App\Http\Resources\Central\CentralUserResource;
 use App\Imports\Central\UsersImport;
 use App\Models\Central\CentralUser;
-use App\Services\Central\ExcelExportService;
 use App\Services\Central\UserService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Mail;
 use Maatwebsite\Excel\Facades\Excel;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 /**
  * Manages central platform administrator accounts.
  */
 class UserController extends ApiController
 {
+    use ExportsSpreadsheets;
+
     public function __construct(
         private readonly UserService $userService,
-        private readonly ExcelExportService $excelExportService,
     ) {}
 
     /**
@@ -145,14 +148,10 @@ class UserController extends ApiController
     {
         $this->authorize('viewAny', CentralUser::class);
 
-        $validated = $request->validate([
-            'ids' => ['nullable', 'array'],
-            'ids.*' => ['integer', 'exists:users,id'],
-            'delivery' => ['sometimes', 'in:download,email'],
-            'start_date' => ['nullable', 'date'],
-            'end_date' => ['nullable', 'date', 'after_or_equal:start_date'],
-            'recipient_id' => ['nullable', 'integer', 'exists:users,id'],
-        ]);
+        $validated = $request->validate(ExportResourceRequest::rules(
+            UsersExport::availableColumns(),
+            ['integer', 'exists:users,id'],
+        ));
 
         $users = $this->userService->exportQuery(
             $validated['ids'] ?? null,
@@ -160,29 +159,25 @@ class UserController extends ApiController
             $validated['end_date'] ?? null,
         );
 
-        $export = new UsersExport($users);
-        $filename = 'users-export.xlsx';
+        $export = new UsersExport($users, $validated['columns'] ?? null);
 
-        if (($validated['delivery'] ?? 'download') === 'email') {
-            $content = $this->excelExportService->raw($export);
-            $recipient = isset($validated['recipient_id'])
-                ? CentralUser::query()->findOrFail($validated['recipient_id'])
-                : $request->user();
+        return $this->spreadsheetExport(
+            $request,
+            $export,
+            'users-export',
+            'Users Export',
+            'Your users export is attached.',
+        );
+    }
 
-            Mail::raw('Your users export is attached.', function ($message) use ($recipient, $content, $filename): void {
-                $message->to($recipient->email)
-                    ->subject('Users Export')
-                    ->attachData(
-                        $content,
-                        $filename,
-                        ['mime' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet']
-                    );
-            });
+    /**
+     * Download a sample import template for users.
+     */
+    public function importSample(Request $request): BinaryFileResponse
+    {
+        $this->authorize('create', CentralUser::class);
 
-            return $this->success(null, 'Export sent successfully.');
-        }
-
-        return $this->excelExportService->download($export, $filename);
+        return $this->importSampleDownload($request, new UsersImportSample(), 'users');
     }
 
     /**

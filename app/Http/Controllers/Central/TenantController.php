@@ -5,8 +5,11 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Central;
 
 use App\Exports\Central\TenantsExport;
+use App\Exports\Central\TenantsImportSample;
 use App\Enums\Central\TenantStatus;
 use App\Http\Controllers\ApiController;
+use App\Http\Controllers\Central\Concerns\ExportsSpreadsheets;
+use App\Http\Requests\Central\ExportResourceRequest;
 use App\Http\Requests\Central\StoreDomainRequest;
 use App\Http\Requests\Central\StoreTenantRequest;
 use App\Http\Requests\Central\UpdateDomainRequest;
@@ -14,17 +17,15 @@ use App\Http\Requests\Central\UpdateTenantRequest;
 use App\Http\Resources\Central\DomainResource;
 use App\Http\Resources\Central\TenantResource;
 use App\Imports\Central\TenantsImport;
-use App\Models\Central\CentralUser;
 use App\Models\Central\Domain;
 use App\Models\Central\Tenant;
 use App\Services\Central\DomainService;
-use App\Services\Central\ExcelExportService;
 use App\Services\Central\TenantService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Mail;
 use Illuminate\Validation\Rules\Enum;
 use Maatwebsite\Excel\Facades\Excel;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
 use Throwable;
 
 /**
@@ -32,10 +33,11 @@ use Throwable;
  */
 class TenantController extends ApiController
 {
+    use ExportsSpreadsheets;
+
     public function __construct(
         private readonly TenantService $tenantService,
         private readonly DomainService $domainService,
-        private readonly ExcelExportService $excelExportService,
     ) {}
 
     /**
@@ -180,6 +182,24 @@ class TenantController extends ApiController
     }
 
     /**
+     * List domains for a tenant.
+     */
+    public function indexDomains(Tenant $tenant): JsonResponse
+    {
+        $this->authorize('view', $tenant);
+
+        $domains = $tenant->domains()
+            ->orderByDesc('is_primary')
+            ->orderBy('domain')
+            ->get();
+
+        return $this->success(
+            DomainResource::collection($domains),
+            'Domains retrieved successfully.',
+        );
+    }
+
+    /**
      * Add a domain to a tenant.
      *
      * @param StoreDomainRequest $request
@@ -238,6 +258,20 @@ class TenantController extends ApiController
         );
     }
 
+    /**
+     * Delete a domain from a tenant.
+     */
+    public function destroyDomain(Tenant $tenant, Domain $domain): JsonResponse
+    {
+        $this->authorize('update', $tenant);
+
+        abort_unless($domain->tenant_id === $tenant->id, 404);
+
+        $this->domainService->delete($domain);
+
+        return $this->deleted('Domain deleted successfully.');
+    }
+
     public function destroyMany(Request $request): JsonResponse
     {
         $this->authorize('deleteAny', Tenant::class);
@@ -259,14 +293,10 @@ class TenantController extends ApiController
     {
         $this->authorize('viewAny', Tenant::class);
 
-        $validated = $request->validate([
-            'ids' => ['nullable', 'array'],
-            'ids.*' => ['string'],
-            'delivery' => ['sometimes', 'in:download,email'],
-            'start_date' => ['nullable', 'date'],
-            'end_date' => ['nullable', 'date', 'after_or_equal:start_date'],
-            'recipient_id' => ['nullable', 'integer', 'exists:users,id'],
-        ]);
+        $validated = $request->validate(ExportResourceRequest::rules(
+            TenantsExport::availableColumns(),
+            ['string'],
+        ));
 
         $tenants = $this->tenantService->exportQuery(
             $validated['ids'] ?? null,
@@ -274,29 +304,25 @@ class TenantController extends ApiController
             $validated['end_date'] ?? null,
         );
 
-        $export = new TenantsExport($tenants);
-        $filename = 'tenants-export.xlsx';
+        $export = new TenantsExport($tenants, $validated['columns'] ?? null);
 
-        if (($validated['delivery'] ?? 'download') === 'email') {
-            $content = $this->excelExportService->raw($export);
-            $recipient = isset($validated['recipient_id'])
-                ? CentralUser::query()->findOrFail($validated['recipient_id'])
-                : $request->user();
+        return $this->spreadsheetExport(
+            $request,
+            $export,
+            'tenants-export',
+            'Tenants Export',
+            'Your tenants export is attached.',
+        );
+    }
 
-            Mail::raw('Your tenants export is attached.', function ($message) use ($recipient, $content, $filename): void {
-                $message->to($recipient->email)
-                    ->subject('Tenants Export')
-                    ->attachData(
-                        $content,
-                        $filename,
-                        ['mime' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet']
-                    );
-            });
+    /**
+     * Download a sample import template for tenants.
+     */
+    public function importSample(Request $request): BinaryFileResponse
+    {
+        $this->authorize('create', Tenant::class);
 
-            return $this->success(null, 'Export sent successfully.');
-        }
-
-        return $this->excelExportService->download($export, $filename);
+        return $this->importSampleDownload($request, new TenantsImportSample(), 'tenants');
     }
 
     /**
@@ -310,7 +336,10 @@ class TenantController extends ApiController
             'file' => ['required', 'file', 'mimes:xlsx,xls,csv'],
         ]);
 
-        Excel::import(new TenantsImport, $request->file('file'));
+        Excel::import(
+            new TenantsImport($this->tenantService, $request->user()?->id),
+            $request->file('file'),
+        );
 
         return $this->success(null, 'Tenants imported successfully.');
     }

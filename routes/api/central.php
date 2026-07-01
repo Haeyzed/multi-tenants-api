@@ -27,11 +27,14 @@ Route::prefix('v1/central')->group(function (): void {
         Route::get('tenants/statistics', [TenantController::class, 'statistics']);
         Route::delete('tenants/bulk', [TenantController::class, 'destroyMany']);
         Route::post('tenants/export', [TenantController::class, 'export']);
+        Route::get('tenants/import/sample', [TenantController::class, 'importSample']);
         Route::post('tenants/import', [TenantController::class, 'import']);
         Route::post('tenants/{tenant}/activate', [TenantController::class, 'activate']);
         Route::post('tenants/{tenant}/suspend', [TenantController::class, 'suspend']);
+        Route::get('tenants/{tenant}/domains', [TenantController::class, 'indexDomains']);
         Route::post('tenants/{tenant}/domains', [TenantController::class, 'storeDomain']);
         Route::put('tenants/{tenant}/domains/{domain}', [TenantController::class, 'updateDomain']);
+        Route::delete('tenants/{tenant}/domains/{domain}', [TenantController::class, 'destroyDomain']);
         Route::post('tenants/{tenant}/domains/{domain}/verify', [TenantController::class, 'verifyDomain']);
         Route::apiResource('tenants', TenantController::class);
 
@@ -39,6 +42,7 @@ Route::prefix('v1/central')->group(function (): void {
         Route::get('plans/options', [PlanController::class, 'options']);
         Route::delete('plans/bulk', [PlanController::class, 'destroyMany']);
         Route::post('plans/export', [PlanController::class, 'export']);
+        Route::get('plans/import/sample', [PlanController::class, 'importSample']);
         Route::post('plans/import', [PlanController::class, 'import']);
         Route::apiResource('plans', PlanController::class);
 
@@ -46,6 +50,7 @@ Route::prefix('v1/central')->group(function (): void {
         Route::get('users/options', [UserController::class, 'options']);
         Route::delete('users/bulk', [UserController::class, 'destroyMany']);
         Route::post('users/export', [UserController::class, 'export']);
+        Route::get('users/import/sample', [UserController::class, 'importSample']);
         Route::post('users/import', [UserController::class, 'import']);
         Route::apiResource('users', UserController::class);
 

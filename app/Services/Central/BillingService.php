@@ -61,9 +61,9 @@ class BillingService
      * @param string|null $paymentMethod
      * @return array<string, mixed>
      */
-    public function subscribe(Tenant $tenant, string $planSlug, BillingProvider $provider, ?string $paymentMethod = null): array
+    public function subscribe(Tenant $tenant, int $planId, BillingProvider $provider, ?string $paymentMethod = null): array
     {
-        $plan = $this->planService->findBySlug($planSlug);
+        $plan = $this->planService->find($planId);
         $driver = $this->driverForProvider($provider);
 
         if (!$driver->isConfigured()) {
@@ -124,9 +124,9 @@ class BillingService
      * @param BillingProvider|null $provider
      * @return array<string, mixed>
      */
-    public function swapPlan(Tenant $tenant, string $planSlug, ?BillingProvider $provider = null): array
+    public function swapPlan(Tenant $tenant, int $planId, ?BillingProvider $provider = null): array
     {
-        $plan = $this->planService->findBySlug($planSlug);
+        $plan = $this->planService->find($planId);
         $driver = $provider !== null
             ? $this->driverForProvider($provider)
             : $this->driverForTenant($tenant);

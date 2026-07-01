@@ -4,50 +4,79 @@ declare(strict_types=1);
 
 namespace App\Exports\Central;
 
+use App\Exports\Central\Concerns\BaseCentralExport;
 use App\Models\Central\Tenant;
 use Illuminate\Support\Collection;
-use Maatwebsite\Excel\Concerns\FromCollection;
-use Maatwebsite\Excel\Concerns\WithHeadings;
-use Maatwebsite\Excel\Concerns\WithMapping;
 
 /**
- * @implements WithMapping<Tenant>
+ * @extends BaseCentralExport<Tenant>
  */
-class TenantsExport implements FromCollection, WithHeadings, WithMapping
+class TenantsExport extends BaseCentralExport
 {
     /**
      * @param  Collection<int, Tenant>  $tenants
+     * @param  list<string>|null  $columns
      */
-    public function __construct(private readonly Collection $tenants) {}
-
-    public function collection(): Collection
+    public function __construct(Collection $tenants, ?array $columns = null)
     {
-        return $this->tenants;
+        parent::__construct($tenants, $columns);
     }
 
     /**
      * @return list<string>
      */
-    public function headings(): array
+    public static function availableColumns(): array
     {
-        return ['ID', 'Name', 'Slug', 'Email', 'Phone', 'Plan', 'Status', 'Created At'];
+        return [
+            'id',
+            'name',
+            'slug',
+            'email',
+            'phone',
+            'plan',
+            'status',
+            'created_at',
+        ];
     }
 
     /**
-     * @param  Tenant  $tenant
-     * @return list<string|null>
+     * @return array<string, array{heading: string, map: callable(Tenant): (string|null)}>
      */
-    public function map($tenant): array
+    protected function columnDefinitions(): array
     {
         return [
-            $tenant->id,
-            $tenant->name,
-            $tenant->slug,
-            $tenant->email,
-            $tenant->phone,
-            $tenant->plan,
-            $tenant->status->value ?? (string) $tenant->status,
-            $tenant->created_at?->toDateTimeString(),
+            'id' => [
+                'heading' => 'ID',
+                'map' => fn (Tenant $tenant) => $tenant->id,
+            ],
+            'name' => [
+                'heading' => 'Name',
+                'map' => fn (Tenant $tenant) => $tenant->name,
+            ],
+            'slug' => [
+                'heading' => 'Slug',
+                'map' => fn (Tenant $tenant) => $tenant->slug,
+            ],
+            'email' => [
+                'heading' => 'Email',
+                'map' => fn (Tenant $tenant) => $tenant->email,
+            ],
+            'phone' => [
+                'heading' => 'Phone',
+                'map' => fn (Tenant $tenant) => $tenant->phone,
+            ],
+            'plan' => [
+                'heading' => 'Plan',
+                'map' => fn (Tenant $tenant) => $tenant->plan?->slug,
+            ],
+            'status' => [
+                'heading' => 'Status',
+                'map' => fn (Tenant $tenant) => $tenant->status->value ?? (string) $tenant->status,
+            ],
+            'created_at' => [
+                'heading' => 'Created At',
+                'map' => fn (Tenant $tenant) => $tenant->created_at?->toDateTimeString(),
+            ],
         ];
     }
 }

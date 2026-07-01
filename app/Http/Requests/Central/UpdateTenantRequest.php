@@ -28,7 +28,7 @@ class UpdateTenantRequest extends FormRequest
             'name' => ['sometimes', 'string', 'max:255'],
             'email' => ['nullable', 'email', 'max:255'],
             'phone' => ['nullable', 'string', 'max:30'],
-            'plan' => ['nullable', 'string', 'max:100'],
+            'plan_id' => ['nullable', 'integer', Rule::exists('plans', 'id')],
             'trial_ends_at' => ['nullable', 'date'],
         ];
     }

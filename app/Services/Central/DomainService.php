@@ -79,11 +79,22 @@ class DomainService
     /**
      * Delete a domain.
      *
-     * @param Domain $domain
-     * @return void
+     * @throws ValidationException
      */
     public function delete(Domain $domain): void
     {
+        if ($domain->is_primary) {
+            throw ValidationException::withMessages([
+                'domain' => 'Cannot delete the primary domain. Set another domain as primary first.',
+            ]);
+        }
+
+        if ($domain->tenant->domains()->count() <= 1) {
+            throw ValidationException::withMessages([
+                'domain' => 'Cannot delete the last domain for this tenant.',
+            ]);
+        }
+
         $domain->delete();
     }
 

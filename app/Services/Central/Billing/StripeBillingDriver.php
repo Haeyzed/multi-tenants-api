@@ -51,7 +51,7 @@ class StripeBillingDriver implements BillingDriverInterface
 
         return [
             'provider' => BillingProvider::Stripe->value,
-            'plan' => $tenant->plan,
+            'plan' => $tenant->loadMissing('plan')->plan?->slug,
             'on_trial' => $tenant->onTrial(),
             'trial_ends_at' => $tenant->trial_ends_at?->toIso8601String(),
             'subscribed' => $tenant->subscribed('default'),
@@ -80,7 +80,7 @@ class StripeBillingDriver implements BillingDriverInterface
         if ($paymentMethod !== null) {
             $tenant->createOrGetStripeCustomer();
             $subscription = $tenant->newSubscription('default', $priceId)->create($paymentMethod);
-            $tenant->update(['plan' => $plan->slug, 'billing_provider' => BillingProvider::Stripe->value]);
+            $tenant->update(['plan_id' => $plan->id, 'billing_provider' => BillingProvider::Stripe->value]);
 
             return [
                 'mode' => 'subscription',
@@ -182,7 +182,7 @@ class StripeBillingDriver implements BillingDriverInterface
         }
 
         $tenant->subscription('default')?->swap($priceId);
-        $tenant->update(['plan' => $plan->slug, 'billing_provider' => BillingProvider::Stripe->value]);
+        $tenant->update(['plan_id' => $plan->id, 'billing_provider' => BillingProvider::Stripe->value]);
 
         return $this->subscriptionSummary($tenant->fresh());
     }

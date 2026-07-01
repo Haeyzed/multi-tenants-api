@@ -69,14 +69,15 @@ abstract class AbstractGatewayBillingDriver implements BillingDriverInterface
      */
     public function subscriptionSummary(Tenant $tenant): array
     {
+        $tenant->loadMissing('plan');
         $subscription = $this->subscriptionFor($tenant);
 
         return [
             'provider' => $this->provider()->value,
-            'plan' => $tenant->plan,
+            'plan' => $tenant->plan?->slug,
             'on_trial' => $subscription?->status === PlatformSubscriptionStatus::Trialing || $tenant->onTrial(),
             'trial_ends_at' => $subscription?->trial_ends_at?->toIso8601String() ?? $tenant->trial_ends_at?->toIso8601String(),
-            'subscribed' => $subscription?->isActive() ?? filled($tenant->plan),
+            'subscribed' => $subscription?->isActive() ?? filled($tenant->plan_id),
             'subscription' => $subscription ? $this->formatSubscription($subscription) : null,
         ];
     }
@@ -124,7 +125,7 @@ abstract class AbstractGatewayBillingDriver implements BillingDriverInterface
         ]);
 
         $tenant->update([
-            'plan' => $plan->slug,
+            'plan_id' => $plan->id,
             'billing_provider' => $this->provider()->value,
             'trial_ends_at' => $subscription->trial_ends_at,
         ]);
@@ -222,7 +223,7 @@ abstract class AbstractGatewayBillingDriver implements BillingDriverInterface
         ]);
 
         $tenant->update([
-            'plan' => $plan->slug,
+            'plan_id' => $plan->id,
             'billing_provider' => $this->provider()->value,
         ]);
 

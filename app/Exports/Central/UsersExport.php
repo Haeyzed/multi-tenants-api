@@ -4,48 +4,62 @@ declare(strict_types=1);
 
 namespace App\Exports\Central;
 
+use App\Exports\Central\Concerns\BaseCentralExport;
 use App\Models\Central\CentralUser;
 use Illuminate\Support\Collection;
-use Maatwebsite\Excel\Concerns\FromCollection;
-use Maatwebsite\Excel\Concerns\WithHeadings;
-use Maatwebsite\Excel\Concerns\WithMapping;
 
 /**
- * @implements WithMapping<CentralUser>
+ * @extends BaseCentralExport<CentralUser>
  */
-class UsersExport implements FromCollection, WithHeadings, WithMapping
+class UsersExport extends BaseCentralExport
 {
     /**
      * @param  Collection<int, CentralUser>  $users
+     * @param  list<string>|null  $columns
      */
-    public function __construct(private readonly Collection $users) {}
-
-    public function collection(): Collection
+    public function __construct(Collection $users, ?array $columns = null)
     {
-        return $this->users;
+        parent::__construct($users, $columns);
     }
 
     /**
      * @return list<string>
      */
-    public function headings(): array
+    public static function availableColumns(): array
     {
-        return ['ID', 'Name', 'Email', 'Phone', 'Active', 'Created At'];
+        return ['id', 'name', 'email', 'phone', 'is_active', 'created_at'];
     }
 
     /**
-     * @param  CentralUser  $user
-     * @return list<string|null>
+     * @return array<string, array{heading: string, map: callable(CentralUser): (string|null)}>
      */
-    public function map($user): array
+    protected function columnDefinitions(): array
     {
         return [
-            (string) $user->id,
-            $user->name,
-            $user->email,
-            $user->phone,
-            $user->is_active ? 'Yes' : 'No',
-            $user->created_at?->toDateTimeString(),
+            'id' => [
+                'heading' => 'ID',
+                'map' => fn (CentralUser $user) => (string) $user->id,
+            ],
+            'name' => [
+                'heading' => 'Name',
+                'map' => fn (CentralUser $user) => $user->name,
+            ],
+            'email' => [
+                'heading' => 'Email',
+                'map' => fn (CentralUser $user) => $user->email,
+            ],
+            'phone' => [
+                'heading' => 'Phone',
+                'map' => fn (CentralUser $user) => $user->phone,
+            ],
+            'is_active' => [
+                'heading' => 'Active',
+                'map' => fn (CentralUser $user) => $user->is_active ? 'Yes' : 'No',
+            ],
+            'created_at' => [
+                'heading' => 'Created At',
+                'map' => fn (CentralUser $user) => $user->created_at?->toDateTimeString(),
+            ],
         ];
     }
 }

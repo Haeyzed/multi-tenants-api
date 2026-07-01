@@ -188,10 +188,10 @@ class PlanService
         return Plan::query()
             ->where('is_active', true)
             ->orderBy('name')
-            ->get(['name', 'slug'])
+            ->get(['id', 'name'])
             ->map(fn (Plan $plan) => [
                 'label' => $plan->name,
-                'value' => $plan->slug,
+                'value' => $plan->id,
             ]);
     }
 }

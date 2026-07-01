@@ -11,6 +11,11 @@ use Laravel\Sanctum\Sanctum;
 
 uses(RefreshDatabase::class);
 
+function planId(string $slug): int
+{
+    return (int) Plan::query()->where('slug', $slug)->value('id');
+}
+
 beforeEach(function (): void {
     $this->seed(CentralRolePermissionSeeder::class);
     $this->seed(PlanSeeder::class);
@@ -24,7 +29,7 @@ it('subscribes a tenant in stub billing mode with stripe', function (): void {
     $tenant = \App\Models\Central\Tenant::factory()->create();
 
     $response = $this->postJson("/api/v1/central/tenants/{$tenant->id}/subscribe", [
-        'plan' => 'pro',
+        'plan_id' => planId('pro'),
         'provider' => 'stripe',
     ]);
 
@@ -32,7 +37,8 @@ it('subscribes a tenant in stub billing mode with stripe', function (): void {
         ->assertJsonPath('data.mode', 'stub')
         ->assertJsonPath('data.plan', 'pro');
 
-    expect($tenant->fresh()->plan)->toBe('pro')
+    expect($tenant->fresh()->plan_id)->toBe(planId('pro'))
+        ->and($tenant->fresh()->plan?->slug)->toBe('pro')
         ->and($tenant->fresh()->billing_provider)->toBe('stripe');
 });
 
@@ -40,7 +46,7 @@ it('subscribes a tenant in stub billing mode with paddle', function (): void {
     $tenant = \App\Models\Central\Tenant::factory()->create();
 
     $response = $this->postJson("/api/v1/central/tenants/{$tenant->id}/subscribe", [
-        'plan' => 'starter',
+        'plan_id' => planId('starter'),
         'provider' => 'paddle',
     ]);
 
@@ -55,7 +61,7 @@ it('subscribes a tenant in stub billing mode with paystack', function (): void {
     $tenant = \App\Models\Central\Tenant::factory()->create();
 
     $response = $this->postJson("/api/v1/central/tenants/{$tenant->id}/subscribe", [
-        'plan' => 'pro',
+        'plan_id' => planId('pro'),
         'provider' => 'paystack',
     ]);
 
@@ -70,7 +76,7 @@ it('subscribes a tenant in stub billing mode with paypal', function (): void {
     $tenant = \App\Models\Central\Tenant::factory()->create();
 
     $response = $this->postJson("/api/v1/central/tenants/{$tenant->id}/subscribe", [
-        'plan' => 'starter',
+        'plan_id' => planId('starter'),
         'provider' => 'paypal',
     ]);
 
@@ -85,7 +91,7 @@ it('subscribes a tenant in stub billing mode with flutterwave', function (): voi
     $tenant = \App\Models\Central\Tenant::factory()->create();
 
     $response = $this->postJson("/api/v1/central/tenants/{$tenant->id}/subscribe", [
-        'plan' => 'enterprise',
+        'plan_id' => planId('enterprise'),
         'provider' => 'flutterwave',
     ]);
 
@@ -97,8 +103,7 @@ it('subscribes a tenant in stub billing mode with flutterwave', function (): voi
 });
 
 it('activates a gateway subscription from webhook payload', function (): void {
-    $tenant = \App\Models\Central\Tenant::factory()->create([
-        'plan' => 'pro',
+    $tenant = \App\Models\Central\Tenant::factory()->withPlan('pro')->create([
         'billing_provider' => 'paystack',
     ]);
 
@@ -122,7 +127,7 @@ it('activates a gateway subscription from webhook payload', function (): void {
 });
 
 it('returns billing plans and subscription summary', function (): void {
-    $tenant = \App\Models\Central\Tenant::factory()->create(['plan' => 'starter']);
+    $tenant = \App\Models\Central\Tenant::factory()->withPlan('starter')->create();
 
     $this->getJson('/api/v1/central/billing/plans')
         ->assertSuccessful()

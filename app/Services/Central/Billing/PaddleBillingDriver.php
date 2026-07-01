@@ -50,7 +50,7 @@ class PaddleBillingDriver implements BillingDriverInterface
 
         return [
             'provider' => BillingProvider::Paddle->value,
-            'plan' => $tenant->plan,
+            'plan' => $tenant->loadMissing('plan')->plan?->slug,
             'on_trial' => $account?->onTrial() ?? $tenant->onTrial(),
             'trial_ends_at' => $tenant->trial_ends_at?->toIso8601String(),
             'subscribed' => $account?->subscribed('default') ?? false,
@@ -174,7 +174,7 @@ class PaddleBillingDriver implements BillingDriverInterface
         }
 
         $this->accountFor($tenant)?->subscription('default')?->swap($priceId);
-        $tenant->update(['plan' => $plan->slug, 'billing_provider' => BillingProvider::Paddle->value]);
+            $tenant->update(['plan_id' => $plan->id, 'billing_provider' => BillingProvider::Paddle->value]);
 
         return $this->subscriptionSummary($tenant->fresh());
     }

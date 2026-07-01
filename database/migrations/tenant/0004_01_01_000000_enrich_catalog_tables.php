@@ -100,7 +100,7 @@ return new class extends Migration
             $table->unsignedInteger('sort_order')->default(0);
             $table->timestamps();
 
-            $table->unique(['product_id', 'related_product_id', 'relation_type']);
+            $table->unique(['product_id', 'related_product_id', 'relation_type'], 'prod_rel_unique');
             $table->index(['product_id', 'relation_type']);
         });
 
@@ -158,8 +158,8 @@ return new class extends Migration
             $table->string('customer_group_id')->nullable();
             $table->timestamps();
 
-            $table->index(['product_id', 'variant_id', 'customer_group_id']);
-            $table->index(['product_id', 'min_quantity', 'max_quantity']);
+            $table->index(['product_id', 'variant_id', 'customer_group_id'], 'ppt_prod_var_group_idx');
+            $table->index(['product_id', 'min_quantity', 'max_quantity'], 'ppt_prod_qty_idx');
         });
     }
 

@@ -65,7 +65,7 @@ return new class extends Migration
             $table->unsignedInteger('sort_order')->default(0);
             $table->timestamps();
 
-            $table->unique(['product_id', 'included_product_id', 'included_variant_id']);
+            $table->unique(['product_id', 'included_product_id', 'included_variant_id'], 'prod_combo_item_unique');
             $table->index(['product_id', 'sort_order']);
         });
 

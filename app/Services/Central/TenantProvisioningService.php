@@ -35,7 +35,7 @@ class TenantProvisioningService
                 'email' => $data['email'] ?? null,
                 'phone' => $data['phone'] ?? null,
                 'status' => $data['status'] ?? TenantStatus::Pending->value,
-                'plan' => $data['plan'] ?? null,
+                'plan_id' => $data['plan_id'] ?? null,
                 'trial_ends_at' => $data['trial_ends_at'] ?? null,
                 'created_by' => $data['created_by'] ?? null,
                 'owner' => $data['owner'] ?? null,

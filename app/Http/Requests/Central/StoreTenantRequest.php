@@ -27,7 +27,7 @@ class StoreTenantRequest extends FormRequest
             'slug' => ['nullable', 'string', 'max:255', 'alpha_dash', 'unique:tenants,slug'],
             'email' => ['nullable', 'email', 'max:255'],
             'phone' => ['nullable', 'string', 'max:30'],
-            'plan' => ['nullable', 'string', 'max:100', Rule::exists('plans', 'slug')],
+            'plan_id' => ['nullable', 'integer', Rule::exists('plans', 'id')],
             'trial_ends_at' => ['nullable', 'date'],
             'subdomain' => ['nullable', 'string', 'max:63', 'alpha_dash'],
             'owner' => ['required', 'array'],

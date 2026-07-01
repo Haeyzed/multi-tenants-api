@@ -5,29 +5,31 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Central;
 
 use App\Exports\Central\PlansExport;
+use App\Exports\Central\PlansImportSample;
 use App\Http\Controllers\ApiController;
+use App\Http\Controllers\Central\Concerns\ExportsSpreadsheets;
+use App\Http\Requests\Central\ExportResourceRequest;
 use App\Http\Requests\Central\StorePlanRequest;
 use App\Http\Requests\Central\UpdatePlanRequest;
 use App\Http\Resources\Central\PlanResource;
 use App\Imports\Central\PlansImport;
-use App\Models\Central\CentralUser;
 use App\Models\Central\Plan;
-use App\Services\Central\ExcelExportService;
 use App\Services\Central\PlanService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Mail;
 use Maatwebsite\Excel\Facades\Excel;
 use RuntimeException;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 /**
  * Manages platform subscription plans.
  */
 class PlanController extends ApiController
 {
+    use ExportsSpreadsheets;
+
     public function __construct(
         private readonly PlanService $planService,
-        private readonly ExcelExportService $excelExportService,
     ) {}
 
     /**
@@ -169,14 +171,10 @@ class PlanController extends ApiController
     {
         $this->authorize('viewAny', Plan::class);
 
-        $validated = $request->validate([
-            'ids' => ['nullable', 'array'],
-            'ids.*' => ['integer', 'exists:plans,id'],
-            'delivery' => ['sometimes', 'in:download,email'],
-            'start_date' => ['nullable', 'date'],
-            'end_date' => ['nullable', 'date', 'after_or_equal:start_date'],
-            'recipient_id' => ['nullable', 'integer', 'exists:users,id'],
-        ]);
+        $validated = $request->validate(ExportResourceRequest::rules(
+            PlansExport::availableColumns(),
+            ['integer', 'exists:plans,id'],
+        ));
 
         $plans = $this->planService->exportQuery(
             $validated['ids'] ?? null,
@@ -184,29 +182,25 @@ class PlanController extends ApiController
             $validated['end_date'] ?? null,
         );
 
-        $export = new PlansExport($plans);
-        $filename = 'plans-export.xlsx';
+        $export = new PlansExport($plans, $validated['columns'] ?? null);
 
-        if (($validated['delivery'] ?? 'download') === 'email') {
-            $content = $this->excelExportService->raw($export);
-            $recipient = isset($validated['recipient_id'])
-                ? CentralUser::query()->findOrFail($validated['recipient_id'])
-                : $request->user();
+        return $this->spreadsheetExport(
+            $request,
+            $export,
+            'plans-export',
+            'Plans Export',
+            'Your plans export is attached.',
+        );
+    }
 
-            Mail::raw('Your plans export is attached.', function ($message) use ($recipient, $content, $filename): void {
-                $message->to($recipient->email)
-                    ->subject('Plans Export')
-                    ->attachData(
-                        $content,
-                        $filename,
-                        ['mime' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet']
-                    );
-            });
+    /**
+     * Download a sample import template for plans.
+     */
+    public function importSample(Request $request): BinaryFileResponse
+    {
+        $this->authorize('create', Plan::class);
 
-            return $this->success(null, 'Export sent successfully.');
-        }
-
-        return $this->excelExportService->download($export, $filename);
+        return $this->importSampleDownload($request, new PlansImportSample(), 'plans');
     }
 
     /**

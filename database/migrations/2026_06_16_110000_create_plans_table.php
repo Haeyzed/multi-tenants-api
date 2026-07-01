@@ -32,10 +32,22 @@ return new class extends Migration
 
             $table->index(['is_active', 'sort_order']);
         });
+
+        Schema::table('tenants', function (Blueprint $table) {
+            $table->foreignId('plan_id')
+                ->nullable()
+                ->after('status')
+                ->constrained('plans')
+                ->nullOnDelete();
+        });
     }
 
     public function down(): void
     {
+        Schema::table('tenants', function (Blueprint $table) {
+            $table->dropConstrainedForeignId('plan_id');
+        });
+
         Schema::dropIfExists('plans');
     }
 };

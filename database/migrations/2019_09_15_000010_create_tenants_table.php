@@ -18,7 +18,6 @@ return new class extends Migration
             $table->string('email')->nullable();
             $table->string('phone', 30)->nullable();
             $table->string('status', 20)->default(TenantStatus::Pending->value);
-            $table->string('plan')->nullable();
             $table->string('billing_provider', 30)->nullable();
             $table->string('stripe_id')->nullable()->index();
             $table->string('pm_type')->nullable();
