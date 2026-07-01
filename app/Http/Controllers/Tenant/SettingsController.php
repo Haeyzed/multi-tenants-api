@@ -59,6 +59,18 @@ class SettingsController extends ApiController
         ]);
     }
 
+    public function showPublic(): JsonResponse
+    {
+        $business = BusinessSetting::singleton();
+        $store = StoreSetting::singleton();
+
+        return $this->success([
+            'brand_name' => $store->store_name ?? $business->business_name,
+            'business_name' => $business->business_name,
+            'store_name' => $store->store_name,
+        ]);
+    }
+
     public function showBusiness(): JsonResponse
     {
         return $this->success(new BusinessSettingResource(BusinessSetting::singleton()));

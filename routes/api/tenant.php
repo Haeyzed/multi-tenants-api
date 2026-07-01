@@ -76,6 +76,7 @@ Route::prefix('v1/tenant')->group(function (): void {
         Route::get('geolocate', [WorldController::class, 'geolocate']);
     });
 
+    Route::get('settings/public', [SettingsController::class, 'showPublic']);
     Route::get('settings/business', [SettingsController::class, 'showBusiness']);
 
     Route::middleware('auth:sanctum')->group(function (): void {

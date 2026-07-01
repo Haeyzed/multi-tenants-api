@@ -6,6 +6,7 @@ namespace App\Providers;
 
 use App\Jobs\Central\CreateTenantOwner;
 use App\Jobs\Central\FinalizeTenantProvisioning;
+use App\Jobs\Central\SeedTenantSettings;
 use App\Jobs\Central\RaiseProvisioningTimeLimit;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Route;
@@ -32,6 +33,7 @@ class TenancyServiceProvider extends ServiceProvider
                     Jobs\CreateDatabase::class,
                     Jobs\MigrateDatabase::class,
                     Jobs\SeedDatabase::class,
+                    SeedTenantSettings::class,
                     CreateTenantOwner::class,
                     FinalizeTenantProvisioning::class,
                 ])->send(function (Events\TenantCreated $event) {
