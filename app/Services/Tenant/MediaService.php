@@ -443,9 +443,10 @@ class MediaService
         $outputTemp = $tempDirectory.'/'.Str::uuid()->toString().'.png';
 
         file_put_contents($inputTemp, $disk->get($sourcePath));
+        $processInput = $this->optimizeImageForBackgroundRemoval($inputTemp, $tempDirectory);
 
         try {
-            app(BackgroundRemover::class)->remove($inputTemp, $outputTemp);
+            app(BackgroundRemover::class)->remove($processInput, $outputTemp);
 
             $outputContents = file_get_contents($outputTemp);
 
@@ -489,6 +490,10 @@ class MediaService
 
             return $newMedia->fresh(['folder', 'uploader']);
         } finally {
+            if ($processInput !== $inputTemp && is_file($processInput)) {
+                unlink($processInput);
+            }
+
             if (is_file($inputTemp)) {
                 unlink($inputTemp);
             }
@@ -497,6 +502,54 @@ class MediaService
                 unlink($outputTemp);
             }
         }
+    }
+
+    /**
+     * Downscale very large images before rembg to reduce processing time on CPU.
+     */
+    private function optimizeImageForBackgroundRemoval(string $inputPath, string $tempDirectory): string
+    {
+        $info = @getimagesize($inputPath);
+
+        if ($info === false) {
+            return $inputPath;
+        }
+
+        $width = (int) ($info[0] ?? 0);
+        $height = (int) ($info[1] ?? 0);
+        $maxDimension = (int) config('background-removal.max_dimension', 1920);
+
+        if ($width <= 0 || $height <= 0 || ($width <= $maxDimension && $height <= $maxDimension)) {
+            return $inputPath;
+        }
+
+        $mime = (string) ($info['mime'] ?? '');
+        $source = match ($mime) {
+            'image/jpeg' => @imagecreatefromjpeg($inputPath),
+            'image/png' => @imagecreatefrompng($inputPath),
+            'image/webp' => function_exists('imagecreatefromwebp') ? @imagecreatefromwebp($inputPath) : false,
+            default => false,
+        };
+
+        if ($source === false) {
+            return $inputPath;
+        }
+
+        $ratio = min($maxDimension / $width, $maxDimension / $height);
+        $targetWidth = max(1, (int) round($width * $ratio));
+        $targetHeight = max(1, (int) round($height * $ratio));
+        $resized = imagescale($source, $targetWidth, $targetHeight, IMG_BILINEAR_FIXED);
+        imagedestroy($source);
+
+        if ($resized === false) {
+            return $inputPath;
+        }
+
+        $optimizedPath = $tempDirectory.'/'.Str::uuid()->toString().'.jpg';
+        imagejpeg($resized, $optimizedPath, 90);
+        imagedestroy($resized);
+
+        return is_file($optimizedPath) ? $optimizedPath : $inputPath;
     }
 
     /**

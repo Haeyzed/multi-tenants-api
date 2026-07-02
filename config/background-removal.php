@@ -29,9 +29,20 @@ return [
         env('MEDIA_LIBRARY_MAX_FILE_SIZE', 10 * 1024 * 1024),
     ),
 
+    /*
+    |--------------------------------------------------------------------------
+    | Maximum Image Dimension Before Processing
+    |--------------------------------------------------------------------------
+    |
+    | Large images are downscaled before rembg to reduce CPU time on local dev.
+    |
+    */
+
+    'max_dimension' => (int) env('BACKGROUND_REMOVAL_MAX_DIMENSION', 1920),
+
     'rembg' => [
         'binary' => env('REMBG_BINARY', 'rembg'),
-        'timeout' => (int) env('REMBG_TIMEOUT', 120),
+        'timeout' => (int) env('REMBG_TIMEOUT', 300),
     ],
 
 ];

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Services\Media;
 
 use App\Contracts\BackgroundRemover;
+use Illuminate\Process\Exceptions\ProcessTimedOutException;
 use Illuminate\Support\Facades\Process;
 use RuntimeException;
 
@@ -16,14 +17,21 @@ class RembgBackgroundRemover implements BackgroundRemover
     public function remove(string $inputPath, string $outputPath): void
     {
         $binary = (string) config('background-removal.rembg.binary', 'rembg');
-        $timeout = (int) config('background-removal.rembg.timeout', 120);
+        $timeout = (int) config('background-removal.rembg.timeout', 300);
 
-        $result = Process::timeout($timeout)->run([
-            $binary,
-            'i',
-            $inputPath,
-            $outputPath,
-        ]);
+        try {
+            $result = Process::timeout($timeout)->run([
+                $binary,
+                'i',
+                $inputPath,
+                $outputPath,
+            ]);
+        } catch (ProcessTimedOutException) {
+            throw new RuntimeException(
+                "Background removal timed out after {$timeout} seconds. "
+                .'Large images take longer on CPU — try a smaller image or increase REMBG_TIMEOUT in .env.',
+            );
+        }
 
         if (! $result->successful()) {
             $error = trim($result->errorOutput()) ?: trim($result->output());

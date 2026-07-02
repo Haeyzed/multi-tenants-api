@@ -16,12 +16,16 @@ class RemoveMediaBackgroundJob implements ShouldQueue
 {
     use Queueable;
 
-    public int $timeout = 180;
+    public int $timeout;
+
+    public int $tries = 1;
 
     public function __construct(
         public int $mediaId,
         public int|string|null $uploadedBy = null,
-    ) {}
+    ) {
+        $this->timeout = (int) config('background-removal.rembg.timeout', 300) + 120;
+    }
 
     public function handle(MediaService $service): void
     {
