@@ -36,4 +36,24 @@ class BrandPolicy
     {
         return $user->can('brands.delete');
     }
+
+    public function deleteAny(TenantUser $user): bool
+    {
+        return $user->can('brands.delete');
+    }
+
+    public function restore(TenantUser $user, Brand $brand): bool
+    {
+        return $user->can('brands.delete');
+    }
+
+    public function restoreAny(TenantUser $user): bool
+    {
+        return $user->can('brands.delete');
+    }
+
+    public function forceDelete(TenantUser $user, Brand $brand): bool
+    {
+        return $user->can('brands.delete');
+    }
 }

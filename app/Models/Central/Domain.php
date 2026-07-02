@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Models\Central;
 
 use App\Enums\Central\DomainVerificationStatus;
+use App\Support\Tenancy\TenantDomain;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Stancl\Tenancy\Database\Models\Domain as BaseDomain;
 
@@ -48,10 +49,6 @@ class Domain extends BaseDomain
 
     public function getFullDomainAttribute(): string
     {
-        if (str_contains($this->domain, '.')) {
-            return $this->domain;
-        }
-
-        return $this->domain.'.'.config('app.tenant_base_domain', 'multi-tenants-api.test');
+        return TenantDomain::qualify($this->domain);
     }
 }

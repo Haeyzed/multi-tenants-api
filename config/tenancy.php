@@ -5,6 +5,8 @@ declare(strict_types=1);
 use App\Models\Central\Domain;
 use App\Models\Central\Tenant;
 use App\Tenancy\SlugTenantIdGenerator;
+use Stancl\Tenancy\Middleware\InitializeTenancyByDomain;
+use Stancl\Tenancy\Middleware\PreventAccessFromCentralDomains;
 
 return [
     'tenant_model' => Tenant::class,
@@ -21,6 +23,24 @@ return [
         '127.0.0.1',
         'localhost',
         'multi-tenants-api.test',
+    ],
+
+    /**
+     * Base domain for tenant subdomains (e.g. softmaxtech + this = softmaxtech.multi-tenants-api.test).
+     * Subdomains are stored fully qualified in domains.domain — matching Stancl tenancy resolution.
+     */
+    'tenant_base_domain' => env('TENANT_BASE_DOMAIN', 'multi-tenants-api.test'),
+
+    /**
+     * Middleware applied to tenant API routes (see routes/tenant.php).
+     *
+     * Uses InitializeTenancyByDomain because domains.domain stores the full hostname
+     * (e.g. softmaxtech.multi-tenants-api.test), matching Stancl asset routes.
+     */
+    'middleware' => [
+        'api',
+        InitializeTenancyByDomain::class,
+        PreventAccessFromCentralDomains::class,
     ],
 
     /**

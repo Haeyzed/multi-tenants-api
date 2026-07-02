@@ -6,10 +6,7 @@ namespace App\Services\Tenant;
 
 use App\Models\Tenant\Brand;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
-use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Collection;
-use Spatie\MediaLibrary\MediaCollections\Exceptions\FileDoesNotExist;
-use Spatie\MediaLibrary\MediaCollections\Exceptions\FileIsTooBig;
 
 /**
  * Manages product brands within a tenant store.
@@ -19,13 +16,13 @@ class BrandService
     /**
      * Paginate the brands.
      *
-     * @param array<string, mixed> $filters
-     * @param int $perPage
+     * @param  array<string, mixed>  $filters
      * @return LengthAwarePaginator<int, Brand>
      */
     public function paginate(array $filters = [], int $perPage = 15): LengthAwarePaginator
     {
         return Brand::query()
+            ->with(['logoMedia', 'bannerMedia'])
             ->latest()
             ->filter($filters)
             ->paginate($perPage);
@@ -33,62 +30,40 @@ class BrandService
 
     /**
      * Find a brand by ID.
-     *
-     * @param int $id
-     * @return Brand
      */
     public function find(int $id): Brand
     {
-        return Brand::query()->findOrFail($id);
+        return Brand::query()
+            ->with(['logoMedia', 'bannerMedia'])
+            ->findOrFail($id);
     }
 
     /**
      * Create a new brand.
      *
-     * @param array<string, mixed> $data
-     * @param UploadedFile|null $logo
-     * @return Brand
-     * @throws FileDoesNotExist
-     * @throws FileIsTooBig
+     * @param  array<string, mixed>  $data
      */
-    public function create(array $data, ?UploadedFile $logo = null): Brand
+    public function create(array $data): Brand
     {
         $brand = Brand::query()->create($data);
 
-        if ($logo !== null) {
-            $brand->addMedia($logo)->toMediaCollection('logo');
-        }
-
-        return $brand->fresh();
+        return $brand->fresh(['logoMedia', 'bannerMedia']);
     }
 
     /**
      * Update a brand.
      *
-     * @param Brand $brand
-     * @param array<string, mixed> $data
-     * @param UploadedFile|null $logo
-     * @return Brand
-     * @throws FileDoesNotExist
-     * @throws FileIsTooBig
+     * @param  array<string, mixed>  $data
      */
-    public function update(Brand $brand, array $data, ?UploadedFile $logo = null): Brand
+    public function update(Brand $brand, array $data): Brand
     {
         $brand->update($data);
 
-        if ($logo !== null) {
-            $brand->clearMediaCollection('logo');
-            $brand->addMedia($logo)->toMediaCollection('logo');
-        }
-
-        return $brand->fresh();
+        return $brand->fresh(['logoMedia', 'bannerMedia']);
     }
 
     /**
      * Delete a brand.
-     *
-     * @param Brand $brand
-     * @return void
      */
     public function delete(Brand $brand): void
     {
@@ -98,8 +73,7 @@ class BrandService
     /**
      * Delete multiple brands by ID.
      *
-     * @param list<int> $ids
-     * @return int
+     * @param  list<int>  $ids
      */
     public function deleteMany(array $ids): int
     {
@@ -108,9 +82,6 @@ class BrandService
 
     /**
      * Force delete a brand permanently.
-     *
-     * @param Brand $brand
-     * @return void
      */
     public function forceDelete(Brand $brand): void
     {
@@ -119,25 +90,74 @@ class BrandService
 
     /**
      * Restore a soft-deleted brand.
-     *
-     * @param Brand $brand
-     * @return Brand
      */
     public function restore(Brand $brand): Brand
     {
         $brand->restore();
 
-        return $brand->fresh();
+        return $brand->fresh(['logoMedia', 'bannerMedia']);
     }
 
     /**
      * Restore multiple soft-deleted brands by ID.
      *
-     * @param list<int> $ids
-     * @return int
+     * @param  list<int>  $ids
      */
     public function restoreMany(array $ids): int
     {
         return Brand::query()->onlyTrashed()->whereIn('id', $ids)->restore();
+    }
+
+    /**
+     * @param  list<int>|null  $ids
+     * @return Collection<int, Brand>
+     */
+    public function exportQuery(
+        ?array $ids = null,
+        ?string $startDate = null,
+        ?string $endDate = null,
+    ): Collection {
+        $query = Brand::query()->latest();
+
+        if ($ids !== null && $ids !== []) {
+            $query->whereIn('id', $ids);
+        }
+
+        if ($startDate !== null) {
+            $query->whereDate('created_at', '>=', $startDate);
+        }
+
+        if ($endDate !== null) {
+            $query->whereDate('created_at', '<=', $endDate);
+        }
+
+        return $query->get();
+    }
+
+    /**
+     * @return array{total: int, visible: int, hidden: int}
+     */
+    public function statistics(): array
+    {
+        return [
+            'total' => Brand::query()->count(),
+            'visible' => Brand::query()->where('is_visible', true)->count(),
+            'hidden' => Brand::query()->where('is_visible', false)->count(),
+        ];
+    }
+
+    /**
+     * @return Collection<int, array{label: string, value: int}>
+     */
+    public function getOptions(): Collection
+    {
+        return Brand::query()
+            ->where('is_visible', true)
+            ->orderBy('name')
+            ->get(['id', 'name'])
+            ->map(fn (Brand $brand) => [
+                'label' => $brand->name,
+                'value' => $brand->id,
+            ]);
     }
 }

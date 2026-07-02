@@ -25,6 +25,7 @@ use Spatie\Sluggable\SlugOptions;
  * @property string|null $description
  * @property bool $is_visible
  * @property int|null $logo_media_id
+ * @property int|null $banner_media_id
  * @property string|null $meta_title
  * @property string|null $meta_description
  * @property string|null $website_url
@@ -34,6 +35,7 @@ use Spatie\Sluggable\SlugOptions;
  * @property Carbon|null $deleted_at
  * @property-read Collection<int, Product> $products
  * @property-read Media|null $logoMedia
+ * @property-read Media|null $bannerMedia
  * @method static Builder<Brand>|Brand query()
  * @method static Builder<Brand>|Brand filter(array $filters)
  */
@@ -51,6 +53,7 @@ class Brand extends Model
         'description',
         'is_visible',
         'logo_media_id',
+        'banner_media_id',
         'meta_title',
         'meta_description',
         'website_url',
@@ -108,6 +111,16 @@ class Brand extends Model
     public function logoMedia(): BelongsTo
     {
         return $this->belongsTo(Media::class, 'logo_media_id');
+    }
+
+    /**
+     * Banner media file for this brand.
+     *
+     * @return BelongsTo<Media, $this>
+     */
+    public function bannerMedia(): BelongsTo
+    {
+        return $this->belongsTo(Media::class, 'banner_media_id');
     }
 
     /**

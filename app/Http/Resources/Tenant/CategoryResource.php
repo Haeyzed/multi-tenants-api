@@ -29,10 +29,8 @@ class CategoryResource extends JsonResource
             'is_visible' => $this->is_visible,
             'sort_order' => $this->sort_order,
             'parent' => new CategoryResource($this->whenLoaded('parent')),
-            'image' => $this->when(
-                $this->relationLoaded('media') || $this->hasMedia('image'),
-                fn () => new MediaResource($this->getFirstMedia('image')),
-            ),
+            'image' => $this->whenLoaded('imageMedia', fn () => $this->imageMedia ? new MediaResource($this->imageMedia) : null),
+            'banner' => $this->whenLoaded('bannerMedia', fn () => $this->bannerMedia ? new MediaResource($this->bannerMedia) : null),
             'created_at' => $this->created_at?->toIso8601String(),
         ];
     }

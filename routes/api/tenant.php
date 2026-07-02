@@ -13,6 +13,8 @@ use App\Http\Controllers\Tenant\CustomerGroupController;
 use App\Http\Controllers\Tenant\DepartmentController;
 use App\Http\Controllers\Tenant\FlashSaleController;
 use App\Http\Controllers\Tenant\HrController;
+use App\Http\Controllers\Tenant\MediaController;
+use App\Http\Controllers\Tenant\MediaLibraryFolderController;
 use App\Http\Controllers\Tenant\NotificationController;
 use App\Http\Controllers\Tenant\OnboardingController;
 use App\Http\Controllers\Tenant\OrderController;
@@ -182,7 +184,12 @@ Route::prefix('v1/tenant')->group(function (): void {
         // -----------------------------------------------------------------------------
 
         Route::prefix('categories')->group(function (): void {
+            Route::get('statistics', [CategoryController::class, 'statistics']);
+            Route::get('options', [CategoryController::class, 'options']);
             Route::delete('bulk', [CategoryController::class, 'destroyMany']);
+            Route::post('export', [CategoryController::class, 'export']);
+            Route::get('import/sample', [CategoryController::class, 'importSample']);
+            Route::post('import', [CategoryController::class, 'import']);
             Route::post('bulk-restore', [CategoryController::class, 'restoreMany']);
             Route::post('{category}/restore', [CategoryController::class, 'restore'])->withTrashed();
             Route::delete('{category}/force', [CategoryController::class, 'forceDestroy'])->withTrashed();
@@ -190,12 +197,39 @@ Route::prefix('v1/tenant')->group(function (): void {
         Route::apiResource('categories', CategoryController::class);
 
         Route::prefix('brands')->group(function (): void {
+            Route::get('statistics', [BrandController::class, 'statistics']);
+            Route::get('options', [BrandController::class, 'options']);
             Route::delete('bulk', [BrandController::class, 'destroyMany']);
+            Route::post('export', [BrandController::class, 'export']);
+            Route::get('import/sample', [BrandController::class, 'importSample']);
+            Route::post('import', [BrandController::class, 'import']);
             Route::post('bulk-restore', [BrandController::class, 'restoreMany']);
             Route::post('{brand}/restore', [BrandController::class, 'restore'])->withTrashed();
             Route::delete('{brand}/force', [BrandController::class, 'forceDestroy'])->withTrashed();
         });
         Route::apiResource('brands', BrandController::class);
+
+        // -----------------------------------------------------------------------------
+        // Media Library
+        // -----------------------------------------------------------------------------
+
+        Route::prefix('media')->group(function (): void {
+            Route::get('statistics', [MediaController::class, 'statistics']);
+            Route::post('bulk-upload', [MediaController::class, 'bulkUpload']);
+            Route::post('move', [MediaController::class, 'move']);
+            Route::post('copy', [MediaController::class, 'copy']);
+            Route::patch('bulk', [MediaController::class, 'bulkUpdate']);
+            Route::delete('bulk', [MediaController::class, 'bulkDestroy']);
+            Route::post('{media}/move', [MediaController::class, 'moveOne']);
+            Route::post('{media}/copy', [MediaController::class, 'copyOne']);
+        });
+        Route::apiResource('media', MediaController::class)->parameters(['media' => 'media']);
+
+        Route::prefix('media-folders')->group(function (): void {
+            Route::get('tree', [MediaLibraryFolderController::class, 'tree']);
+            Route::delete('bulk', [MediaLibraryFolderController::class, 'bulkDestroy']);
+        });
+        Route::apiResource('media-folders', MediaLibraryFolderController::class)->parameters(['media-folders' => 'folder']);
 
         // Products
         Route::apiResource('products', ProductController::class);

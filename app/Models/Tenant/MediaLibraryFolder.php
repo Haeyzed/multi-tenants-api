@@ -84,6 +84,22 @@ class MediaLibraryFolder extends Model
     }
 
     /**
+     * @param  Builder<MediaLibraryFolder>  $query
+     * @param  array<string, mixed>  $filters
+     * @return Builder<MediaLibraryFolder>
+     */
+    public function scopeFilter(Builder $query, array $filters): Builder
+    {
+        return $query
+            ->when(! empty($filters['search']), function (Builder $q) use ($filters): void {
+                $q->search((string) $filters['search']);
+            })
+            ->when(array_key_exists('parent_id', $filters), function (Builder $q) use ($filters): void {
+                $q->where('parent_id', $filters['parent_id']);
+            });
+    }
+
+    /**
      * Get the attributes that should be cast.
      *
      * @return array<string, string>

@@ -105,6 +105,32 @@ class Media extends SpatieMedia
     }
 
     /**
+     * Scope a query to filter library media items.
+     *
+     * @param  Builder<Media>  $query
+     * @param  array<string, mixed>  $filters
+     * @return Builder<Media>
+     */
+    public function scopeFilter(Builder $query, array $filters): Builder
+    {
+        return $query
+            ->where('collection_name', 'library')
+            ->when(! empty($filters['search']), function (Builder $q) use ($filters): void {
+                $q->search((string) $filters['search']);
+            })
+            ->when(array_key_exists('folder_id', $filters), function (Builder $q) use ($filters): void {
+                $q->where('folder_id', $filters['folder_id']);
+            })
+            ->when(
+                ! array_key_exists('folder_id', $filters) && ! empty($filters['root_only']),
+                fn (Builder $q) => $q->whereNull('folder_id'),
+            )
+            ->when(! empty($filters['mime_type']), function (Builder $q) use ($filters): void {
+                $q->where('mime_type', 'like', $filters['mime_type'].'%');
+            });
+    }
+
+    /**
      * Public URL for the original file.
      *
      * @return string
@@ -112,7 +138,10 @@ class Media extends SpatieMedia
     public function getUrlAttribute(): string
     {
         if (tenancy()->initialized) {
-            return TenantMediaUrl::forPath($this->getPathRelativeToRoot());
+            return TenantMediaUrl::forPath(
+                $this->getPathRelativeToRoot(),
+                $this->disk,
+            );
         }
 
         return Storage::disk($this->disk)->url($this->getPathRelativeToRoot());
@@ -126,8 +155,10 @@ class Media extends SpatieMedia
      */
     public function getUrl(string $conversionName = ''): string
     {
+        $path = $this->getPathRelativeToRoot($conversionName);
+
         if (tenancy()->initialized) {
-            return TenantMediaUrl::forPath($this->getPathRelativeToRoot($conversionName));
+            return TenantMediaUrl::forPath($path, $this->disk);
         }
 
         return parent::getUrl($conversionName);

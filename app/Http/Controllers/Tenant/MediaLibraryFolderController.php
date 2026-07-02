@@ -30,8 +30,16 @@ class MediaLibraryFolderController extends ApiController
      */
     public function index(Request $request): JsonResponse
     {
-        $search = $request->query('search');
-        $items = $this->service->getAll(is_string($search) ? $search : null);
+        $filters = $request->validate([
+            'search' => ['nullable', 'string'],
+            'parent_id' => ['sometimes', 'nullable', 'integer', 'exists:media_library_folders,id'],
+        ]);
+
+        if ($request->has('parent_id')) {
+            $filters['parent_id'] = $request->input('parent_id');
+        }
+
+        $items = $this->service->list($filters);
 
         return $this->success(
             MediaLibraryFolderResource::collection($items),

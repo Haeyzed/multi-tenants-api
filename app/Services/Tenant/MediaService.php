@@ -22,7 +22,6 @@ use Throwable;
  */
 class MediaService
 {
-
     private const string LIBRARY_COLLECTION = 'library';
 
     private const string LIBRARY_MODEL_TYPE = MediaLibraryFolder::class;
@@ -42,34 +41,20 @@ class MediaService
     /**
      * Get paginated media library items.
      *
-     * @param  int  $perPage
-     * @param  string|null  $search
-     * @param  int|null  $folderId
-     * @param  string|null  $mimeType
-     * @param  bool  $rootOnly
+     * @param  array<string, mixed>  $filters
      * @return LengthAwarePaginator<int, Media>
      */
-    public function paginate(
-        int $perPage = 24,
-        ?string $search = null,
-        ?int $folderId = null,
-        ?string $mimeType = null,
-        bool $rootOnly = false,
-    ): LengthAwarePaginator {
-        return $this->query()
-            ->search($search)
-            ->when($folderId !== null, fn (Builder $q) => $q->where('folder_id', $folderId))
-            ->when($folderId === null && $rootOnly, fn (Builder $q) => $q->whereNull('folder_id'))
-            ->when($mimeType, fn (Builder $q) => $q->where('mime_type', 'like', "{$mimeType}%"))
+    public function paginate(array $filters = [], int $perPage = 24): LengthAwarePaginator
+    {
+        return Media::query()
+            ->with(['folder', 'uploader'])
+            ->filter($filters)
             ->orderByDesc('created_at')
             ->paginate($perPage);
     }
 
     /**
      * Find media by ID or fail.
-     *
-     * @param  int  $id
-     * @return Media
      */
     public function findOrFail(int $id): Media
     {
@@ -79,9 +64,7 @@ class MediaService
     /**
      * Upload a file into the media library.
      *
-     * @param  UploadedFile  $file
      * @param  array<string, mixed>  $meta
-     * @return Media
      */
     public function upload(UploadedFile $file, array $meta = []): Media
     {
@@ -95,7 +78,7 @@ class MediaService
             $storedName,
         );
 
-        return Media::query()->create([
+        $media = Media::query()->create([
             'folder_id' => $folderId,
             'model_type' => self::LIBRARY_MODEL_TYPE,
             'model_id' => $folderId ?? 0,
@@ -115,6 +98,8 @@ class MediaService
             'generated_conversions' => [],
             'responsive_images' => [],
         ]);
+
+        return $media->fresh(['folder', 'uploader']);
     }
 
     /**
@@ -138,9 +123,8 @@ class MediaService
     /**
      * Update media metadata and relocate the file when the folder changes.
      *
-     * @param Media $media
-     * @param array<string, mixed> $data
-     * @return Media
+     * @param  array<string, mixed>  $data
+     *
      * @throws Throwable
      */
     public function update(Media $media, array $data): Media
@@ -170,7 +154,6 @@ class MediaService
      * Move multiple library files into a folder.
      *
      * @param  list<int>  $ids
-     * @param  int|null  $folderId
      * @return list<Media>
      */
     public function moveMany(array $ids, ?int $folderId): array
@@ -188,7 +171,6 @@ class MediaService
      * Copy multiple library files into a folder.
      *
      * @param  list<int>  $ids
-     * @param  int|null  $folderId
      * @return list<Media>
      */
     public function copyMany(array $ids, ?int $folderId): array
@@ -229,9 +211,6 @@ class MediaService
 
     /**
      * Delete media and remove the underlying file from storage.
-     *
-     * @param  Media  $media
-     * @return bool
      */
     public function delete(Media $media): bool
     {
@@ -251,7 +230,6 @@ class MediaService
      * Delete multiple media items by ID.
      *
      * @param  list<int>  $ids
-     * @return int
      */
     public function deleteMany(array $ids): int
     {
@@ -268,9 +246,6 @@ class MediaService
 
     /**
      * Force delete a media item permanently.
-     *
-     * @param  Media  $media
-     * @return bool
      */
     public function forceDelete(Media $media): bool
     {
@@ -290,7 +265,6 @@ class MediaService
      * Force delete multiple media items by ID.
      *
      * @param  list<int>  $ids
-     * @return int
      */
     public function forceDeleteMany(array $ids): int
     {
@@ -307,9 +281,6 @@ class MediaService
 
     /**
      * Restore a soft-deleted media item.
-     *
-     * @param  Media  $media
-     * @return Media
      */
     public function restore(Media $media): Media
     {
@@ -322,7 +293,6 @@ class MediaService
      * Restore multiple soft-deleted media items by ID.
      *
      * @param  list<int>  $ids
-     * @return int
      */
     public function restoreMany(array $ids): int
     {
@@ -330,11 +300,9 @@ class MediaService
     }
 
     /**
-     * KPI card metrics for the media library.
-     *
-     * @return list<array{key: string, label: string, value: int|string|float}>
+     * @return array{total: int, images: int, storage_mb: float}
      */
-    public function getMetrics(): array
+    public function statistics(): array
     {
         $total = Media::query()->where('collection_name', self::LIBRARY_COLLECTION)->count();
         $images = Media::query()
@@ -346,18 +314,30 @@ class MediaService
             ->sum('size');
 
         return [
-            ['key' => 'total', 'label' => 'Total Files', 'value' => $total],
-            ['key' => 'images', 'label' => 'Images', 'value' => $images],
-            ['key' => 'total_size_mb', 'label' => 'Storage (MB)', 'value' => round($totalSize / 1024 / 1024, 2)],
+            'total' => $total,
+            'images' => $images,
+            'storage_mb' => round($totalSize / 1024 / 1024, 2),
         ];
     }
 
     /**
+     * Move a single library file into a folder.
+     */
+    public function moveOne(Media $media, ?int $folderId): Media
+    {
+        return $this->moveMany([$media->id], $folderId)[0];
+    }
+
+    /**
+     * Copy a single library file into a folder.
+     */
+    public function copyOne(Media $media, ?int $folderId): Media
+    {
+        return $this->copyMany([$media->id], $folderId)[0];
+    }
+
+    /**
      * Copy a single media file to a new folder.
-     *
-     * @param  Media  $media
-     * @param  int|null  $folderId
-     * @return Media
      */
     private function copy(Media $media, ?int $folderId): Media
     {
@@ -401,10 +381,6 @@ class MediaService
 
     /**
      * Relocate a library file to a new folder on the disk.
-     *
-     * @param  Media  $media
-     * @param  int|null  $folderId
-     * @return void
      */
     private function relocateLibraryFile(Media $media, ?int $folderId): void
     {
@@ -428,9 +404,6 @@ class MediaService
 
     /**
      * Get the directory path for a library folder.
-     *
-     * @param  int|null  $folderId
-     * @return string
      */
     private function libraryDirectory(?int $folderId): string
     {
@@ -439,10 +412,6 @@ class MediaService
 
     /**
      * Get the full path for a file within a library folder.
-     *
-     * @param  int|null  $folderId
-     * @param  string  $fileName
-     * @return string
      */
     private function libraryPath(?int $folderId, string $fileName): string
     {
@@ -468,9 +437,6 @@ class MediaService
 
     /**
      * Ensure the given media belongs to the library collection.
-     *
-     * @param  Media  $media
-     * @return void
      */
     private function assertLibraryMedia(Media $media): void
     {

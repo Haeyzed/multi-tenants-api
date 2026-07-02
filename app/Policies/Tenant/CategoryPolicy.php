@@ -36,4 +36,24 @@ class CategoryPolicy
     {
         return $user->can('categories.delete');
     }
+
+    public function deleteAny(TenantUser $user): bool
+    {
+        return $user->can('categories.delete');
+    }
+
+    public function restore(TenantUser $user, Category $category): bool
+    {
+        return $user->can('categories.delete');
+    }
+
+    public function restoreAny(TenantUser $user): bool
+    {
+        return $user->can('categories.delete');
+    }
+
+    public function forceDelete(TenantUser $user, Category $category): bool
+    {
+        return $user->can('categories.delete');
+    }
 }

@@ -17,7 +17,10 @@ class TenantAwareUrlGenerator extends DefaultUrlGenerator
 {
     public function getUrl(): string
     {
-        $url = TenantMediaUrl::forPath($this->getPathRelativeToRoot());
+        $url = TenantMediaUrl::forPath(
+            $this->getPathRelativeToRoot(),
+            $this->media->disk,
+        );
 
         return $this->versionUrl($url);
     }

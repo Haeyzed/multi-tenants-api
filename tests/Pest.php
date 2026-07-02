@@ -66,10 +66,10 @@ function initializeTenantForTest(string $role = 'store-owner'): object
     ]);
 
     $slug = 'test-'.\Illuminate\Support\Str::lower(\Illuminate\Support\Str::random(6));
-    $domain = $slug.'.multi-tenants-api.test';
+    $domain = \App\Support\Tenancy\TenantDomain::qualify($slug);
 
     $tenant->domains()->create([
-        'domain' => $slug,
+        'domain' => $domain,
         'is_primary' => true,
         'verification_status' => \App\Enums\Central\DomainVerificationStatus::Verified,
         'verified_at' => now(),

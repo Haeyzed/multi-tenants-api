@@ -4,31 +4,35 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Tenant;
 
+use App\Exports\Tenant\CategoriesExport;
+use App\Exports\Tenant\CategoriesImportSample;
 use App\Http\Controllers\ApiController;
+use App\Http\Controllers\Tenant\Concerns\ExportsSpreadsheets;
+use App\Http\Requests\Tenant\ExportResourceRequest;
 use App\Http\Requests\Tenant\StoreCategoryRequest;
 use App\Http\Requests\Tenant\UpdateCategoryRequest;
 use App\Http\Resources\Tenant\CategoryResource;
+use App\Imports\Tenant\CategoriesImport;
 use App\Models\Tenant\Category;
 use App\Services\Tenant\CategoryService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Spatie\MediaLibrary\MediaCollections\Exceptions\FileDoesNotExist;
-use Spatie\MediaLibrary\MediaCollections\Exceptions\FileIsTooBig;
+use Maatwebsite\Excel\Facades\Excel;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 /**
  * Manages product categories within a tenant store API.
  */
 class CategoryController extends ApiController
 {
+    use ExportsSpreadsheets;
+
     public function __construct(
         private readonly CategoryService $categoryService,
     ) {}
 
     /**
      * Get a paginated list of categories.
-     *
-     * @param  Request  $request
-     * @return JsonResponse
      */
     public function index(Request $request): JsonResponse
     {
@@ -36,7 +40,8 @@ class CategoryController extends ApiController
 
         $filters = $request->validate([
             'search' => ['nullable', 'string'],
-            'is_visible' => ['nullable', 'in:visible,hidden'],
+            'is_visible' => ['nullable', 'array'],
+            'is_visible.*' => ['string', 'in:visible,hidden'],
         ]);
 
         $categories = $this->categoryService->paginate(
@@ -49,32 +54,21 @@ class CategoryController extends ApiController
 
     /**
      * Create a new category.
-     *
-     * @param StoreCategoryRequest $request
-     * @return JsonResponse
-     * @throws FileDoesNotExist
-     * @throws FileIsTooBig
      */
     public function store(StoreCategoryRequest $request): JsonResponse
     {
         $this->authorize('create', Category::class);
 
-        $category = $this->categoryService->create(
-            $request->safe()->except(['image']),
-            $request->file('image'),
-        );
+        $category = $this->categoryService->create($request->validated());
 
         return $this->created(
-            new CategoryResource($category->load('logoMedia')), // Assuming you meant imageMedia if 'image' is the collection name, leaving as is based on your provided file
+            new CategoryResource($category),
             'Category created successfully.',
         );
     }
 
     /**
      * Get a single category.
-     *
-     * @param  Category  $category
-     * @return JsonResponse
      */
     public function show(Category $category): JsonResponse
     {
@@ -85,22 +79,13 @@ class CategoryController extends ApiController
 
     /**
      * Update an existing category.
-     *
-     * @param UpdateCategoryRequest $request
-     * @param Category $category
-     * @return JsonResponse
-     * @throws FileDoesNotExist
-     * @throws FileIsTooBig
      */
     public function update(UpdateCategoryRequest $request, Category $category): JsonResponse
     {
         $this->authorize('update', $category);
 
-        $category = $this->categoryService->update(
-            $category,
-            $request->safe()->except(['image']),
-            $request->file('image'),
-        );
+        $category = $this->categoryService->update($category, $request->validated());
+
         return $this->updated(
             new CategoryResource($category),
             'Category updated successfully.',
@@ -109,9 +94,6 @@ class CategoryController extends ApiController
 
     /**
      * Delete a category.
-     *
-     * @param  Category  $category
-     * @return JsonResponse
      */
     public function destroy(Category $category): JsonResponse
     {
@@ -123,10 +105,27 @@ class CategoryController extends ApiController
     }
 
     /**
+     * Get category options.
+     */
+    public function options(): JsonResponse
+    {
+        $this->authorize('viewAny', Category::class);
+
+        return $this->success($this->categoryService->getOptions(), 'Category options retrieved successfully.');
+    }
+
+    /**
+     * Get category statistics.
+     */
+    public function statistics(): JsonResponse
+    {
+        $this->authorize('viewAny', Category::class);
+
+        return $this->success($this->categoryService->statistics(), 'Category statistics retrieved successfully.');
+    }
+
+    /**
      * Delete multiple categories.
-     *
-     * @param  Request  $request
-     * @return JsonResponse
      */
     public function destroyMany(Request $request): JsonResponse
     {
@@ -143,10 +142,62 @@ class CategoryController extends ApiController
     }
 
     /**
+     * Export categories to Excel.
+     */
+    public function export(Request $request)
+    {
+        $this->authorize('viewAny', Category::class);
+
+        $validated = $request->validate(ExportResourceRequest::rules(
+            CategoriesExport::availableColumns(),
+            ['integer', 'exists:categories,id'],
+        ));
+
+        $categories = $this->categoryService->exportQuery(
+            $validated['ids'] ?? null,
+            $validated['start_date'] ?? null,
+            $validated['end_date'] ?? null,
+        );
+
+        $export = new CategoriesExport($categories, $validated['columns'] ?? null);
+
+        return $this->spreadsheetExport(
+            $request,
+            $export,
+            'categories-export',
+            'Categories Export',
+            'Your categories export is attached.',
+        );
+    }
+
+    /**
+     * Download a sample import template for categories.
+     */
+    public function importSample(Request $request): BinaryFileResponse
+    {
+        $this->authorize('create', Category::class);
+
+        return $this->importSampleDownload($request, new CategoriesImportSample, 'categories');
+    }
+
+    /**
+     * Import categories from Excel.
+     */
+    public function import(Request $request): JsonResponse
+    {
+        $this->authorize('create', Category::class);
+
+        $request->validate([
+            'file' => ['required', 'file', 'mimes:xlsx,xls,csv'],
+        ]);
+
+        Excel::import(new CategoriesImport, $request->file('file'));
+
+        return $this->success(null, 'Categories imported successfully.');
+    }
+
+    /**
      * Force delete a category permanently.
-     *
-     * @param  Category  $category
-     * @return JsonResponse
      */
     public function forceDestroy(Category $category): JsonResponse
     {
@@ -159,9 +210,6 @@ class CategoryController extends ApiController
 
     /**
      * Restore a soft-deleted category.
-     *
-     * @param  Category  $category
-     * @return JsonResponse
      */
     public function restore(Category $category): JsonResponse
     {
@@ -177,9 +225,6 @@ class CategoryController extends ApiController
 
     /**
      * Restore multiple soft-deleted categories.
-     *
-     * @param  Request  $request
-     * @return JsonResponse
      */
     public function restoreMany(Request $request): JsonResponse
     {

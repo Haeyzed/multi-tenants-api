@@ -11,7 +11,7 @@ use Dedoc\Scramble\Support\Generator\SecurityScheme;
 use Illuminate\Routing\Route;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Str;
-use Stancl\Tenancy\Middleware\InitializeTenancyByDomainOrSubdomain;
+use Stancl\Tenancy\Middleware\InitializeTenancyByDomain;
 use Stancl\Tenancy\Middleware\PreventAccessFromCentralDomains;
 
 class ScrambleServiceProvider extends ServiceProvider
@@ -66,7 +66,7 @@ class ScrambleServiceProvider extends ServiceProvider
             ],
             'middleware' => [
                 'web',
-                InitializeTenancyByDomainOrSubdomain::class,
+                InitializeTenancyByDomain::class,
                 PreventAccessFromCentralDomains::class,
                 RestrictedDocsAccess::class,
             ],

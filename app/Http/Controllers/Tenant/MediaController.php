@@ -9,7 +9,9 @@ use App\Http\Requests\Tenant\BulkDeleteMediaRequest;
 use App\Http\Requests\Tenant\BulkUpdateMediaRequest;
 use App\Http\Requests\Tenant\BulkUploadMediaRequest;
 use App\Http\Requests\Tenant\CopyMediaRequest;
+use App\Http\Requests\Tenant\CopySingleMediaRequest;
 use App\Http\Requests\Tenant\MoveMediaRequest;
+use App\Http\Requests\Tenant\MoveSingleMediaRequest;
 use App\Http\Requests\Tenant\UpdateMediaRequest;
 use App\Http\Requests\Tenant\UploadMediaRequest;
 use App\Http\Resources\Tenant\MediaResource;
@@ -36,31 +38,32 @@ class MediaController extends ApiController
      */
     public function index(Request $request): JsonResponse
     {
-        $perPage = $request->integer('per_page', 24);
-        $search = $request->query('search');
-        $folderId = $request->filled('folder_id') ? $request->integer('folder_id') : null;
-        $mimeType = $request->query('mime_type');
-        $rootOnly = $request->boolean('root_only');
+        $filters = $request->validate([
+            'search' => ['nullable', 'string'],
+            'folder_id' => ['nullable', 'integer', 'exists:media_library_folders,id'],
+            'mime_type' => ['nullable', 'string'],
+        ]);
+
+        if ($request->boolean('root_only') && ! $request->filled('folder_id')) {
+            $filters['root_only'] = true;
+        }
 
         $items = $this->service->paginate(
-            $perPage,
-            is_string($search) ? $search : null,
-            $folderId,
-            is_string($mimeType) ? $mimeType : null,
-            $rootOnly,
+            $filters,
+            $request->integer('per_page', 24),
         );
 
         return $this->paginated($items, MediaResource::collection($items), 'Media retrieved successfully.');
     }
 
     /**
-     * KPI card metrics for the media library.
+     * Statistics for the media library.
      */
-    public function metrics(): JsonResponse
+    public function statistics(): JsonResponse
     {
         return $this->success(
-            ['cards' => $this->service->getMetrics()],
-            'Media KPI metrics retrieved successfully.',
+            $this->service->statistics(),
+            'Media statistics retrieved successfully.',
         );
     }
 
@@ -94,6 +97,40 @@ class MediaController extends ApiController
                 'items' => MediaResource::collection(collect($items)),
             ],
             count($items).' media file(s) uploaded successfully.',
+        );
+    }
+
+    /**
+     * Move a single media item into a folder.
+     */
+    public function moveOne(MoveSingleMediaRequest $request, Media $media): JsonResponse
+    {
+        try {
+            $item = $this->service->moveOne($media, $request->validated('folder_id'));
+        } catch (RuntimeException $exception) {
+            return $this->badRequest($exception->getMessage());
+        }
+
+        return $this->success(
+            new MediaResource($item),
+            'Media moved successfully.',
+        );
+    }
+
+    /**
+     * Copy a single media item into a folder.
+     */
+    public function copyOne(CopySingleMediaRequest $request, Media $media): JsonResponse
+    {
+        try {
+            $item = $this->service->copyOne($media, $request->validated('folder_id'));
+        } catch (RuntimeException $exception) {
+            return $this->badRequest($exception->getMessage());
+        }
+
+        return $this->created(
+            new MediaResource($item),
+            'Media copied successfully.',
         );
     }
 

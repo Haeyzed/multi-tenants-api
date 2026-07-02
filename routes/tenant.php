@@ -3,25 +3,19 @@
 declare(strict_types=1);
 
 use Illuminate\Support\Facades\Route;
-use Stancl\Tenancy\Middleware\InitializeTenancyByDomainOrSubdomain;
-use Stancl\Tenancy\Middleware\PreventAccessFromCentralDomains;
 
 /*
 |--------------------------------------------------------------------------
 | Tenant Routes
 |--------------------------------------------------------------------------
 |
-| Here you can register the tenant routes for your application.
-| These routes are loaded by the TenantRouteServiceProvider.
-|
-| Feel free to customize them however you want. Good luck!
+| Middleware is defined in config/tenancy.php (`middleware` key).
+| Domains are stored fully qualified (e.g. acme.multi-tenants-api.test).
 |
 */
 
-Route::middleware([
-    'api',
-    InitializeTenancyByDomainOrSubdomain::class,
-    PreventAccessFromCentralDomains::class,
-])->prefix('api')->group(function (): void {
-    require __DIR__.'/api/tenant.php';
-});
+Route::middleware(config('tenancy.middleware'))
+    ->prefix('api')
+    ->group(function (): void {
+        require __DIR__.'/api/tenant.php';
+    });

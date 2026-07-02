@@ -15,17 +15,16 @@ use Illuminate\Support\Facades\DB;
 class MediaLibraryFolderService
 {
     /**
-     * Get all folders as a flat list.
+     * Get folders filtered for the media browser.
      *
-     * @param  string|null  $search
+     * @param  array<string, mixed>  $filters
      * @return Collection<int, MediaLibraryFolder>
      */
-    public function getAll(?string $search = null): Collection
+    public function list(array $filters = []): Collection
     {
         return MediaLibraryFolder::query()
-            ->search($search)
+            ->filter($filters)
             ->withCount('media')
-            ->orderBy('path')
             ->orderBy('name')
             ->get();
     }

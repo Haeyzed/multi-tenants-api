@@ -4,31 +4,35 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Tenant;
 
+use App\Exports\Tenant\BrandsExport;
+use App\Exports\Tenant\BrandsImportSample;
 use App\Http\Controllers\ApiController;
+use App\Http\Controllers\Tenant\Concerns\ExportsSpreadsheets;
+use App\Http\Requests\Tenant\ExportResourceRequest;
 use App\Http\Requests\Tenant\StoreBrandRequest;
 use App\Http\Requests\Tenant\UpdateBrandRequest;
 use App\Http\Resources\Tenant\BrandResource;
+use App\Imports\Tenant\BrandsImport;
 use App\Models\Tenant\Brand;
 use App\Services\Tenant\BrandService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Spatie\MediaLibrary\MediaCollections\Exceptions\FileDoesNotExist;
-use Spatie\MediaLibrary\MediaCollections\Exceptions\FileIsTooBig;
+use Maatwebsite\Excel\Facades\Excel;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 /**
  * Manages product brands within a tenant store API.
  */
 class BrandController extends ApiController
 {
+    use ExportsSpreadsheets;
+
     public function __construct(
         private readonly BrandService $brandService,
     ) {}
 
     /**
      * Get a paginated list of brands.
-     *
-     * @param  Request  $request
-     * @return JsonResponse
      */
     public function index(Request $request): JsonResponse
     {
@@ -36,7 +40,8 @@ class BrandController extends ApiController
 
         $filters = $request->validate([
             'search' => ['nullable', 'string'],
-            'is_visible' => ['nullable', 'in:visible,hidden'],
+            'is_visible' => ['nullable', 'array'],
+            'is_visible.*' => ['string', 'in:visible,hidden'],
         ]);
 
         $brands = $this->brandService->paginate(
@@ -49,32 +54,21 @@ class BrandController extends ApiController
 
     /**
      * Create a new brand.
-     *
-     * @param  StoreBrandRequest  $request
-     * @return JsonResponse
-     * @throws FileDoesNotExist
-     * @throws FileIsTooBig
      */
     public function store(StoreBrandRequest $request): JsonResponse
     {
         $this->authorize('create', Brand::class);
 
-        $brand = $this->brandService->create(
-            $request->safe()->except(['logo']),
-            $request->file('logo'),
-        );
+        $brand = $this->brandService->create($request->validated());
 
         return $this->created(
-            new BrandResource($brand->load('logoMedia')),
+            new BrandResource($brand),
             'Brand created successfully.',
         );
     }
 
     /**
      * Get a single brand.
-     *
-     * @param  Brand  $brand
-     * @return JsonResponse
      */
     public function show(Brand $brand): JsonResponse
     {
@@ -85,22 +79,12 @@ class BrandController extends ApiController
 
     /**
      * Update an existing brand.
-     *
-     * @param  UpdateBrandRequest  $request
-     * @param  Brand  $brand
-     * @return JsonResponse
-     * @throws FileDoesNotExist
-     * @throws FileIsTooBig
      */
     public function update(UpdateBrandRequest $request, Brand $brand): JsonResponse
     {
         $this->authorize('update', $brand);
 
-        $brand = $this->brandService->update(
-            $brand,
-            $request->safe()->except(['logo']),
-            $request->file('logo'),
-        );
+        $brand = $this->brandService->update($brand, $request->validated());
 
         return $this->updated(
             new BrandResource($brand),
@@ -110,9 +94,6 @@ class BrandController extends ApiController
 
     /**
      * Delete a brand.
-     *
-     * @param  Brand  $brand
-     * @return JsonResponse
      */
     public function destroy(Brand $brand): JsonResponse
     {
@@ -124,10 +105,27 @@ class BrandController extends ApiController
     }
 
     /**
+     * Get brand options.
+     */
+    public function options(): JsonResponse
+    {
+        $this->authorize('viewAny', Brand::class);
+
+        return $this->success($this->brandService->getOptions(), 'Brand options retrieved successfully.');
+    }
+
+    /**
+     * Get brand statistics.
+     */
+    public function statistics(): JsonResponse
+    {
+        $this->authorize('viewAny', Brand::class);
+
+        return $this->success($this->brandService->statistics(), 'Brand statistics retrieved successfully.');
+    }
+
+    /**
      * Delete multiple brands.
-     *
-     * @param  Request  $request
-     * @return JsonResponse
      */
     public function destroyMany(Request $request): JsonResponse
     {
@@ -144,10 +142,62 @@ class BrandController extends ApiController
     }
 
     /**
+     * Export brands to Excel.
+     */
+    public function export(Request $request)
+    {
+        $this->authorize('viewAny', Brand::class);
+
+        $validated = $request->validate(ExportResourceRequest::rules(
+            BrandsExport::availableColumns(),
+            ['integer', 'exists:brands,id'],
+        ));
+
+        $brands = $this->brandService->exportQuery(
+            $validated['ids'] ?? null,
+            $validated['start_date'] ?? null,
+            $validated['end_date'] ?? null,
+        );
+
+        $export = new BrandsExport($brands, $validated['columns'] ?? null);
+
+        return $this->spreadsheetExport(
+            $request,
+            $export,
+            'brands-export',
+            'Brands Export',
+            'Your brands export is attached.',
+        );
+    }
+
+    /**
+     * Download a sample import template for brands.
+     */
+    public function importSample(Request $request): BinaryFileResponse
+    {
+        $this->authorize('create', Brand::class);
+
+        return $this->importSampleDownload($request, new BrandsImportSample, 'brands');
+    }
+
+    /**
+     * Import brands from Excel.
+     */
+    public function import(Request $request): JsonResponse
+    {
+        $this->authorize('create', Brand::class);
+
+        $request->validate([
+            'file' => ['required', 'file', 'mimes:xlsx,xls,csv'],
+        ]);
+
+        Excel::import(new BrandsImport, $request->file('file'));
+
+        return $this->success(null, 'Brands imported successfully.');
+    }
+
+    /**
      * Force delete a brand permanently.
-     *
-     * @param  Brand  $brand
-     * @return JsonResponse
      */
     public function forceDestroy(Brand $brand): JsonResponse
     {
@@ -160,9 +210,6 @@ class BrandController extends ApiController
 
     /**
      * Restore a soft-deleted brand.
-     *
-     * @param  Brand  $brand
-     * @return JsonResponse
      */
     public function restore(Brand $brand): JsonResponse
     {
@@ -178,9 +225,6 @@ class BrandController extends ApiController
 
     /**
      * Restore multiple soft-deleted brands.
-     *
-     * @param  Request  $request
-     * @return JsonResponse
      */
     public function restoreMany(Request $request): JsonResponse
     {

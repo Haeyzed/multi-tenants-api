@@ -7,6 +7,7 @@ namespace App\Services\Central;
 use App\Enums\Central\DomainVerificationStatus;
 use App\Models\Central\Domain;
 use App\Models\Central\Tenant;
+use App\Support\Tenancy\TenantDomain;
 use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -29,7 +30,12 @@ class DomainService
      */
     public function createSubdomain(Tenant $tenant, string $subdomain, bool $isPrimary = false): Domain
     {
-        return $this->create($tenant, Str::lower($subdomain), $isPrimary, verified: true);
+        return $this->create(
+            $tenant,
+            TenantDomain::qualify(Str::lower($subdomain)),
+            $isPrimary,
+            verified: true,
+        );
     }
 
     /**
@@ -43,7 +49,12 @@ class DomainService
      */
     public function createCustomDomain(Tenant $tenant, string $domain, bool $isPrimary = false): Domain
     {
-        return $this->create($tenant, Str::lower($domain), $isPrimary, verified: false);
+        return $this->create(
+            $tenant,
+            TenantDomain::qualify(Str::lower($domain)),
+            $isPrimary,
+            verified: false,
+        );
     }
 
     /**
