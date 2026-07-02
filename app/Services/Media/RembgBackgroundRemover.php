@@ -8,6 +8,7 @@ use App\Contracts\BackgroundRemover;
 use Illuminate\Process\Exceptions\ProcessTimedOutException;
 use Illuminate\Support\Facades\Process;
 use RuntimeException;
+use Symfony\Component\Process\Exception\ProcessTimedOutException as SymfonyProcessTimedOutException;
 
 /**
  * Removes image backgrounds using the local rembg CLI.
@@ -26,7 +27,10 @@ class RembgBackgroundRemover implements BackgroundRemover
                 $inputPath,
                 $outputPath,
             ]);
-        } catch (ProcessTimedOutException) {
+        } catch (ProcessTimedOutException|SymfonyProcessTimedOutException) {
+            // Windows may keep input file handles open briefly after the process is killed.
+            usleep(500_000);
+
             throw new RuntimeException(
                 "Background removal timed out after {$timeout} seconds. "
                 .'Large images take longer on CPU — try a smaller image or increase REMBG_TIMEOUT in .env.',

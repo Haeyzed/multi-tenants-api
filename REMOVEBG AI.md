@@ -252,7 +252,7 @@ In `multi-tenants-api`, copy from `.env.example` or add:
 # Background removal (rembg)
 BACKGROUND_REMOVAL_DRIVER=rembg
 REMBG_BINARY=rembg
-REMBG_TIMEOUT=120
+REMBG_TIMEOUT=300
 ```
 
 | Variable | Meaning |
@@ -448,7 +448,7 @@ QUEUE_CONNECTION=database
 BACKGROUND_REMOVAL_DRIVER=rembg
 REMBG_BINARY=rembg
 # REMBG_BINARY=C:\Users\IT\AppData\Roaming\Python\Python312\Scripts\rembg.exe
-REMBG_TIMEOUT=120
+REMBG_TIMEOUT=300
 ```
 
 ---

@@ -490,17 +490,30 @@ class MediaService
 
             return $newMedia->fresh(['folder', 'uploader']);
         } finally {
-            if ($processInput !== $inputTemp && is_file($processInput)) {
-                unlink($processInput);
+            if ($processInput !== $inputTemp) {
+                $this->deleteTempFileIfExists($processInput);
             }
 
-            if (is_file($inputTemp)) {
-                unlink($inputTemp);
+            $this->deleteTempFileIfExists($inputTemp);
+            $this->deleteTempFileIfExists($outputTemp);
+        }
+    }
+
+    /**
+     * Delete a temp file without masking the original exception on Windows file locks.
+     */
+    private function deleteTempFileIfExists(string $path): void
+    {
+        if (! is_file($path)) {
+            return;
+        }
+
+        for ($attempt = 0; $attempt < 10; $attempt++) {
+            if (@unlink($path)) {
+                return;
             }
 
-            if (is_file($outputTemp)) {
-                unlink($outputTemp);
-            }
+            usleep(200_000);
         }
     }
 
