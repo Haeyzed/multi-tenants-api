@@ -62,6 +62,31 @@ it('imports media from a remote URL', function (): void {
         ->assertJsonPath('data.mime_type', 'image/jpeg');
 });
 
+it('removes the background from an image', function (): void {
+    $ctx = initializeTenantForTest();
+
+    $uploadResponse = $this->withToken($ctx->token)
+        ->post("http://{$ctx->domain}/api/v1/tenant/media", [
+            'file' => UploadedFile::fake()->image('product.jpg'),
+            'title' => 'Product Photo',
+        ]);
+
+    $uploadResponse->assertCreated();
+    $mediaId = $uploadResponse->json('data.id');
+
+    $response = $this->withToken($ctx->token)
+        ->postJson("http://{$ctx->domain}/api/v1/tenant/media/{$mediaId}/remove-background");
+
+    $response->assertCreated()
+        ->assertJsonPath('data.mime_type', 'image/png')
+        ->assertJsonPath('data.title', 'Product Photo (no background)');
+
+    $this->withToken($ctx->token)
+        ->getJson("http://{$ctx->domain}/api/v1/tenant/media")
+        ->assertSuccessful()
+        ->assertJsonPath('meta.total', 2);
+});
+
 it('manages tenant media folders', function (): void {
     $ctx = initializeTenantForTest();
 

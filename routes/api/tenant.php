@@ -223,6 +223,7 @@ Route::prefix('v1/tenant')->group(function (): void {
             Route::delete('bulk', [MediaController::class, 'bulkDestroy']);
             Route::post('{media}/move', [MediaController::class, 'moveOne']);
             Route::post('{media}/copy', [MediaController::class, 'copyOne']);
+            Route::post('{media}/remove-background', [MediaController::class, 'removeBackground']);
         });
         Route::apiResource('media', MediaController::class)->parameters(['media' => 'media']);
 

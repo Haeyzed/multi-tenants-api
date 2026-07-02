@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use App\Contracts\BackgroundRemover;
 use App\Events\Tenant\CheckoutSessionAdmitted;
 use App\Events\Tenant\FlashSaleActivated;
 use App\Events\Tenant\FlashSaleEnded;
@@ -61,6 +62,8 @@ use App\Policies\Tenant\TaxClassPolicy;
 use App\Policies\Tenant\TeamInvitationPolicy;
 use App\Policies\Tenant\TeamPolicy;
 use App\Policies\Tenant\WaitlistPolicy;
+use App\Services\Media\FakeBackgroundRemover;
+use App\Services\Media\RembgBackgroundRemover;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
@@ -74,7 +77,13 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        $this->app->bind(BackgroundRemover::class, function (): BackgroundRemover {
+            if ($this->app->environment('testing')) {
+                return new FakeBackgroundRemover;
+            }
+
+            return new RembgBackgroundRemover;
+        });
     }
 
     /**

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Services\Tenant;
 
+use App\Contracts\BackgroundRemover;
 use App\Models\Tenant\Media;
 use App\Models\Tenant\MediaLibraryFolder;
 use Illuminate\Database\Eloquent\Builder;
@@ -402,7 +403,104 @@ class MediaService
     }
 
     /**
-     * Copy a single media file to a new folder.
+     * Remove the background from an image and store a new PNG in the same folder.
+     */
+    public function removeBackground(Media $media, int|string|null $uploadedBy = null): Media
+    {
+        $this->assertLibraryMedia($media);
+
+        $mimeType = (string) $media->mime_type;
+
+        if (! str_starts_with($mimeType, 'image/')) {
+            throw new RuntimeException('Only image files support background removal.');
+        }
+
+        if (str_contains($mimeType, 'svg')) {
+            throw new RuntimeException('SVG images are not supported for background removal.');
+        }
+
+        $maxSize = (int) config('background-removal.max_file_size');
+
+        if ((int) $media->size > $maxSize) {
+            throw new RuntimeException('The image exceeds the maximum allowed size for background removal.');
+        }
+
+        $disk = Storage::disk($media->disk);
+        $sourcePath = $media->getPathRelativeToRoot();
+
+        if (! $sourcePath || ! $disk->exists($sourcePath)) {
+            throw new RuntimeException("Source file not found for media [{$media->id}].");
+        }
+
+        $tempDirectory = storage_path('app/temp/background-removal');
+
+        if (! is_dir($tempDirectory) && ! mkdir($tempDirectory, 0755, true) && ! is_dir($tempDirectory)) {
+            throw new RuntimeException('Could not create a temporary directory for background removal.');
+        }
+
+        $inputExtension = pathinfo($media->file_name, PATHINFO_EXTENSION) ?: 'jpg';
+        $inputTemp = $tempDirectory.'/'.Str::uuid()->toString().'.'.$inputExtension;
+        $outputTemp = $tempDirectory.'/'.Str::uuid()->toString().'.png';
+
+        file_put_contents($inputTemp, $disk->get($sourcePath));
+
+        try {
+            app(BackgroundRemover::class)->remove($inputTemp, $outputTemp);
+
+            $outputContents = file_get_contents($outputTemp);
+
+            if ($outputContents === false || $outputContents === '') {
+                throw new RuntimeException('Background removal produced an empty file.');
+            }
+
+            $folderId = $media->folder_id;
+            $storedName = Str::uuid()->toString().'.png';
+            $destinationPath = $this->libraryPath($folderId, $storedName);
+
+            $disk->makeDirectory($this->libraryDirectory($folderId));
+            $disk->put($destinationPath, $outputContents);
+
+            $baseName = preg_replace('/-no-bg$/i', '', (string) $media->name) ?: (string) $media->name;
+            $titleBase = preg_replace('/-no-bg$/i', '', (string) ($media->title ?? $media->name)) ?: ($media->title ?? $media->name);
+
+            $newMedia = Media::query()->create([
+                'folder_id' => $folderId,
+                'model_type' => self::LIBRARY_MODEL_TYPE,
+                'model_id' => $folderId ?? 0,
+                'uuid' => (string) Str::uuid(),
+                'collection_name' => self::LIBRARY_COLLECTION,
+                'name' => $baseName.'-no-bg',
+                'title' => $titleBase.' (no background)',
+                'alt_text' => $media->alt_text,
+                'uploaded_by' => $uploadedBy ?? Auth::id(),
+                'file_name' => $storedName,
+                'mime_type' => 'image/png',
+                'disk' => $media->disk,
+                'conversions_disk' => $media->conversions_disk,
+                'size' => strlen($outputContents),
+                'manipulations' => [],
+                'custom_properties' => [
+                    'source_media_id' => $media->id,
+                    'ai_action' => 'remove_background',
+                ],
+                'generated_conversions' => [],
+                'responsive_images' => [],
+            ]);
+
+            return $newMedia->fresh(['folder', 'uploader']);
+        } finally {
+            if (is_file($inputTemp)) {
+                unlink($inputTemp);
+            }
+
+            if (is_file($outputTemp)) {
+                unlink($outputTemp);
+            }
+        }
+    }
+
+    /**
+     * Copy a single library file into a folder.
      */
     private function copy(Media $media, ?int $folderId): Media
     {

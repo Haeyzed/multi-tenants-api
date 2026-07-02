@@ -16,11 +16,13 @@ use App\Http\Requests\Tenant\MoveSingleMediaRequest;
 use App\Http\Requests\Tenant\UpdateMediaRequest;
 use App\Http\Requests\Tenant\UploadMediaRequest;
 use App\Http\Resources\Tenant\MediaResource;
+use App\Jobs\Tenant\RemoveMediaBackgroundJob;
 use App\Models\Tenant\Media;
 use App\Services\Tenant\MediaService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Auth;
 use RuntimeException;
 
 /**
@@ -244,6 +246,30 @@ class MediaController extends ApiController
         }
 
         return $this->updated(new MediaResource($item), 'Media updated successfully.');
+    }
+
+    /**
+     * Remove the background from an image using AI.
+     */
+    public function removeBackground(Media $media): JsonResponse
+    {
+        try {
+            if (config('queue.default') === 'sync') {
+                $item = $this->service->removeBackground($media, Auth::id());
+
+                return $this->created(new MediaResource($item), 'Background removed successfully.');
+            }
+
+            RemoveMediaBackgroundJob::dispatch($media->id, Auth::id());
+
+            return $this->success(
+                ['status' => 'queued'],
+                'Background removal has been queued.',
+                202,
+            );
+        } catch (RuntimeException $exception) {
+            return $this->badRequest($exception->getMessage());
+        }
     }
 
     /**
