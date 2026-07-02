@@ -1,0 +1,5 @@
+Issue Type,Issue key,Issue id,Summary,Assignee,Assignee Id,Reporter,Reporter Id,Status,Created,Updated
+Story,CWAP-232,27243,Cleanup and Accurate Matching of Transaction Volumes Between Cupid and TapNet,Muibi Azeez Abolade,62a9d413f8bd790069d86628,Mary Afolayan,630f7f4f3310c2492b5a2dd6,To Do,12/23/2025 13:30,12/23/2025 13:30
+Task,C20WA-543,22948,Create CI/CD Pipeline for Deploying App to Staging Environment,Muibi Azeez Abolade,62a9d413f8bd790069d86628,Oluwaseun Ladeinde,60ec662254c85900715cf0e0,Ready for test,9/16/2025 14:06,11/11/2025 10:25
+Bug,C20WA-540,22422,Same Day Manual Purchase Registration error,Muibi Azeez Abolade,62a9d413f8bd790069d86628,eniola.iyiola,60ed6850a211b1006943e569,To Do,9/4/2025 10:19,10/6/2025 14:34
+Bug,C20WA-539,22421,SALES REPORT SEARCH BUTTON NOT WORKING,Muibi Azeez Abolade,62a9d413f8bd790069d86628,eniola.iyiola,60ed6850a211b1006943e569,To Do,9/4/2025 10:09,9/4/2025 10:09
