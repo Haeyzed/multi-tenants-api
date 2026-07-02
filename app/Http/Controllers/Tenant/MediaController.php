@@ -10,6 +10,7 @@ use App\Http\Requests\Tenant\BulkUpdateMediaRequest;
 use App\Http\Requests\Tenant\BulkUploadMediaRequest;
 use App\Http\Requests\Tenant\CopyMediaRequest;
 use App\Http\Requests\Tenant\CopySingleMediaRequest;
+use App\Http\Requests\Tenant\ImportMediaFromUrlRequest;
 use App\Http\Requests\Tenant\MoveMediaRequest;
 use App\Http\Requests\Tenant\MoveSingleMediaRequest;
 use App\Http\Requests\Tenant\UpdateMediaRequest;
@@ -98,6 +99,23 @@ class MediaController extends ApiController
             ],
             count($items).' media file(s) uploaded successfully.',
         );
+    }
+
+    /**
+     * Import a remote file into the media library.
+     */
+    public function importFromUrl(ImportMediaFromUrlRequest $request): JsonResponse
+    {
+        try {
+            $item = $this->service->importFromUrl(
+                $request->validated('url'),
+                $request->safe()->except(['url']),
+            );
+        } catch (RuntimeException $exception) {
+            return $this->badRequest($exception->getMessage());
+        }
+
+        return $this->created(new MediaResource($item), 'Media imported successfully.');
     }
 
     /**

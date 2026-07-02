@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Http;
 
 it('lists and uploads tenant media library files', function (): void {
     $ctx = initializeTenantForTest();
@@ -37,6 +38,28 @@ it('lists and uploads tenant media library files', function (): void {
         ->assertSuccessful()
         ->assertJsonPath('data.total', 1)
         ->assertJsonPath('data.images', 1);
+});
+
+it('imports media from a remote URL', function (): void {
+    $ctx = initializeTenantForTest();
+
+    $imageContent = UploadedFile::fake()->image('logo.jpg')->getContent();
+
+    Http::fake([
+        'https://example.com/logo.png' => Http::response($imageContent, 200, [
+            'Content-Type' => 'image/jpeg',
+        ]),
+    ]);
+
+    $response = $this->withToken($ctx->token)
+        ->postJson("http://{$ctx->domain}/api/v1/tenant/media/import-url", [
+            'url' => 'https://example.com/logo.png',
+            'title' => 'Remote Logo',
+        ]);
+
+    $response->assertCreated()
+        ->assertJsonPath('data.title', 'Remote Logo')
+        ->assertJsonPath('data.mime_type', 'image/jpeg');
 });
 
 it('manages tenant media folders', function (): void {

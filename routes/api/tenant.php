@@ -216,6 +216,7 @@ Route::prefix('v1/tenant')->group(function (): void {
         Route::prefix('media')->group(function (): void {
             Route::get('statistics', [MediaController::class, 'statistics']);
             Route::post('bulk-upload', [MediaController::class, 'bulkUpload']);
+            Route::post('import-url', [MediaController::class, 'importFromUrl']);
             Route::post('move', [MediaController::class, 'move']);
             Route::post('copy', [MediaController::class, 'copy']);
             Route::patch('bulk', [MediaController::class, 'bulkUpdate']);

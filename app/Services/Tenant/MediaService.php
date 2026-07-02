@@ -12,6 +12,7 @@ use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use RuntimeException;
@@ -118,6 +119,70 @@ class MediaService
         }
 
         return $uploaded;
+    }
+
+    /**
+     * Download a remote file and store it in the media library.
+     *
+     * @param  array<string, mixed>  $meta
+     */
+    public function importFromUrl(string $url, array $meta = []): Media
+    {
+        $response = Http::timeout(30)
+            ->withOptions(['allow_redirects' => true])
+            ->get($url);
+
+        if (! $response->successful()) {
+            throw new RuntimeException('Could not download the file from the provided URL.');
+        }
+
+        $content = $response->body();
+        $maxSize = (int) config('media-library.max_file_size');
+
+        if (strlen($content) > $maxSize) {
+            throw new RuntimeException('The file exceeds the maximum allowed size.');
+        }
+
+        if ($content === '') {
+            throw new RuntimeException('The remote file is empty.');
+        }
+
+        $contentType = $response->header('Content-Type');
+        $mimeType = trim(explode(';', (string) $contentType)[0]) ?: 'application/octet-stream';
+        $originalName = $this->resolveImportFilename($url, $response->header('Content-Disposition'));
+        $extension = pathinfo($originalName, PATHINFO_EXTENSION)
+            ?: $this->extensionFromMimeType($mimeType)
+            ?: 'bin';
+        $storedName = Str::uuid()->toString().'.'.strtolower($extension);
+        $folderId = isset($meta['folder_id']) ? (int) $meta['folder_id'] : null;
+        $disk = (string) config('media-library.disk_name', 'public');
+
+        Storage::disk($disk)->put($this->libraryPath($folderId, $storedName), $content);
+
+        $baseName = pathinfo($originalName, PATHINFO_FILENAME);
+
+        $media = Media::query()->create([
+            'folder_id' => $folderId,
+            'model_type' => self::LIBRARY_MODEL_TYPE,
+            'model_id' => $folderId ?? 0,
+            'uuid' => (string) Str::uuid(),
+            'collection_name' => self::LIBRARY_COLLECTION,
+            'name' => $baseName !== '' ? $baseName : 'imported-file',
+            'title' => $meta['title'] ?? ($baseName !== '' ? $baseName : 'Imported file'),
+            'alt_text' => $meta['alt_text'] ?? null,
+            'uploaded_by' => Auth::id(),
+            'file_name' => $storedName,
+            'mime_type' => $mimeType,
+            'disk' => $disk,
+            'conversions_disk' => config('media-library.conversions_disk_name'),
+            'size' => strlen($content),
+            'manipulations' => [],
+            'custom_properties' => ['source_url' => $url],
+            'generated_conversions' => [],
+            'responsive_images' => [],
+        ]);
+
+        return $media->fresh(['folder', 'uploader']);
     }
 
     /**
@@ -443,5 +508,38 @@ class MediaService
         if ($media->collection_name !== self::LIBRARY_COLLECTION) {
             throw new RuntimeException('Only library media items can be managed through the media library.');
         }
+    }
+
+    private function resolveImportFilename(string $url, ?string $contentDisposition): string
+    {
+        if ($contentDisposition && preg_match('/filename\*?=(?:UTF-8\'\')?"?([^";]+)"?/i', $contentDisposition, $matches)) {
+            return urldecode(trim($matches[1]));
+        }
+
+        $path = parse_url($url, PHP_URL_PATH);
+
+        if (is_string($path) && $path !== '') {
+            $basename = basename($path);
+
+            if ($basename !== '' && $basename !== '/') {
+                return urldecode($basename);
+            }
+        }
+
+        return 'imported-file';
+    }
+
+    private function extensionFromMimeType(string $mimeType): ?string
+    {
+        return match ($mimeType) {
+            'image/jpeg' => 'jpg',
+            'image/png' => 'png',
+            'image/gif' => 'gif',
+            'image/webp' => 'webp',
+            'image/svg+xml' => 'svg',
+            'application/pdf' => 'pdf',
+            'video/mp4' => 'mp4',
+            default => null,
+        };
     }
 }
