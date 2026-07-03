@@ -119,7 +119,12 @@ Route::prefix('v1/tenant')->group(function (): void {
         // -----------------------------------------------------------------------------
 
         Route::prefix('customers')->group(function (): void {
+            Route::get('statistics', [CustomerController::class, 'statistics']);
+            Route::get('options', [CustomerController::class, 'options']);
             Route::delete('bulk', [CustomerController::class, 'destroyMany']);
+            Route::post('export', [CustomerController::class, 'export']);
+            Route::get('import/sample', [CustomerController::class, 'importSample']);
+            Route::post('import', [CustomerController::class, 'import']);
             Route::post('bulk-restore', [CustomerController::class, 'restoreMany']);
             Route::post('{customer}/restore', [CustomerController::class, 'restore'])->withTrashed();
             Route::delete('{customer}/force', [CustomerController::class, 'forceDestroy'])->withTrashed();
@@ -127,7 +132,12 @@ Route::prefix('v1/tenant')->group(function (): void {
         Route::apiResource('customers', CustomerController::class);
 
         Route::prefix('customer-groups')->group(function (): void {
+            Route::get('statistics', [CustomerGroupController::class, 'statistics']);
+            Route::get('options', [CustomerGroupController::class, 'options']);
             Route::delete('bulk', [CustomerGroupController::class, 'destroyMany']);
+            Route::post('export', [CustomerGroupController::class, 'export']);
+            Route::get('import/sample', [CustomerGroupController::class, 'importSample']);
+            Route::post('import', [CustomerGroupController::class, 'import']);
             Route::post('bulk-restore', [CustomerGroupController::class, 'restoreMany']);
             Route::post('{customer_group}/restore', [CustomerGroupController::class, 'restore'])->withTrashed();
             Route::delete('{customer_group}/force', [CustomerGroupController::class, 'forceDestroy'])->withTrashed();

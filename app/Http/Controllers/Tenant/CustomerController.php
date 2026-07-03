@@ -4,14 +4,21 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Tenant;
 
+use App\Exports\Tenant\CustomersExport;
+use App\Exports\Tenant\CustomersImportSample;
 use App\Http\Controllers\ApiController;
+use App\Http\Controllers\Tenant\Concerns\ExportsSpreadsheets;
+use App\Http\Requests\Tenant\ExportResourceRequest;
 use App\Http\Requests\Tenant\StoreCustomerRequest;
 use App\Http\Requests\Tenant\UpdateCustomerRequest;
 use App\Http\Resources\Tenant\CustomerResource;
+use App\Imports\Tenant\CustomersImport;
 use App\Models\Tenant\Customer;
 use App\Services\Tenant\CustomerService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Maatwebsite\Excel\Facades\Excel;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
 use Throwable;
 
 /**
@@ -19,15 +26,14 @@ use Throwable;
  */
 class CustomerController extends ApiController
 {
+    use ExportsSpreadsheets;
+
     public function __construct(
         private readonly CustomerService $customerService,
     ) {}
 
     /**
      * Get a paginated list of customers.
-     *
-     * @param  Request  $request
-     * @return JsonResponse
      */
     public function index(Request $request): JsonResponse
     {
@@ -35,7 +41,8 @@ class CustomerController extends ApiController
 
         $filters = $request->validate([
             'search' => ['nullable', 'string'],
-            'is_active' => ['nullable', 'in:active,inactive'],
+            'is_active' => ['nullable', 'array'],
+            'is_active.*' => ['string', 'in:active,inactive'],
             'customer_group_id' => ['nullable', 'integer'],
         ]);
 
@@ -50,8 +57,6 @@ class CustomerController extends ApiController
     /**
      * Create a new customer.
      *
-     * @param StoreCustomerRequest $request
-     * @return JsonResponse
      * @throws Throwable
      */
     public function store(StoreCustomerRequest $request): JsonResponse
@@ -68,9 +73,6 @@ class CustomerController extends ApiController
 
     /**
      * Get a single customer.
-     *
-     * @param  Customer  $customer
-     * @return JsonResponse
      */
     public function show(Customer $customer): JsonResponse
     {
@@ -82,9 +84,6 @@ class CustomerController extends ApiController
     /**
      * Update an existing customer.
      *
-     * @param UpdateCustomerRequest $request
-     * @param Customer $customer
-     * @return JsonResponse
      * @throws Throwable
      */
     public function update(UpdateCustomerRequest $request, Customer $customer): JsonResponse
@@ -101,9 +100,6 @@ class CustomerController extends ApiController
 
     /**
      * Delete a customer.
-     *
-     * @param  Customer  $customer
-     * @return JsonResponse
      */
     public function destroy(Customer $customer): JsonResponse
     {
@@ -114,11 +110,22 @@ class CustomerController extends ApiController
         return $this->deleted('Customer deleted successfully.');
     }
 
+    public function options(): JsonResponse
+    {
+        $this->authorize('viewAny', Customer::class);
+
+        return $this->success($this->customerService->getOptions(), 'Customer options retrieved successfully.');
+    }
+
+    public function statistics(): JsonResponse
+    {
+        $this->authorize('viewAny', Customer::class);
+
+        return $this->success($this->customerService->statistics(), 'Customer statistics retrieved successfully.');
+    }
+
     /**
      * Delete multiple customers.
-     *
-     * @param  Request  $request
-     * @return JsonResponse
      */
     public function destroyMany(Request $request): JsonResponse
     {
@@ -134,11 +141,54 @@ class CustomerController extends ApiController
         return $this->success(null, "{$count} customers deleted successfully.");
     }
 
+    public function export(Request $request)
+    {
+        $this->authorize('viewAny', Customer::class);
+
+        $validated = $request->validate(ExportResourceRequest::rules(
+            CustomersExport::availableColumns(),
+            ['integer', 'exists:customers,id'],
+        ));
+
+        $customers = $this->customerService->exportQuery(
+            $validated['ids'] ?? null,
+            $validated['start_date'] ?? null,
+            $validated['end_date'] ?? null,
+        );
+
+        $export = new CustomersExport($customers, $validated['columns'] ?? null);
+
+        return $this->spreadsheetExport(
+            $request,
+            $export,
+            'customers-export',
+            'Customers Export',
+            'Your customers export is attached.',
+        );
+    }
+
+    public function importSample(Request $request): BinaryFileResponse
+    {
+        $this->authorize('create', Customer::class);
+
+        return $this->importSampleDownload($request, new CustomersImportSample, 'customers');
+    }
+
+    public function import(Request $request): JsonResponse
+    {
+        $this->authorize('create', Customer::class);
+
+        $request->validate([
+            'file' => ['required', 'file', 'mimes:xlsx,xls,csv'],
+        ]);
+
+        Excel::import(new CustomersImport, $request->file('file'));
+
+        return $this->success(null, 'Customers imported successfully.');
+    }
+
     /**
      * Force delete a customer permanently.
-     *
-     * @param  Customer  $customer
-     * @return JsonResponse
      */
     public function forceDestroy(Customer $customer): JsonResponse
     {
@@ -151,9 +201,6 @@ class CustomerController extends ApiController
 
     /**
      * Restore a soft-deleted customer.
-     *
-     * @param  Customer  $customer
-     * @return JsonResponse
      */
     public function restore(Customer $customer): JsonResponse
     {
@@ -169,9 +216,6 @@ class CustomerController extends ApiController
 
     /**
      * Restore multiple soft-deleted customers.
-     *
-     * @param  Request  $request
-     * @return JsonResponse
      */
     public function restoreMany(Request $request): JsonResponse
     {

@@ -21,9 +21,12 @@ class CustomerGroupResource extends JsonResource
         return [
             'id' => $this->id,
             'name' => $this->name,
+            'slug' => $this->slug,
             'description' => $this->description,
-            'discount_percentage' => $this->discount_percentage,
+            'discount_percent' => $this->discount_percent,
+            'discount_percentage' => $this->discount_percent,
             'is_active' => $this->is_active,
+            'customers_count' => $this->whenCounted('customers'),
             'created_at' => $this->created_at?->toIso8601String(),
         ];
     }

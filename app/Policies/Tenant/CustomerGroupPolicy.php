@@ -36,4 +36,24 @@ class CustomerGroupPolicy
     {
         return $user->can('customers.manage');
     }
+
+    public function deleteAny(TenantUser $user): bool
+    {
+        return $user->can('customers.manage');
+    }
+
+    public function restore(TenantUser $user, CustomerGroup $group): bool
+    {
+        return $user->can('customers.manage');
+    }
+
+    public function restoreAny(TenantUser $user): bool
+    {
+        return $user->can('customers.manage');
+    }
+
+    public function forceDelete(TenantUser $user, CustomerGroup $group): bool
+    {
+        return $user->can('customers.manage');
+    }
 }

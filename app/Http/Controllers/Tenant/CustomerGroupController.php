@@ -4,29 +4,35 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Tenant;
 
+use App\Exports\Tenant\CustomerGroupsExport;
+use App\Exports\Tenant\CustomerGroupsImportSample;
 use App\Http\Controllers\ApiController;
+use App\Http\Controllers\Tenant\Concerns\ExportsSpreadsheets;
+use App\Http\Requests\Tenant\ExportResourceRequest;
 use App\Http\Requests\Tenant\StoreCustomerGroupRequest;
 use App\Http\Requests\Tenant\UpdateCustomerGroupRequest;
 use App\Http\Resources\Tenant\CustomerGroupResource;
+use App\Imports\Tenant\CustomerGroupsImport;
 use App\Models\Tenant\CustomerGroup;
 use App\Services\Tenant\CustomerGroupService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Maatwebsite\Excel\Facades\Excel;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 /**
  * Manages customer groups.
  */
 class CustomerGroupController extends ApiController
 {
+    use ExportsSpreadsheets;
+
     public function __construct(
         private readonly CustomerGroupService $customerGroupService,
     ) {}
 
     /**
      * Get a paginated list of customer groups.
-     *
-     * @param  Request  $request
-     * @return JsonResponse
      */
     public function index(Request $request): JsonResponse
     {
@@ -34,7 +40,8 @@ class CustomerGroupController extends ApiController
 
         $filters = $request->validate([
             'search' => ['nullable', 'string'],
-            'is_active' => ['nullable', 'in:active,inactive'],
+            'is_active' => ['nullable', 'array'],
+            'is_active.*' => ['string', 'in:active,inactive'],
         ]);
 
         $groups = $this->customerGroupService->paginate(
@@ -47,9 +54,6 @@ class CustomerGroupController extends ApiController
 
     /**
      * Create a new customer group.
-     *
-     * @param  StoreCustomerGroupRequest  $request
-     * @return JsonResponse
      */
     public function store(StoreCustomerGroupRequest $request): JsonResponse
     {
@@ -65,9 +69,6 @@ class CustomerGroupController extends ApiController
 
     /**
      * Get a single customer group.
-     *
-     * @param  CustomerGroup  $customerGroup
-     * @return JsonResponse
      */
     public function show(CustomerGroup $customerGroup): JsonResponse
     {
@@ -81,10 +82,6 @@ class CustomerGroupController extends ApiController
 
     /**
      * Update an existing customer group.
-     *
-     * @param  UpdateCustomerGroupRequest  $request
-     * @param  CustomerGroup  $customerGroup
-     * @return JsonResponse
      */
     public function update(UpdateCustomerGroupRequest $request, CustomerGroup $customerGroup): JsonResponse
     {
@@ -100,9 +97,6 @@ class CustomerGroupController extends ApiController
 
     /**
      * Delete a customer group.
-     *
-     * @param  CustomerGroup  $customerGroup
-     * @return JsonResponse
      */
     public function destroy(CustomerGroup $customerGroup): JsonResponse
     {
@@ -113,11 +107,22 @@ class CustomerGroupController extends ApiController
         return $this->deleted('Customer group deleted successfully.');
     }
 
+    public function options(): JsonResponse
+    {
+        $this->authorize('viewAny', CustomerGroup::class);
+
+        return $this->success($this->customerGroupService->getOptions(), 'Customer group options retrieved successfully.');
+    }
+
+    public function statistics(): JsonResponse
+    {
+        $this->authorize('viewAny', CustomerGroup::class);
+
+        return $this->success($this->customerGroupService->statistics(), 'Customer group statistics retrieved successfully.');
+    }
+
     /**
      * Delete multiple customer groups.
-     *
-     * @param  Request  $request
-     * @return JsonResponse
      */
     public function destroyMany(Request $request): JsonResponse
     {
@@ -133,11 +138,54 @@ class CustomerGroupController extends ApiController
         return $this->success(null, "{$count} customer groups deleted successfully.");
     }
 
+    public function export(Request $request)
+    {
+        $this->authorize('viewAny', CustomerGroup::class);
+
+        $validated = $request->validate(ExportResourceRequest::rules(
+            CustomerGroupsExport::availableColumns(),
+            ['integer', 'exists:customer_groups,id'],
+        ));
+
+        $groups = $this->customerGroupService->exportQuery(
+            $validated['ids'] ?? null,
+            $validated['start_date'] ?? null,
+            $validated['end_date'] ?? null,
+        );
+
+        $export = new CustomerGroupsExport($groups, $validated['columns'] ?? null);
+
+        return $this->spreadsheetExport(
+            $request,
+            $export,
+            'customer-groups-export',
+            'Customer Groups Export',
+            'Your customer groups export is attached.',
+        );
+    }
+
+    public function importSample(Request $request): BinaryFileResponse
+    {
+        $this->authorize('create', CustomerGroup::class);
+
+        return $this->importSampleDownload($request, new CustomerGroupsImportSample, 'customer-groups');
+    }
+
+    public function import(Request $request): JsonResponse
+    {
+        $this->authorize('create', CustomerGroup::class);
+
+        $request->validate([
+            'file' => ['required', 'file', 'mimes:xlsx,xls,csv'],
+        ]);
+
+        Excel::import(new CustomerGroupsImport, $request->file('file'));
+
+        return $this->success(null, 'Customer groups imported successfully.');
+    }
+
     /**
      * Force delete a customer group permanently.
-     *
-     * @param  CustomerGroup  $customerGroup
-     * @return JsonResponse
      */
     public function forceDestroy(CustomerGroup $customerGroup): JsonResponse
     {
@@ -150,9 +198,6 @@ class CustomerGroupController extends ApiController
 
     /**
      * Restore a soft-deleted customer group.
-     *
-     * @param  CustomerGroup  $customerGroup
-     * @return JsonResponse
      */
     public function restore(CustomerGroup $customerGroup): JsonResponse
     {
@@ -168,9 +213,6 @@ class CustomerGroupController extends ApiController
 
     /**
      * Restore multiple soft-deleted customer groups.
-     *
-     * @param  Request  $request
-     * @return JsonResponse
      */
     public function restoreMany(Request $request): JsonResponse
     {
