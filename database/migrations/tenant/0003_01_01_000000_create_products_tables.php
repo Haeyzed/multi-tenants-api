@@ -190,7 +190,7 @@ return new class extends Migration
             $table->timestamps();
 
             $table->unique(['product_variant_id', 'attribute_id']);
-            $table->index(['product_variant_id', 'attribute_value_id']);
+            $table->index(['product_variant_id', 'attribute_value_id'], 'variant_attr_values_idx');
         });
 
         // ═══════════════════════════════════════════════════════════════
@@ -358,7 +358,7 @@ return new class extends Migration
             $table->boolean('is_available')->default(true);
             $table->timestamps();
 
-            $table->index(['product_id', 'day_of_week', 'is_available']);
+            $table->index(['product_id', 'day_of_week', 'is_available'], 'prod_svc_schedules_idx');
         });
 
         // ═══════════════════════════════════════════════════════════════
@@ -369,7 +369,7 @@ return new class extends Migration
             $table->foreignId('product_id')->constrained()->cascadeOnDelete();
             $table->foreignId('product_variant_id')->nullable()->constrained()->cascadeOnDelete();
             $table->foreignId('customer_id')->nullable()->constrained('customers')->nullOnDelete();
-            $table->foreignId('order_id')->nullable()->constrained()->nullOnDelete();
+            $table->unsignedBigInteger('order_id')->nullable();
             $table->string('author_name')->nullable();
             $table->string('author_email')->nullable();
             $table->unsignedTinyInteger('rating');
@@ -389,6 +389,7 @@ return new class extends Migration
             $table->index(['product_id', 'is_approved', 'rating']);
             $table->index(['product_id', 'is_approved', 'created_at']);
             $table->index(['customer_id', 'created_at']);
+            $table->index('order_id');
         });
 
         // ═══════════════════════════════════════════════════════════════

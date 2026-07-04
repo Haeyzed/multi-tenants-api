@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Enums\Central\DomainVerificationStatus;
 use App\Enums\Central\TenantStatus;
 use App\Models\Central\CentralUser;
 use App\Models\Central\Tenant;
@@ -107,6 +108,51 @@ it('returns tenant statistics', function (): void {
         ->assertJsonPath('data.total', 2)
         ->assertJsonPath('data.active', 1)
         ->assertJsonPath('data.suspended', 1);
+});
+
+it('deletes tenant domains when a tenant is deleted', function (): void {
+    $tenant = Tenant::factory()->create();
+
+    $tenant->domains()->create([
+        'domain' => 'delete-me',
+        'is_primary' => true,
+        'verification_status' => DomainVerificationStatus::Verified,
+        'verified_at' => now(),
+    ]);
+
+    $this->deleteJson("/api/v1/central/tenants/{$tenant->id}")
+        ->assertSuccessful();
+
+    $this->assertSoftDeleted('tenants', ['id' => $tenant->id]);
+    $this->assertDatabaseMissing('domains', ['tenant_id' => $tenant->id]);
+});
+
+it('deletes tenant domains when tenants are bulk deleted', function (): void {
+    $firstTenant = Tenant::factory()->create();
+    $secondTenant = Tenant::factory()->create();
+
+    $firstTenant->domains()->create([
+        'domain' => 'bulk-delete-one',
+        'is_primary' => true,
+        'verification_status' => DomainVerificationStatus::Verified,
+        'verified_at' => now(),
+    ]);
+
+    $secondTenant->domains()->create([
+        'domain' => 'bulk-delete-two',
+        'is_primary' => true,
+        'verification_status' => DomainVerificationStatus::Verified,
+        'verified_at' => now(),
+    ]);
+
+    $this->deleteJson('/api/v1/central/tenants/bulk', [
+        'ids' => [$firstTenant->id, $secondTenant->id],
+    ])->assertSuccessful();
+
+    $this->assertSoftDeleted('tenants', ['id' => $firstTenant->id]);
+    $this->assertSoftDeleted('tenants', ['id' => $secondTenant->id]);
+    $this->assertDatabaseMissing('domains', ['tenant_id' => $firstTenant->id]);
+    $this->assertDatabaseMissing('domains', ['tenant_id' => $secondTenant->id]);
 });
 
 it('authenticates central admin users', function (): void {

@@ -237,9 +237,9 @@ return new class extends Migration
             $table->softDeletes();
 
             $table->unique(['tax_class_id', 'tax_zone_id', 'priority'], 'tax_rate_unique');
-            $table->index(['tax_class_id', 'tax_zone_id', 'is_active']);
-            $table->index(['tax_zone_id', 'is_active', 'effective_from', 'effective_to']);
-            $table->index(['is_active', 'effective_from', 'effective_to']);
+            $table->index(['tax_class_id', 'tax_zone_id', 'is_active'], 'tax_rates_class_zone_active_idx');
+            $table->index(['tax_zone_id', 'is_active', 'effective_from', 'effective_to'], 'tax_rates_zone_active_dates_idx');
+            $table->index(['is_active', 'effective_from', 'effective_to'], 'tax_rates_active_dates_idx');
         });
 
         // ═══════════════════════════════════════════════════════════════
@@ -256,7 +256,7 @@ return new class extends Migration
             $table->boolean('is_active')->default(true);
             $table->timestamps();
 
-            $table->index(['tax_rate_id', 'applicable_type', 'applicable_id', 'is_active']);
+            $table->index(['tax_rate_id', 'applicable_type', 'applicable_id', 'is_active'], 'tax_rules_rate_applicable_active_idx');
         });
     }
 

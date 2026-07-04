@@ -9,6 +9,7 @@ use App\Events\Central\TenantActivated;
 use App\Events\Central\TenantSuspended;
 use App\Models\Central\Tenant;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Throwable;
@@ -20,15 +21,12 @@ class TenantService
 {
     public function __construct(
         private readonly TenantProvisioningService $provisioningService,
-    )
-    {
-    }
+    ) {}
 
     /**
      * Paginate tenants.
      *
-     * @param array<string, mixed> $filters
-     * @param int $perPage
+     * @param  array<string, mixed>  $filters
      * @return LengthAwarePaginator<int, Tenant>
      */
     public function paginate(array $filters = [], int $perPage = 15): LengthAwarePaginator
@@ -37,8 +35,8 @@ class TenantService
             ->with(['primaryDomain', 'plan'])
             ->latest();
 
-        if (!empty($filters['search'])) {
-            $search = (string)$filters['search'];
+        if (! empty($filters['search'])) {
+            $search = (string) $filters['search'];
             $query->where(function ($builder) use ($search): void {
                 $builder->where('name', 'like', "%{$search}%")
                     ->orWhere('slug', 'like', "%{$search}%")
@@ -55,9 +53,6 @@ class TenantService
 
     /**
      * Find a tenant by ID.
-     *
-     * @param string $id
-     * @return Tenant
      */
     public function find(string $id): Tenant
     {
@@ -69,14 +64,14 @@ class TenantService
     /**
      * Create a new tenant.
      *
-     * @param array<string, mixed> $data
-     * @return Tenant
+     * @param  array<string, mixed>  $data
+     *
      * @throws Throwable
      */
     public function create(array $data): Tenant
     {
         return DB::transaction(function () use ($data): Tenant {
-            $slug = Str::slug((string)($data['slug'] ?? $data['name']));
+            $slug = Str::slug((string) ($data['slug'] ?? $data['name']));
 
             return $this->provisioningService->provision([
                 'name' => $data['name'],
@@ -100,9 +95,7 @@ class TenantService
     /**
      * Update an existing tenant.
      *
-     * @param Tenant $tenant
-     * @param array<string, mixed> $data
-     * @return Tenant
+     * @param  array<string, mixed>  $data
      */
     public function update(Tenant $tenant, array $data): Tenant
     {
@@ -119,9 +112,6 @@ class TenantService
 
     /**
      * Activate a tenant.
-     *
-     * @param Tenant $tenant
-     * @return Tenant
      */
     public function activate(Tenant $tenant): Tenant
     {
@@ -137,9 +127,6 @@ class TenantService
 
     /**
      * Suspend a tenant.
-     *
-     * @param Tenant $tenant
-     * @return Tenant
      */
     public function suspend(Tenant $tenant): Tenant
     {
@@ -154,10 +141,7 @@ class TenantService
     }
 
     /**
-     * Delete a tenant.
-     *
-     * @param Tenant $tenant
-     * @return void
+     * Delete a tenant and all of its domains.
      */
     public function delete(Tenant $tenant): void
     {
@@ -165,7 +149,7 @@ class TenantService
     }
 
     /**
-     * @param list<string> $ids
+     * @param  list<string>  $ids
      */
     public function deleteMany(array $ids): int
     {
@@ -173,14 +157,14 @@ class TenantService
     }
 
     /**
-     * @param list<string>|null $ids
-     * @return \Illuminate\Support\Collection<int, Tenant>
+     * @param  list<string>|null  $ids
+     * @return Collection<int, Tenant>
      */
     public function exportQuery(
         ?array $ids = null,
         ?string $startDate = null,
         ?string $endDate = null,
-    ): \Illuminate\Support\Collection {
+    ): Collection {
         $query = Tenant::query()->with(['plan'])->orderBy('name');
 
         if ($ids !== null && $ids !== []) {

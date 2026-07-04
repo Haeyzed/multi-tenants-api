@@ -66,10 +66,18 @@ return new class extends Migration
             $table->foreignId('changed_by')->nullable()->constrained('users')->nullOnDelete();
             $table->timestamps();
         });
+
+        Schema::table('product_reviews', function (Blueprint $table) {
+            $table->foreign('order_id')->references('id')->on('orders')->nullOnDelete();
+        });
     }
 
     public function down(): void
     {
+        Schema::table('product_reviews', function (Blueprint $table) {
+            $table->dropForeign(['order_id']);
+        });
+
         Schema::dropIfExists('order_status_histories');
         Schema::dropIfExists('order_addresses');
         Schema::dropIfExists('order_items');
