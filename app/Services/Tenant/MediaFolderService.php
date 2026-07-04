@@ -4,25 +4,23 @@ declare(strict_types=1);
 
 namespace App\Services\Tenant;
 
-use App\Models\Tenant\MediaLibraryFolder;
-use Illuminate\Database\Eloquent\Builder;
+use App\Models\Tenant\MediaFolder;
 use Illuminate\Database\Eloquent\Collection;
-use Illuminate\Support\Facades\DB;
 
 /**
  * Tenant media library folder records and queries.
  */
-class MediaLibraryFolderService
+class MediaFolderService
 {
     /**
      * Get folders filtered for the media browser.
      *
      * @param  array<string, mixed>  $filters
-     * @return Collection<int, MediaLibraryFolder>
+     * @return Collection<int, MediaFolder>
      */
     public function list(array $filters = []): Collection
     {
-        return MediaLibraryFolder::query()
+        return MediaFolder::query()
             ->filter($filters)
             ->withCount('media')
             ->orderBy('name')
@@ -36,7 +34,7 @@ class MediaLibraryFolderService
      */
     public function getTree(): array
     {
-        $folders = MediaLibraryFolder::query()
+        $folders = MediaFolder::query()
             ->withCount('media')
             ->orderBy('name')
             ->get();
@@ -46,13 +44,10 @@ class MediaLibraryFolderService
 
     /**
      * Find folder by ID or fail.
-     *
-     * @param  int  $id
-     * @return MediaLibraryFolder
      */
-    public function findOrFail(int $id): MediaLibraryFolder
+    public function findOrFail(int $id): MediaFolder
     {
-        return MediaLibraryFolder::query()
+        return MediaFolder::query()
             ->withCount('media')
             ->findOrFail($id);
     }
@@ -61,23 +56,20 @@ class MediaLibraryFolderService
      * Create a folder.
      *
      * @param  array<string, mixed>  $data
-     * @return MediaLibraryFolder
      */
-    public function create(array $data): MediaLibraryFolder
+    public function create(array $data): MediaFolder
     {
         $data['path'] = $this->buildPath($data['name'], $data['parent_id'] ?? null);
 
-        return MediaLibraryFolder::query()->create($data);
+        return MediaFolder::query()->create($data);
     }
 
     /**
      * Update folder.
      *
-     * @param  MediaLibraryFolder  $folder
      * @param  array<string, mixed>  $data
-     * @return MediaLibraryFolder
      */
-    public function update(MediaLibraryFolder $folder, array $data): MediaLibraryFolder
+    public function update(MediaFolder $folder, array $data): MediaFolder
     {
         if (isset($data['name']) || array_key_exists('parent_id', $data)) {
             $data['path'] = $this->buildPath(
@@ -93,11 +85,8 @@ class MediaLibraryFolderService
 
     /**
      * Delete folder when empty.
-     *
-     * @param  MediaLibraryFolder  $folder
-     * @return bool
      */
-    public function delete(MediaLibraryFolder $folder): bool
+    public function delete(MediaFolder $folder): bool
     {
         if ($folder->media()->exists() || $folder->children()->exists()) {
             return false;
@@ -110,16 +99,15 @@ class MediaLibraryFolderService
      * Delete multiple empty folders by ID.
      *
      * @param  list<int>  $ids
-     * @return int
      */
     public function deleteMany(array $ids): int
     {
         $deleted = 0;
 
-        MediaLibraryFolder::query()
+        MediaFolder::query()
             ->whereIn('id', $ids)
             ->get()
-            ->each(function (MediaLibraryFolder $folder) use (&$deleted): void {
+            ->each(function (MediaFolder $folder) use (&$deleted): void {
                 if ($this->delete($folder)) {
                     $deleted++;
                 }
@@ -130,11 +118,8 @@ class MediaLibraryFolderService
 
     /**
      * Force delete a folder permanently.
-     *
-     * @param  MediaLibraryFolder  $folder
-     * @return bool
      */
-    public function forceDelete(MediaLibraryFolder $folder): bool
+    public function forceDelete(MediaFolder $folder): bool
     {
         return $folder->forceDelete();
     }
@@ -143,20 +128,16 @@ class MediaLibraryFolderService
      * Force delete multiple folders by ID.
      *
      * @param  list<int>  $ids
-     * @return int
      */
     public function forceDeleteMany(array $ids): int
     {
-        return MediaLibraryFolder::query()->whereIn('id', $ids)->forceDelete();
+        return MediaFolder::query()->whereIn('id', $ids)->forceDelete();
     }
 
     /**
      * Restore a soft-deleted folder.
-     *
-     * @param  MediaLibraryFolder  $folder
-     * @return MediaLibraryFolder
      */
-    public function restore(MediaLibraryFolder $folder): MediaLibraryFolder
+    public function restore(MediaFolder $folder): MediaFolder
     {
         $folder->restore();
 
@@ -167,18 +148,16 @@ class MediaLibraryFolderService
      * Restore multiple soft-deleted folders by ID.
      *
      * @param  list<int>  $ids
-     * @return int
      */
     public function restoreMany(array $ids): int
     {
-        return MediaLibraryFolder::query()->onlyTrashed()->whereIn('id', $ids)->restore();
+        return MediaFolder::query()->onlyTrashed()->whereIn('id', $ids)->restore();
     }
 
     /**
      * Build a nested tree structure of folders.
      *
-     * @param  Collection<int, MediaLibraryFolder>  $folders
-     * @param  int|null  $parentId
+     * @param  Collection<int, MediaFolder>  $folders
      * @return list<array<string, mixed>>
      */
     private function buildTree(Collection $folders, ?int $parentId = null): array
@@ -186,7 +165,7 @@ class MediaLibraryFolderService
         return $folders
             ->where('parent_id', $parentId)
             ->values()
-            ->map(fn (MediaLibraryFolder $folder): array => [
+            ->map(fn (MediaFolder $folder): array => [
                 'id' => $folder->id,
                 'name' => $folder->name,
                 'path' => $folder->path,
@@ -199,10 +178,6 @@ class MediaLibraryFolderService
 
     /**
      * Build the path for a folder based on its parent.
-     *
-     * @param  string  $name
-     * @param  int|null  $parentId
-     * @return string
      */
     private function buildPath(string $name, ?int $parentId): string
     {
@@ -210,7 +185,7 @@ class MediaLibraryFolderService
             return $name;
         }
 
-        $parent = MediaLibraryFolder::query()->find($parentId);
+        $parent = MediaFolder::query()->find($parentId);
 
         return $parent ? trim($parent->path.'/'.$name, '/') : $name;
     }

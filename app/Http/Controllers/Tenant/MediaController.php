@@ -43,7 +43,7 @@ class MediaController extends ApiController
     {
         $filters = $request->validate([
             'search' => ['nullable', 'string'],
-            'folder_id' => ['nullable', 'integer', 'exists:media_library_folders,id'],
+            'folder_id' => ['nullable', 'integer', 'exists:media_folders,id'],
             'mime_type' => ['nullable', 'string'],
         ]);
 

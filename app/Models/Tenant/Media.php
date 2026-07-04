@@ -6,7 +6,9 @@ namespace App\Models\Tenant;
 
 use App\MediaLibrary\TenantMediaUrl;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\MorphTo;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Storage;
 use Spatie\MediaLibrary\MediaCollections\Models\Media as SpatieMedia;
@@ -23,6 +25,7 @@ use Spatie\MediaLibrary\MediaCollections\Models\Media as SpatieMedia;
  * @property string $name
  * @property string|null $title
  * @property string|null $alt_text
+ * @property string|null $caption
  * @property string|null $uploaded_by
  * @property string $file_name
  * @property string|null $mime_type
@@ -53,6 +56,7 @@ class Media extends SpatieMedia
         'name',
         'title',
         'alt_text',
+        'caption',
         'uploaded_by',
         'file_name',
         'mime_type',
@@ -67,13 +71,23 @@ class Media extends SpatieMedia
     ];
 
     /**
+     * Parent model this media is attached to.
+     *
+     * @return MorphTo<Model, $this>
+     */
+    public function model(): MorphTo
+    {
+        return $this->morphTo();
+    }
+
+    /**
      * Folder this media item is organized under.
      *
-     * @return BelongsTo<MediaLibraryFolder, $this>
+     * @return BelongsTo<MediaFolder, $this>
      */
     public function folder(): BelongsTo
     {
-        return $this->belongsTo(MediaLibraryFolder::class, 'folder_id');
+        return $this->belongsTo(MediaFolder::class, 'folder_id');
     }
 
     /**
@@ -90,8 +104,6 @@ class Media extends SpatieMedia
      * Scope a query to search by name, title, or file name.
      *
      * @param  Builder<Media>  $query
-     * @param  string|null  $search
-     * @return void
      */
     public function scopeSearch(Builder $query, ?string $search): void
     {
@@ -132,8 +144,6 @@ class Media extends SpatieMedia
 
     /**
      * Public URL for the original file.
-     *
-     * @return string
      */
     public function getUrlAttribute(): string
     {
@@ -149,9 +159,6 @@ class Media extends SpatieMedia
 
     /**
      * Resolve URL via the tenant asset route (used by Spatie helpers/resources).
-     *
-     * @param  string  $conversionName
-     * @return string
      */
     public function getUrl(string $conversionName = ''): string
     {
@@ -166,9 +173,6 @@ class Media extends SpatieMedia
 
     /**
      * Resolve the storage path for library files (folder-based layout).
-     *
-     * @param  string  $conversionName
-     * @return string
      */
     public function getPathRelativeToRoot(string $conversionName = ''): string
     {

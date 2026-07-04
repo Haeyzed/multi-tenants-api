@@ -30,8 +30,13 @@ class UpdateProductRequest extends FormRequest
         $baseRules = [
             // Basic info
             'category_id' => ['nullable', 'integer', Rule::exists('categories', 'id')],
+            'category_ids' => ['nullable', 'array'],
+            'category_ids.*' => ['integer', Rule::exists('categories', 'id')],
             'brand_id' => ['nullable', 'integer', Rule::exists('brands', 'id')],
+            'collection_ids' => ['nullable', 'array'],
+            'collection_ids.*' => ['integer', Rule::exists('product_collections', 'id')],
             'name' => ['sometimes', 'string', 'max:255'],
+            'slug' => ['sometimes', 'string', 'max:255', Rule::unique('products', 'slug')->ignore($productId)],
             'description' => ['nullable', 'string'],
             'short_description' => ['nullable', 'string', 'max:1000'],
             'sku' => ['sometimes', 'string', 'max:100', Rule::unique('products', 'sku')->ignore($productId)],
@@ -42,11 +47,16 @@ class UpdateProductRequest extends FormRequest
             // Pricing
             'price' => ['sometimes', 'numeric', 'min:0'],
             'compare_at_price' => ['nullable', 'numeric', 'min:0'],
+            'sale_price' => ['nullable', 'numeric', 'min:0'],
             'cost_price' => ['nullable', 'numeric', 'min:0'],
 
             // Visibility & Status
+            'status' => ['sometimes', 'string', 'in:draft,active,archived'],
             'is_visible' => ['sometimes', 'boolean'],
             'is_featured' => ['sometimes', 'boolean'],
+            'taxable' => ['sometimes', 'boolean'],
+            'track_inventory' => ['sometimes', 'boolean'],
+            'allow_backorders' => ['sometimes', 'boolean'],
             'published_at' => ['nullable', 'date'],
 
             // Product Type
@@ -102,6 +112,17 @@ class UpdateProductRequest extends FormRequest
             'pricing_tiers.*.max_quantity' => ['nullable', 'integer', 'min:1'],
             'pricing_tiers.*.price' => ['required_with:pricing_tiers', 'numeric', 'min:0'],
             'pricing_tiers.*.customer_group_id' => ['nullable', 'string'],
+
+            'variants' => ['nullable', 'array'],
+            'variants.*.id' => ['nullable', 'integer'],
+            'variants.*.name' => ['required_with:variants', 'string', 'max:255'],
+            'variants.*.sku' => ['required_with:variants', 'string', 'max:100'],
+            'variants.*.price' => ['required_with:variants', 'numeric', 'min:0'],
+            'variants.*.compare_at_price' => ['nullable', 'numeric', 'min:0'],
+            'variants.*.is_default' => ['nullable', 'boolean'],
+            'variants.*.inventory' => ['nullable', 'array'],
+            'variants.*.inventory.quantity' => ['nullable', 'integer', 'min:0'],
+            'variants.*.inventory.low_stock_threshold' => ['nullable', 'integer', 'min:0'],
         ];
 
         // Type-specific conditional rules (only validate if product_type is being changed or relevant fields are present)
@@ -175,7 +196,7 @@ class UpdateProductRequest extends FormRequest
         if ($this->has('videos')) {
             $videos = $this->input('videos', []);
             foreach ($videos as $key => $video) {
-                if (!empty($video['video_url'])) {
+                if (! empty($video['video_url'])) {
                     $videos[$key]['video_id'] = $this->extractYouTubeId($video['video_url']);
                 }
             }

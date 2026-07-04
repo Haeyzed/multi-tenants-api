@@ -4,14 +4,14 @@ declare(strict_types=1);
 
 namespace App\Http\Resources\Tenant;
 
-use App\Models\Tenant\MediaLibraryFolder;
+use App\Models\Tenant\MediaFolder;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
 /**
- * @mixin MediaLibraryFolder
+ * @mixin MediaFolder
  */
-class MediaLibraryFolderResource extends JsonResource
+class MediaFolderResource extends JsonResource
 {
     /**
      * @return array<string, mixed>

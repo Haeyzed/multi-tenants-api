@@ -24,21 +24,21 @@ class PlanPolicy
 
     public function create(CentralUser $user): bool
     {
-        return $user->can('plans.manage');
+        return $user->can('plans.create');
     }
 
     public function update(CentralUser $user, Plan $plan): bool
     {
-        return $user->can('plans.manage');
+        return $user->can('plans.update');
     }
 
     public function delete(CentralUser $user, Plan $plan): bool
     {
-        return $user->can('plans.manage') || $user->can('plans.delete');
+        return $user->can('plans.delete');
     }
 
     public function deleteAny(CentralUser $user): bool
     {
-        return $user->can('plans.manage') || $user->can('plans.delete');
+        return $user->can('plans.delete');
     }
 }

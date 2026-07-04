@@ -4,8 +4,12 @@ declare(strict_types=1);
 
 namespace App\Services\Tenant;
 
+use App\Enums\Tenant\ProductStatus;
 use App\Models\Tenant\Category;
+use App\Models\Tenant\Product;
+use DomainException;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 use Illuminate\Support\Collection;
 
 /**
@@ -13,6 +17,21 @@ use Illuminate\Support\Collection;
  */
 class CategoryService
 {
+    /**
+     * @var list<string>
+     */
+    private const MEDIA_RELATIONS = ['imageMedia', 'bannerMedia', 'iconMedia'];
+
+    /**
+     * @var list<string>
+     */
+    private const LIST_RELATIONS = ['parent', 'imageMedia', 'bannerMedia', 'iconMedia'];
+
+    /**
+     * @var list<string>
+     */
+    private const DETAIL_RELATIONS = ['parent', 'children', 'attributeSets', 'imageMedia', 'bannerMedia', 'iconMedia'];
+
     /**
      * Paginate the categories.
      *
@@ -22,7 +41,7 @@ class CategoryService
     public function paginate(array $filters = [], int $perPage = 15): LengthAwarePaginator
     {
         return Category::query()
-            ->with(['parent', 'imageMedia', 'bannerMedia'])
+            ->with(self::LIST_RELATIONS)
             ->filter($filters)
             ->orderBy('sort_order')
             ->latest()
@@ -35,8 +54,19 @@ class CategoryService
     public function find(int $id): Category
     {
         return Category::query()
-            ->with(['parent', 'children', 'imageMedia', 'bannerMedia'])
+            ->with(self::DETAIL_RELATIONS)
             ->findOrFail($id);
+    }
+
+    /**
+     * Find a category by slug.
+     */
+    public function findBySlug(string $slug): Category
+    {
+        return Category::query()
+            ->with(self::DETAIL_RELATIONS)
+            ->where('slug', $slug)
+            ->firstOrFail();
     }
 
     /**
@@ -46,9 +76,15 @@ class CategoryService
      */
     public function create(array $data): Category
     {
-        $category = Category::query()->create($data);
+        if (! empty($data['parent_id'])) {
+            $parent = Category::query()->findOrFail($data['parent_id']);
+            $data['depth'] = $parent->depth + 1;
+        }
 
-        return $category->fresh(['imageMedia', 'bannerMedia']);
+        $category = Category::query()->create($data);
+        $this->updatePath($category);
+
+        return $category->fresh(self::MEDIA_RELATIONS);
     }
 
     /**
@@ -58,16 +94,38 @@ class CategoryService
      */
     public function update(Category $category, array $data): Category
     {
-        $category->update($data);
+        $parentChanged = array_key_exists('parent_id', $data)
+            && $data['parent_id'] != $category->parent_id;
 
-        return $category->fresh(['imageMedia', 'bannerMedia']);
+        if ($parentChanged) {
+            $parent = $data['parent_id']
+                ? Category::query()->findOrFail($data['parent_id'])
+                : null;
+            $data['depth'] = $parent ? $parent->depth + 1 : 0;
+        }
+
+        $category->update($data);
+        $this->updatePath($category);
+
+        if ($parentChanged) {
+            $this->updateChildrenDepth($category);
+            $this->updateDescendantPaths($category);
+        }
+
+        return $category->fresh(self::MEDIA_RELATIONS);
     }
 
     /**
      * Delete a category.
+     *
+     * @throws DomainException
      */
     public function delete(Category $category): void
     {
+        if ($category->children()->exists()) {
+            throw new DomainException('Cannot delete category with children.');
+        }
+
         $category->delete();
     }
 
@@ -78,7 +136,10 @@ class CategoryService
      */
     public function deleteMany(array $ids): int
     {
-        return Category::query()->whereIn('id', $ids)->delete();
+        return Category::query()
+            ->whereIn('id', $ids)
+            ->whereDoesntHave('children')
+            ->delete();
     }
 
     /**
@@ -96,7 +157,7 @@ class CategoryService
     {
         $category->restore();
 
-        return $category->fresh(['imageMedia', 'bannerMedia']);
+        return $category->fresh(self::MEDIA_RELATIONS);
     }
 
     /**
@@ -162,5 +223,225 @@ class CategoryService
                 'label' => $category->name,
                 'value' => $category->id,
             ]);
+    }
+
+    /**
+     * @return list<array{id: int, name: string, slug: string, children: list<mixed>}>
+     */
+    public function getTree(): array
+    {
+        $categories = Category::query()->orderBy('sort_order')->get();
+
+        return $this->buildTree($categories);
+    }
+
+    /**
+     * @return array<int, string>
+     */
+    public function getTreeForSelect(): array
+    {
+        $categories = Category::query()->orderBy('sort_order')->get();
+
+        return $this->buildTreeForSelect($categories);
+    }
+
+    /**
+     * @return Collection<int, Category>
+     */
+    public function getBreadcrumbs(Category $category): Collection
+    {
+        $breadcrumbs = collect();
+        $current = $category->loadMissing('parent');
+
+        while ($current !== null) {
+            $breadcrumbs->prepend($current);
+            $current = $current->parent;
+        }
+
+        return $breadcrumbs;
+    }
+
+    /**
+     * @return EloquentCollection<int, Category>
+     */
+    public function getChildren(int $parentId): EloquentCollection
+    {
+        return Category::query()
+            ->where('parent_id', $parentId)
+            ->where('is_visible', true)
+            ->orderBy('sort_order')
+            ->get();
+    }
+
+    /**
+     * @return Collection<int, Category>
+     */
+    public function getDescendants(Category $category): Collection
+    {
+        $category->loadMissing('children');
+        $descendants = collect();
+        $this->collectDescendants($category, $descendants);
+
+        return $descendants;
+    }
+
+    /**
+     * Move a category under a new parent.
+     */
+    public function move(Category $category, ?int $parentId): Category
+    {
+        return $this->update($category, ['parent_id' => $parentId]);
+    }
+
+    /**
+     * @param  list<int>  $orderedIds
+     */
+    public function reorder(array $orderedIds): void
+    {
+        foreach ($orderedIds as $index => $id) {
+            Category::query()->where('id', $id)->update(['sort_order' => $index + 1]);
+        }
+    }
+
+    /**
+     * @param  array<string, mixed>  $filters
+     * @return LengthAwarePaginator<int, Product>
+     */
+    public function getProducts(Category $category, array $filters = []): LengthAwarePaginator
+    {
+        $query = $category->products();
+
+        if (isset($filters['is_visible'])) {
+            $query->where('is_visible', $filters['is_visible']);
+        }
+
+        if (isset($filters['status'])) {
+            $query->where('status', $filters['status']);
+        }
+
+        return $query->paginate((int) ($filters['per_page'] ?? 20));
+    }
+
+    public function assignAttributeSet(Category $category, int $attributeSetId): void
+    {
+        $category->attributeSets()->syncWithoutDetaching([$attributeSetId]);
+    }
+
+    public function removeAttributeSet(Category $category, int $attributeSetId): void
+    {
+        $category->attributeSets()->detach($attributeSetId);
+    }
+
+    /**
+     * @param  list<int>  $attributeSetIds
+     */
+    public function syncAttributeSets(Category $category, array $attributeSetIds): void
+    {
+        $category->attributeSets()->sync($attributeSetIds);
+    }
+
+    public function updateProductsCount(Category $category): void
+    {
+        $count = $category->products()
+            ->where('status', ProductStatus::Active->value)
+            ->count();
+
+        $category->update(['products_count' => $count]);
+    }
+
+    public function toggleVisibility(Category $category): Category
+    {
+        $category->update(['is_visible' => ! $category->is_visible]);
+
+        return $category->fresh(self::MEDIA_RELATIONS);
+    }
+
+    public function toggleFeatured(Category $category): Category
+    {
+        $category->update(['is_featured' => ! $category->is_featured]);
+
+        return $category->fresh(self::MEDIA_RELATIONS);
+    }
+
+    private function updatePath(Category $category): void
+    {
+        $category->loadMissing('parent');
+
+        $path = (string) $category->id;
+        $parent = $category->parent;
+
+        while ($parent !== null) {
+            $path = $parent->id.'/'.$path;
+            $parent = $parent->parent;
+        }
+
+        $category->update(['path' => $path]);
+    }
+
+    private function updateChildrenDepth(Category $category): void
+    {
+        $category->loadMissing('children');
+
+        foreach ($category->children as $child) {
+            $child->update(['depth' => $category->depth + 1]);
+            $this->updateChildrenDepth($child);
+        }
+    }
+
+    private function updateDescendantPaths(Category $category): void
+    {
+        $category->loadMissing('children');
+
+        foreach ($category->children as $child) {
+            $this->updatePath($child);
+            $this->updateDescendantPaths($child);
+        }
+    }
+
+    /**
+     * @param  EloquentCollection<int, Category>  $categories
+     * @return list<array{id: int, name: string, slug: string, children: list<mixed>}>
+     */
+    private function buildTree(EloquentCollection $categories, ?int $parentId = null): array
+    {
+        $tree = [];
+
+        foreach ($categories->where('parent_id', $parentId) as $category) {
+            $tree[] = [
+                'id' => $category->id,
+                'name' => $category->name,
+                'slug' => $category->slug,
+                'children' => $this->buildTree($categories, $category->id),
+            ];
+        }
+
+        return $tree;
+    }
+
+    /**
+     * @param  EloquentCollection<int, Category>  $categories
+     * @return array<int, string>
+     */
+    private function buildTreeForSelect(EloquentCollection $categories, ?int $parentId = null, string $prefix = ''): array
+    {
+        $tree = [];
+
+        foreach ($categories->where('parent_id', $parentId) as $category) {
+            $tree[$category->id] = $prefix.$category->name;
+            $tree += $this->buildTreeForSelect($categories, $category->id, $prefix.'-- ');
+        }
+
+        return $tree;
+    }
+
+    /**
+     * @param  Collection<int, Category>  $descendants
+     */
+    private function collectDescendants(Category $category, Collection $descendants): void
+    {
+        foreach ($category->children as $child) {
+            $descendants->push($child);
+            $this->collectDescendants($child, $descendants);
+        }
     }
 }

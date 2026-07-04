@@ -10,7 +10,7 @@ use Illuminate\Validation\Rule;
 /**
  * Validates media library folder update requests.
  */
-class UpdateMediaLibraryFolderRequest extends FormRequest
+class UpdateMediaFolderRequest extends FormRequest
 {
     public function authorize(): bool
     {
@@ -29,7 +29,7 @@ class UpdateMediaLibraryFolderRequest extends FormRequest
             'parent_id' => [
                 'nullable',
                 'integer',
-                Rule::exists('media_library_folders', 'id')->whereNot('id', $folderId),
+                Rule::exists('media_folders', 'id')->whereNot('id', $folderId),
             ],
         ];
     }

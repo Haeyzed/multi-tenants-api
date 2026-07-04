@@ -10,7 +10,7 @@ use Illuminate\Validation\Rule;
 /**
  * Validates media library folder creation requests.
  */
-class StoreMediaLibraryFolderRequest extends FormRequest
+class StoreMediaFolderRequest extends FormRequest
 {
     public function authorize(): bool
     {
@@ -24,7 +24,7 @@ class StoreMediaLibraryFolderRequest extends FormRequest
     {
         return [
             'name' => ['required', 'string', 'max:255'],
-            'parent_id' => ['nullable', 'integer', Rule::exists('media_library_folders', 'id')],
+            'parent_id' => ['nullable', 'integer', Rule::exists('media_folders', 'id')],
         ];
     }
 }

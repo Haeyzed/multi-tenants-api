@@ -10,7 +10,7 @@ use Illuminate\Validation\Rule;
 /**
  * Validates bulk media library folder delete requests.
  */
-class BulkDeleteMediaLibraryFoldersRequest extends FormRequest
+class BulkDeleteMediaFoldersRequest extends FormRequest
 {
     public function authorize(): bool
     {
@@ -24,7 +24,7 @@ class BulkDeleteMediaLibraryFoldersRequest extends FormRequest
     {
         return [
             'ids' => ['required', 'array', 'min:1'],
-            'ids.*' => ['integer', Rule::exists('media_library_folders', 'id')],
+            'ids.*' => ['integer', Rule::exists('media_folders', 'id')],
         ];
     }
 }

@@ -5,22 +5,22 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Tenant;
 
 use App\Http\Controllers\ApiController;
-use App\Http\Requests\Tenant\BulkDeleteMediaLibraryFoldersRequest;
-use App\Http\Requests\Tenant\StoreMediaLibraryFolderRequest;
-use App\Http\Requests\Tenant\UpdateMediaLibraryFolderRequest;
-use App\Http\Resources\Tenant\MediaLibraryFolderResource;
-use App\Models\Tenant\MediaLibraryFolder;
-use App\Services\Tenant\MediaLibraryFolderService;
+use App\Http\Requests\Tenant\BulkDeleteMediaFoldersRequest;
+use App\Http\Requests\Tenant\StoreMediaFolderRequest;
+use App\Http\Requests\Tenant\UpdateMediaFolderRequest;
+use App\Http\Resources\Tenant\MediaFolderResource;
+use App\Models\Tenant\MediaFolder;
+use App\Services\Tenant\MediaFolderService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 /**
  * Media library folders for organizing tenant files.
  */
-class MediaLibraryFolderController extends ApiController
+class MediaFolderController extends ApiController
 {
     public function __construct(
-        private readonly MediaLibraryFolderService $service,
+        private readonly MediaFolderService $service,
     ) {}
 
     /**
@@ -32,7 +32,7 @@ class MediaLibraryFolderController extends ApiController
     {
         $filters = $request->validate([
             'search' => ['nullable', 'string'],
-            'parent_id' => ['sometimes', 'nullable', 'integer', 'exists:media_library_folders,id'],
+            'parent_id' => ['sometimes', 'nullable', 'integer', 'exists:media_folders,id'],
         ]);
 
         if ($request->has('parent_id')) {
@@ -42,7 +42,7 @@ class MediaLibraryFolderController extends ApiController
         $items = $this->service->list($filters);
 
         return $this->success(
-            MediaLibraryFolderResource::collection($items),
+            MediaFolderResource::collection($items),
             'Media folders retrieved successfully.',
         );
     }
@@ -61,46 +61,46 @@ class MediaLibraryFolderController extends ApiController
     /**
      * Create a media library folder.
      *
-     * @param  StoreMediaLibraryFolderRequest  $request  Validated request payload.
+     * @param  StoreMediaFolderRequest  $request  Validated request payload.
      */
-    public function store(StoreMediaLibraryFolderRequest $request): JsonResponse
+    public function store(StoreMediaFolderRequest $request): JsonResponse
     {
         $item = $this->service->create($request->validated());
 
-        return $this->created(new MediaLibraryFolderResource($item), 'Media folder created successfully.');
+        return $this->created(new MediaFolderResource($item), 'Media folder created successfully.');
     }
 
     /**
      * Find folder by route binding.
      *
-     * @param  MediaLibraryFolder  $folder  Folder instance.
+     * @param  MediaFolder  $folder  Folder instance.
      */
-    public function show(MediaLibraryFolder $folder): JsonResponse
+    public function show(MediaFolder $folder): JsonResponse
     {
         $item = $this->service->findOrFail($folder->id);
 
-        return $this->success(new MediaLibraryFolderResource($item), 'Media folder retrieved successfully.');
+        return $this->success(new MediaFolderResource($item), 'Media folder retrieved successfully.');
     }
 
     /**
      * Update media library folder.
      *
-     * @param  UpdateMediaLibraryFolderRequest  $request  Validated request payload.
-     * @param  MediaLibraryFolder  $folder  Folder instance.
+     * @param  UpdateMediaFolderRequest  $request  Validated request payload.
+     * @param  MediaFolder  $folder  Folder instance.
      */
-    public function update(UpdateMediaLibraryFolderRequest $request, MediaLibraryFolder $folder): JsonResponse
+    public function update(UpdateMediaFolderRequest $request, MediaFolder $folder): JsonResponse
     {
         $item = $this->service->update($folder, $request->validated());
 
-        return $this->updated(new MediaLibraryFolderResource($item), 'Media folder updated successfully.');
+        return $this->updated(new MediaFolderResource($item), 'Media folder updated successfully.');
     }
 
     /**
      * Delete media library folder.
      *
-     * @param  MediaLibraryFolder  $folder  Folder instance.
+     * @param  MediaFolder  $folder  Folder instance.
      */
-    public function destroy(MediaLibraryFolder $folder): JsonResponse
+    public function destroy(MediaFolder $folder): JsonResponse
     {
         $this->service->delete($folder);
 
@@ -110,7 +110,7 @@ class MediaLibraryFolderController extends ApiController
     /**
      * Delete multiple empty folders in one request.
      */
-    public function bulkDestroy(BulkDeleteMediaLibraryFoldersRequest $request): JsonResponse
+    public function bulkDestroy(BulkDeleteMediaFoldersRequest $request): JsonResponse
     {
         $deleted = $this->service->deleteMany($request->validated('ids'));
 

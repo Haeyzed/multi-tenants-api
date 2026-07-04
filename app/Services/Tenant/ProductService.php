@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Services\Tenant;
 
+use App\Enums\Tenant\ProductStatus;
 use App\Enums\Tenant\ProductType;
 use App\Events\Tenant\ProductCreated;
 use App\Events\Tenant\ProductUpdated;
@@ -14,9 +15,10 @@ use App\Models\Tenant\ProductImage;
 use App\Models\Tenant\ProductPricingTier;
 use App\Models\Tenant\ProductRelation;
 use App\Models\Tenant\ProductServiceProvider;
-use App\Models\Tenant\ProductVideo;
 use App\Models\Tenant\ProductVariant;
+use App\Models\Tenant\ProductVideo;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Throwable;
 
@@ -27,36 +29,40 @@ class ProductService
 {
     public function __construct(
         private readonly InventoryService $inventoryService,
-    ) {
-    }
+    ) {}
 
     /**
      * Paginate the products.
      *
-     * @param array<string, mixed> $filters
-     * @param int $perPage
+     * @param  array<string, mixed>  $filters
      * @return LengthAwarePaginator<int, Product>
      */
     public function paginate(array $filters = [], int $perPage = 15): LengthAwarePaginator
     {
-        $query = Product::query()
-            ->with(['category', 'brand', 'tags', 'inventory', 'primaryImageMedia'])
-            ->latest();
-
-        return $query->filter($filters)->paginate($perPage);
+        return Product::query()
+            ->with([
+                'category',
+                'categories',
+                'brand',
+                'tags',
+                'inventory',
+                'primaryImageMedia',
+            ])
+            ->withCount(['variants', 'reviews'])
+            ->latest()
+            ->filter($filters)
+            ->paginate($perPage);
     }
 
     /**
      * Find a product by ID.
-     *
-     * @param int $id
-     * @return Product
      */
     public function find(int $id): Product
     {
         return Product::query()
             ->with([
                 'category',
+                'categories',
                 'brand.logoMedia',
                 'tags',
                 'variants.inventory',
@@ -74,7 +80,6 @@ class ProductService
                 'pricingTiers',
                 'seo',
                 'collections',
-                // Type-specific relations
                 'digitalFiles.media',
                 'previewMedia',
                 'comboItems.includedProduct.primaryImageMedia',
@@ -82,14 +87,12 @@ class ProductService
                 'serviceProviders.provider',
                 'videos',
             ])
+            ->withCount(['variants', 'reviews'])
             ->findOrFail($id);
     }
 
     /**
      * Find product by slug for storefront.
-     *
-     * @param string $slug
-     * @return Product
      */
     public function findBySlug(string $slug): Product
     {
@@ -123,8 +126,8 @@ class ProductService
     /**
      * Create a new product.
      *
-     * @param array<string, mixed> $data
-     * @return Product
+     * @param  array<string, mixed>  $data
+     *
      * @throws Throwable
      */
     public function create(array $data): Product
@@ -134,6 +137,7 @@ class ProductService
 
             // Extract type-specific data
             $tagIds = $data['tag_ids'] ?? [];
+            $categoryIds = $data['category_ids'] ?? [];
             $gallery = $data['gallery'] ?? [];
             $videos = $data['videos'] ?? [];
             $attributeValues = $data['attribute_values'] ?? [];
@@ -142,16 +146,19 @@ class ProductService
             $upSellProductIds = $data['up_sell_product_ids'] ?? [];
             $pricingTiers = $data['pricing_tiers'] ?? [];
             $seoData = $data['seo'] ?? null;
+            $collectionIds = $data['collection_ids'] ?? [];
 
             // Type-specific data
             $digitalFiles = $data['digital_files'] ?? [];
             $comboItems = $data['combo_items'] ?? [];
             $providerIds = $data['provider_ids'] ?? [];
             $inventoryData = $data['inventory'] ?? [];
+            $variants = $data['variants'] ?? [];
 
             // Clean data for product creation
             unset(
                 $data['tag_ids'],
+                $data['category_ids'],
                 $data['gallery'],
                 $data['videos'],
                 $data['attribute_values'],
@@ -160,18 +167,35 @@ class ProductService
                 $data['up_sell_product_ids'],
                 $data['pricing_tiers'],
                 $data['seo'],
+                $data['collection_ids'],
                 $data['digital_files'],
                 $data['combo_items'],
                 $data['provider_ids'],
-                $data['inventory']
+                $data['inventory'],
+                $data['variants']
             );
+
+            $data = $this->normalizePublishingFields($data);
 
             /** @var Product $product */
             $product = Product::query()->create($data);
 
             // Sync basic relations
+            $this->syncCategories($product, $categoryIds, $data['category_id'] ?? null);
+
             if ($tagIds !== []) {
                 $product->tags()->sync($tagIds);
+            }
+
+            if ($collectionIds !== []) {
+                $product->collections()->sync(
+                    collect($collectionIds)
+                        ->values()
+                        ->mapWithKeys(fn (int $id, int $index): array => [
+                            $id => ['sort_order' => $index],
+                        ])
+                        ->all()
+                );
             }
 
             $this->syncGallery($product, $gallery);
@@ -195,6 +219,12 @@ class ProductService
                 default => null,
             };
 
+            if ($variants !== []) {
+                foreach ($variants as $variantData) {
+                    $this->createVariant($product, $variantData);
+                }
+            }
+
             $product = $this->find($product->id);
             ProductCreated::dispatch($product);
 
@@ -205,9 +235,8 @@ class ProductService
     /**
      * Update an existing product.
      *
-     * @param Product $product
-     * @param array<string, mixed> $data
-     * @return Product
+     * @param  array<string, mixed>  $data
+     *
      * @throws Throwable
      */
     public function update(Product $product, array $data): Product
@@ -217,6 +246,7 @@ class ProductService
 
             // Extract relation data
             $tagIds = $data['tag_ids'] ?? null;
+            $categoryIds = $data['category_ids'] ?? null;
             $gallery = $data['gallery'] ?? null;
             $videos = $data['videos'] ?? null;
             $attributeValues = $data['attribute_values'] ?? null;
@@ -225,15 +255,18 @@ class ProductService
             $upSellProductIds = $data['up_sell_product_ids'] ?? null;
             $pricingTiers = $data['pricing_tiers'] ?? null;
             $seoData = $data['seo'] ?? null;
+            $collectionIds = $data['collection_ids'] ?? null;
 
             // Type-specific data
             $digitalFiles = $data['digital_files'] ?? null;
             $comboItems = $data['combo_items'] ?? null;
             $providerIds = $data['provider_ids'] ?? null;
             $inventoryData = $data['inventory'] ?? null;
+            $variants = $data['variants'] ?? null;
 
             unset(
                 $data['tag_ids'],
+                $data['category_ids'],
                 $data['gallery'],
                 $data['videos'],
                 $data['attribute_values'],
@@ -242,17 +275,40 @@ class ProductService
                 $data['up_sell_product_ids'],
                 $data['pricing_tiers'],
                 $data['seo'],
+                $data['collection_ids'],
                 $data['digital_files'],
                 $data['combo_items'],
                 $data['provider_ids'],
-                $data['inventory']
+                $data['inventory'],
+                $data['variants']
             );
+
+            $data = $this->normalizePublishingFields($data);
 
             $product->update($data);
 
             // Sync relations
+            if ($categoryIds !== null || array_key_exists('category_id', $data)) {
+                $this->syncCategories(
+                    $product,
+                    $categoryIds ?? [],
+                    $data['category_id'] ?? $product->category_id,
+                );
+            }
+
             if ($tagIds !== null) {
                 $product->tags()->sync($tagIds);
+            }
+
+            if ($collectionIds !== null) {
+                $product->collections()->sync(
+                    collect($collectionIds)
+                        ->values()
+                        ->mapWithKeys(fn (int $id, int $index): array => [
+                            $id => ['sort_order' => $index],
+                        ])
+                        ->all()
+                );
             }
 
             if ($gallery !== null) {
@@ -296,6 +352,25 @@ class ProductService
                 default => null,
             };
 
+            if ($variants !== null) {
+                foreach ($variants as $variantData) {
+                    if (! empty($variantData['id'])) {
+                        $variant = ProductVariant::query()
+                            ->where('product_id', $product->id)
+                            ->find($variantData['id']);
+
+                        if ($variant) {
+                            $this->updateVariant($variant, $variantData);
+
+                            continue;
+                        }
+                    }
+
+                    unset($variantData['id']);
+                    $this->createVariant($product, $variantData);
+                }
+            }
+
             $product = $this->find($product->id);
             ProductUpdated::dispatch($product);
 
@@ -305,9 +380,6 @@ class ProductService
 
     /**
      * Delete a product.
-     *
-     * @param Product $product
-     * @return void
      */
     public function delete(Product $product): void
     {
@@ -317,8 +389,7 @@ class ProductService
     /**
      * Delete multiple products by ID.
      *
-     * @param list<int> $ids
-     * @return int
+     * @param  list<int>  $ids
      */
     public function deleteMany(array $ids): int
     {
@@ -327,9 +398,6 @@ class ProductService
 
     /**
      * Force delete a product permanently.
-     *
-     * @param Product $product
-     * @return void
      */
     public function forceDelete(Product $product): void
     {
@@ -338,9 +406,6 @@ class ProductService
 
     /**
      * Restore a soft-deleted product.
-     *
-     * @param Product $product
-     * @return Product
      */
     public function restore(Product $product): Product
     {
@@ -352,8 +417,7 @@ class ProductService
     /**
      * Restore multiple soft-deleted products by ID.
      *
-     * @param list<int> $ids
-     * @return int
+     * @param  list<int>  $ids
      */
     public function restoreMany(array $ids): int
     {
@@ -367,15 +431,14 @@ class ProductService
     /**
      * Create a variant for a product.
      *
-     * @param Product $product
-     * @param array<string, mixed> $data
-     * @return ProductVariant
+     * @param  array<string, mixed>  $data
+     *
      * @throws Throwable
      */
     public function createVariant(Product $product, array $data): ProductVariant
     {
         return DB::transaction(function () use ($product, $data): ProductVariant {
-            if (!empty($data['is_default'])) {
+            if (! empty($data['is_default'])) {
                 $product->variants()->update(['is_default' => false]);
             }
 
@@ -404,15 +467,14 @@ class ProductService
     /**
      * Update a product variant.
      *
-     * @param ProductVariant $variant
-     * @param array<string, mixed> $data
-     * @return ProductVariant
+     * @param  array<string, mixed>  $data
+     *
      * @throws Throwable
      */
     public function updateVariant(ProductVariant $variant, array $data): ProductVariant
     {
         return DB::transaction(function () use ($variant, $data): ProductVariant {
-            if (!empty($data['is_default'])) {
+            if (! empty($data['is_default'])) {
                 $variant->product->variants()->where('id', '!=', $variant->id)->update(['is_default' => false]);
             }
 
@@ -440,9 +502,6 @@ class ProductService
 
     /**
      * Delete a product variant.
-     *
-     * @param ProductVariant $variant
-     * @return void
      */
     public function deleteVariant(ProductVariant $variant): void
     {
@@ -456,8 +515,7 @@ class ProductService
     /**
      * Get products for storefront with filtering.
      *
-     * @param array<string, mixed> $filters
-     * @param int $perPage
+     * @param  array<string, mixed>  $filters
      * @return LengthAwarePaginator<int, Product>
      */
     public function getStorefrontProducts(array $filters = [], int $perPage = 24): LengthAwarePaginator
@@ -472,7 +530,6 @@ class ProductService
     /**
      * Get featured products for homepage.
      *
-     * @param int $limit
      * @return \Illuminate\Database\Eloquent\Collection<int, Product>
      */
     public function getFeaturedProducts(int $limit = 8): \Illuminate\Database\Eloquent\Collection
@@ -489,8 +546,6 @@ class ProductService
     /**
      * Get related products for a product.
      *
-     * @param Product $product
-     * @param int $limit
      * @return \Illuminate\Database\Eloquent\Collection<int, Product>
      */
     public function getRelatedProducts(Product $product, int $limit = 8): \Illuminate\Database\Eloquent\Collection
@@ -688,7 +743,10 @@ class ProductService
      */
     private function syncRelations(Product $product, array $relatedIds, string $type): void
     {
-        $product->{$type . 'Products'}()->delete();
+        ProductRelation::query()
+            ->where('product_id', $product->id)
+            ->where('relation_type', $type)
+            ->delete();
 
         foreach ($relatedIds as $index => $relatedId) {
             ProductRelation::query()->create([
@@ -712,5 +770,138 @@ class ProductService
             unset($tier['id']);
             ProductPricingTier::query()->create($tier);
         }
+    }
+
+    /**
+     * @param  list<int>  $categoryIds
+     */
+    private function syncCategories(Product $product, array $categoryIds, mixed $primaryCategoryId = null): void
+    {
+        $ids = collect($categoryIds)
+            ->filter()
+            ->map(fn (mixed $id): int => (int) $id)
+            ->unique()
+            ->values();
+
+        if ($primaryCategoryId) {
+            $ids = $ids->prepend((int) $primaryCategoryId)->unique()->values();
+        }
+
+        if ($ids->isEmpty() && $product->category_id) {
+            $ids = collect([(int) $product->category_id]);
+        }
+
+        $syncData = $ids->mapWithKeys(function (int $id, int $index) use ($primaryCategoryId): array {
+            $isPrimary = $primaryCategoryId
+                ? $id === (int) $primaryCategoryId
+                : $index === 0;
+
+            return [
+                $id => [
+                    'is_primary' => $isPrimary,
+                    'sort_order' => $index,
+                ],
+            ];
+        })->all();
+
+        $product->categories()->sync($syncData);
+
+        $primaryId = $primaryCategoryId
+            ? (int) $primaryCategoryId
+            : $ids->first();
+
+        if ($primaryId) {
+            $product->forceFill(['category_id' => $primaryId])->saveQuietly();
+        }
+    }
+
+    /**
+     * Keep status and visibility flags consistent.
+     *
+     * @param  array<string, mixed>  $data
+     * @return array<string, mixed>
+     */
+    private function normalizePublishingFields(array $data): array
+    {
+        if (array_key_exists('status', $data)) {
+            $status = $data['status'] instanceof ProductStatus
+                ? $data['status']
+                : ProductStatus::tryFrom((string) $data['status']);
+
+            if ($status instanceof ProductStatus) {
+                $data['status'] = $status->value;
+                $data['is_visible'] = $status === ProductStatus::Active
+                    ? ($data['is_visible'] ?? true)
+                    : false;
+
+                if ($status === ProductStatus::Active && empty($data['published_at'])) {
+                    $data['published_at'] = now();
+                }
+            }
+        } elseif (array_key_exists('is_visible', $data)) {
+            $data['status'] = $data['is_visible']
+                ? ProductStatus::Active->value
+                : ProductStatus::Draft->value;
+        }
+
+        return $data;
+    }
+
+    /**
+     * @return array{total: int, draft: int, active: int, archived: int, featured: int, low_stock: int}
+     */
+    public function statistics(): array
+    {
+        return [
+            'total' => Product::query()->count(),
+            'draft' => Product::query()->where('status', ProductStatus::Draft)->count(),
+            'active' => Product::query()->where('status', ProductStatus::Active)->count(),
+            'archived' => Product::query()->where('status', ProductStatus::Archived)->count(),
+            'featured' => Product::query()->where('is_featured', true)->count(),
+            'low_stock' => Product::query()->lowStock()->count(),
+        ];
+    }
+
+    /**
+     * @return Collection<int, array{label: string, value: int}>
+     */
+    public function getOptions(): Collection
+    {
+        return Product::query()
+            ->where('status', ProductStatus::Active)
+            ->orderBy('name')
+            ->get(['id', 'name', 'sku'])
+            ->map(fn (Product $product): array => [
+                'label' => "{$product->name} ({$product->sku})",
+                'value' => $product->id,
+            ]);
+    }
+
+    /**
+     * @param  list<int>|null  $ids
+     * @return Collection<int, Product>
+     */
+    public function exportQuery(
+        ?array $ids = null,
+        ?string $startDate = null,
+        ?string $endDate = null,
+    ): Collection {
+        $query = Product::query()
+            ->with(['category', 'brand', 'inventory'])
+            ->latest();
+
+        if ($ids !== null && $ids !== []) {
+            $query->whereIn('id', $ids);
+        }
+
+        if ($startDate !== null) {
+            $query->whereDate('created_at', '>=', $startDate);
+        }
+
+        if ($endDate !== null) {
+            $query->whereDate('created_at', '<=', $endDate);
+        }
+
+        return $query->get();
     }
 }

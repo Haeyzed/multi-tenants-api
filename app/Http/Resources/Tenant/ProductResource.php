@@ -44,15 +44,23 @@ class ProductResource extends JsonResource
 
             // Pricing
             'price' => $this->price,
+            'selling_price' => $this->sellingPrice(),
             'compare_at_price' => $this->compare_at_price,
+            'sale_price' => $this->sale_price,
             'cost_price' => $this->cost_price,
             'discount_percentage' => $this->discountPercentage(),
             'is_on_sale' => $this->isOnSale(),
             'profit_margin' => $this->profitMargin(),
 
             // Status
+            'status' => $this->status?->value ?? $this->status,
+            'status_label' => $this->status?->label(),
             'is_visible' => $this->is_visible,
             'is_featured' => $this->is_featured,
+            'taxable' => $this->taxable,
+            'track_inventory' => $this->track_inventory,
+            'allow_backorders' => $this->allow_backorders,
+            'stock_status' => $this->stockStatus(),
             'published_at' => $this->published_at?->toIso8601String(),
 
             // SEO
@@ -111,8 +119,15 @@ class ProductResource extends JsonResource
 
             // Relationships
             'category' => new CategoryResource($this->whenLoaded('category')),
+            'categories' => CategoryResource::collection($this->whenLoaded('categories')),
+            'category_ids' => $this->whenLoaded(
+                'categories',
+                fn () => $this->categories->pluck('id')->values(),
+            ),
             'brand' => new BrandResource($this->whenLoaded('brand')),
             'tags' => TagResource::collection($this->whenLoaded('tags')),
+            'variants_count' => $this->whenCounted('variants'),
+            'reviews_count' => $this->whenCounted('reviews'),
 
             // Variants
             'variants' => ProductVariantResource::collection($this->whenLoaded('variants')),

@@ -24,9 +24,11 @@ class TaxClassFactory extends Factory
 
         return [
             'name' => $name,
-            'slug' => Str::slug($name),
+            'code' => Str::slug($name),
             'description' => fake()->sentence(),
+            'is_default' => false,
             'is_active' => true,
+            'sort_order' => 0,
         ];
     }
 }

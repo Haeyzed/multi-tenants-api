@@ -12,21 +12,23 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Carbon;
 
 /**
- * Media library folder stored in the tenant database.
+ * Hierarchical folder for organizing media library files.
  *
  * @property int $id
  * @property string|null $name
  * @property int|null $parent_id
  * @property string|null $path
+ * @property int $sort_order
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
- * @method static Builder|MediaLibraryFolder search(?string $search)
+ *
+ * @method static Builder<MediaFolder>|MediaFolder search(?string $search)
  */
-class MediaLibraryFolder extends Model
+class MediaFolder extends Model
 {
     use HasFactory;
 
-    protected $table = 'media_library_folders';
+    protected $table = 'media_folders';
 
     /**
      * @var list<string>
@@ -35,12 +37,11 @@ class MediaLibraryFolder extends Model
         'name',
         'parent_id',
         'path',
+        'sort_order',
     ];
 
     /**
-     * Parent folder in the hierarchy.
-     *
-     * @return BelongsTo<MediaLibraryFolder, $this>
+     * @return BelongsTo<MediaFolder, $this>
      */
     public function parent(): BelongsTo
     {
@@ -48,18 +49,14 @@ class MediaLibraryFolder extends Model
     }
 
     /**
-     * Child folders nested under this folder.
-     *
-     * @return HasMany<MediaLibraryFolder, $this>
+     * @return HasMany<MediaFolder, $this>
      */
     public function children(): HasMany
     {
-        return $this->hasMany(self::class, 'parent_id');
+        return $this->hasMany(self::class, 'parent_id')->orderBy('sort_order');
     }
 
     /**
-     * Media files stored in this folder.
-     *
      * @return HasMany<Media, $this>
      */
     public function media(): HasMany
@@ -68,25 +65,19 @@ class MediaLibraryFolder extends Model
     }
 
     /**
-     * Scope a query to search by name.
-     *
-     * @param  Builder<MediaLibraryFolder>  $query
-     * @param  string|null  $search
-     * @return void
+     * @param  Builder<MediaFolder>  $query
      */
     public function scopeSearch(Builder $query, ?string $search): void
     {
-        $query->when($search, function (Builder $q, string $search) {
-            $q->where(function (Builder $q) use ($search) {
-                $q->where('name', 'like', "%{$search}%");
-            });
+        $query->when($search, function (Builder $q, string $search): void {
+            $q->where('name', 'like', "%{$search}%");
         });
     }
 
     /**
-     * @param  Builder<MediaLibraryFolder>  $query
+     * @param  Builder<MediaFolder>  $query
      * @param  array<string, mixed>  $filters
-     * @return Builder<MediaLibraryFolder>
+     * @return Builder<MediaFolder>
      */
     public function scopeFilter(Builder $query, array $filters): Builder
     {
@@ -100,13 +91,12 @@ class MediaLibraryFolder extends Model
     }
 
     /**
-     * Get the attributes that should be cast.
-     *
      * @return array<string, string>
      */
     protected function casts(): array
     {
         return [
+            'sort_order' => 'integer',
             'created_at' => 'datetime',
             'updated_at' => 'datetime',
         ];

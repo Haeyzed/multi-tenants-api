@@ -20,7 +20,7 @@ class MoveSingleMediaRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'folder_id' => ['nullable', 'integer', Rule::exists('media_library_folders', 'id')],
+            'folder_id' => ['nullable', 'integer', Rule::exists('media_folders', 'id')],
         ];
     }
 }

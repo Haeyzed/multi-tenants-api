@@ -24,7 +24,7 @@ class ImportMediaFromUrlRequest extends FormRequest
     {
         return [
             'url' => ['required', 'url:http,https', 'max:2048'],
-            'folder_id' => ['nullable', 'integer', Rule::exists('media_library_folders', 'id')],
+            'folder_id' => ['nullable', 'integer', Rule::exists('media_folders', 'id')],
             'title' => ['nullable', 'string', 'max:255'],
             'alt_text' => ['nullable', 'string', 'max:500'],
         ];

@@ -4,22 +4,24 @@ declare(strict_types=1);
 
 namespace App\Models\Tenant;
 
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 /**
- * YouTube video attached to a product.
+ * Video attached to a product.
  *
  * @property int $id
  * @property int $product_id
- * @property string $video_url
+ * @property string $provider
  * @property string $video_id
+ * @property string $video_url
  * @property string|null $title
  * @property string|null $description
  * @property int $sort_order
  * @property bool $is_primary
- * @property \Carbon\Carbon|null $created_at
- * @property \Carbon\Carbon|null $updated_at
+ * @property Carbon|null $created_at
+ * @property Carbon|null $updated_at
  * @property-read Product $product
  */
 class ProductVideo extends Model
@@ -29,8 +31,9 @@ class ProductVideo extends Model
      */
     protected $fillable = [
         'product_id',
-        'video_url',
+        'provider',
         'video_id',
+        'video_url',
         'title',
         'description',
         'sort_order',
@@ -63,15 +66,23 @@ class ProductVideo extends Model
      */
     public function embedUrl(): string
     {
-        return "https://www.youtube.com/embed/{$this->video_id}";
+        return match ($this->provider) {
+            'youtube' => "https://www.youtube.com/embed/{$this->video_id}",
+            'vimeo' => "https://player.vimeo.com/video/{$this->video_id}",
+            default => $this->video_url,
+        };
     }
 
     /**
      * Get the thumbnail URL.
      */
-    public function thumbnailUrl(): string
+    public function thumbnailUrl(): ?string
     {
-        return "https://img.youtube.com/vi/{$this->video_id}/hqdefault.jpg";
+        return match ($this->provider) {
+            'youtube' => "https://img.youtube.com/vi/{$this->video_id}/hqdefault.jpg",
+            'vimeo' => null,
+            default => null,
+        };
     }
 
     /**
@@ -79,6 +90,9 @@ class ProductVideo extends Model
      */
     public function watchUrl(): string
     {
-        return "https://www.youtube.com/watch?v={$this->video_id}";
+        return match ($this->provider) {
+            'youtube' => "https://www.youtube.com/watch?v={$this->video_id}",
+            default => $this->video_url,
+        };
     }
 }

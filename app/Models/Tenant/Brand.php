@@ -23,19 +23,24 @@ use Spatie\Sluggable\SlugOptions;
  * @property string $name
  * @property string $slug
  * @property string|null $description
+ * @property string|null $summary
  * @property bool $is_visible
+ * @property bool $is_featured
  * @property int|null $logo_media_id
  * @property int|null $banner_media_id
  * @property string|null $meta_title
  * @property string|null $meta_description
  * @property string|null $website_url
+ * @property string|null $country_of_origin
  * @property int|null $sort_order
+ * @property int $products_count
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  * @property Carbon|null $deleted_at
  * @property-read Collection<int, Product> $products
  * @property-read Media|null $logoMedia
  * @property-read Media|null $bannerMedia
+ *
  * @method static Builder<Brand>|Brand query()
  * @method static Builder<Brand>|Brand filter(array $filters)
  */
@@ -51,19 +56,21 @@ class Brand extends Model
         'name',
         'slug',
         'description',
+        'summary',
         'is_visible',
+        'is_featured',
         'logo_media_id',
         'banner_media_id',
         'meta_title',
         'meta_description',
         'website_url',
+        'country_of_origin',
         'sort_order',
+        'products_count',
     ];
 
     /**
      * Create a new factory instance for the model.
-     *
-     * @return BrandFactory
      */
     protected static function newFactory(): BrandFactory
     {
@@ -77,14 +84,14 @@ class Brand extends Model
     {
         return [
             'is_visible' => 'boolean',
+            'is_featured' => 'boolean',
             'sort_order' => 'integer',
+            'products_count' => 'integer',
         ];
     }
 
     /**
      * Get the options for generating the slug.
-     *
-     * @return SlugOptions
      */
     public function getSlugOptions(): SlugOptions
     {
@@ -114,6 +121,14 @@ class Brand extends Model
     }
 
     /**
+     * @return BelongsTo<Media, $this>
+     */
+    public function logo(): BelongsTo
+    {
+        return $this->logoMedia();
+    }
+
+    /**
      * Banner media file for this brand.
      *
      * @return BelongsTo<Media, $this>
@@ -121,6 +136,14 @@ class Brand extends Model
     public function bannerMedia(): BelongsTo
     {
         return $this->belongsTo(Media::class, 'banner_media_id');
+    }
+
+    /**
+     * @return BelongsTo<Media, $this>
+     */
+    public function banner(): BelongsTo
+    {
+        return $this->bannerMedia();
     }
 
     /**
@@ -133,10 +156,10 @@ class Brand extends Model
     public function scopeFilter(Builder $query, array $filters): Builder
     {
         return $query
-            ->when(!empty($filters['search']), function (Builder $q) use ($filters): void {
-                $q->where('name', 'like', '%' . $filters['search'] . '%');
+            ->when(! empty($filters['search']), function (Builder $q) use ($filters): void {
+                $q->where('name', 'like', '%'.$filters['search'].'%');
             })
-            ->when(!empty($filters['is_visible']), function (Builder $q) use ($filters): void {
+            ->when(! empty($filters['is_visible']), function (Builder $q) use ($filters): void {
                 $statuses = is_array($filters['is_visible'])
                     ? $filters['is_visible']
                     : explode(',', (string) $filters['is_visible']);
@@ -151,9 +174,12 @@ class Brand extends Model
                     $booleans[] = false;
                 }
 
-                if (!empty($booleans)) {
+                if (! empty($booleans)) {
                     $q->whereIn('is_visible', $booleans);
                 }
+            })
+            ->when(isset($filters['is_featured']), function (Builder $q) use ($filters): void {
+                $q->where('is_featured', filter_var($filters['is_featured'], FILTER_VALIDATE_BOOLEAN));
             });
     }
 }

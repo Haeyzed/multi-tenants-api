@@ -32,7 +32,7 @@ class MediaResource extends JsonResource
             'collection' => $this->collection_name,
             'path' => $this->getPathRelativeToRoot(),
             'url' => $this->url,
-            'folder' => $this->whenLoaded('folder', fn () => $this->folder ? new MediaLibraryFolderResource($this->folder) : null),
+            'folder' => $this->whenLoaded('folder', fn () => $this->folder ? new MediaFolderResource($this->folder) : null),
             'uploader' => $this->whenLoaded('uploader', fn () => $this->uploader ? new TenantUserResource($this->uploader) : null),
             'custom_properties' => $this->custom_properties ?: null,
             'created_at' => $this->created_at?->toIso8601String(),

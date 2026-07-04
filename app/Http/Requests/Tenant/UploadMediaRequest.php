@@ -24,7 +24,7 @@ class UploadMediaRequest extends FormRequest
     {
         return [
             'file' => ['required', 'file', 'max:'.(int) (config('media-library.max_file_size') / 1024)],
-            'folder_id' => ['nullable', 'integer', Rule::exists('media_library_folders', 'id')],
+            'folder_id' => ['nullable', 'integer', Rule::exists('media_folders', 'id')],
             'title' => ['nullable', 'string', 'max:255'],
             'alt_text' => ['nullable', 'string', 'max:500'],
         ];

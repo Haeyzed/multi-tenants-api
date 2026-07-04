@@ -12,6 +12,7 @@ use App\Http\Requests\Tenant\ExportResourceRequest;
 use App\Http\Requests\Tenant\StoreBrandRequest;
 use App\Http\Requests\Tenant\UpdateBrandRequest;
 use App\Http\Resources\Tenant\BrandResource;
+use App\Http\Resources\Tenant\ProductResource;
 use App\Imports\Tenant\BrandsImport;
 use App\Models\Tenant\Brand;
 use App\Services\Tenant\BrandService;
@@ -42,6 +43,7 @@ class BrandController extends ApiController
             'search' => ['nullable', 'string'],
             'is_visible' => ['nullable', 'array'],
             'is_visible.*' => ['string', 'in:visible,hidden'],
+            'is_featured' => ['nullable', 'boolean'],
         ]);
 
         $brands = $this->brandService->paginate(
@@ -238,5 +240,95 @@ class BrandController extends ApiController
         $count = $this->brandService->restoreMany($validated['ids']);
 
         return $this->success(null, "{$count} brands restored successfully.");
+    }
+
+    /**
+     * Get a brand by slug.
+     */
+    public function showBySlug(string $slug): JsonResponse
+    {
+        $brand = $this->brandService->findBySlug($slug);
+
+        $this->authorize('view', $brand);
+
+        return $this->success(new BrandResource($brand), 'Brand retrieved successfully.');
+    }
+
+    /**
+     * Get products for a brand.
+     */
+    public function products(Request $request, Brand $brand): JsonResponse
+    {
+        $this->authorize('view', $brand);
+
+        $filters = $request->validate([
+            'is_visible' => ['nullable', 'boolean'],
+            'status' => ['nullable', 'string', 'in:draft,active,archived'],
+            'per_page' => ['nullable', 'integer', 'min:1', 'max:100'],
+        ]);
+
+        $products = $this->brandService->getProducts($brand, $filters);
+
+        return $this->paginated(
+            $products,
+            ProductResource::collection($products),
+            'Brand products retrieved successfully.',
+        );
+    }
+
+    /**
+     * Toggle brand visibility.
+     */
+    public function toggleVisibility(Brand $brand): JsonResponse
+    {
+        $this->authorize('update', $brand);
+
+        $brand = $this->brandService->toggleVisibility($brand);
+
+        return $this->updated(new BrandResource($brand), 'Brand visibility toggled successfully.');
+    }
+
+    /**
+     * Toggle brand featured status.
+     */
+    public function toggleFeatured(Brand $brand): JsonResponse
+    {
+        $this->authorize('update', $brand);
+
+        $brand = $this->brandService->toggleFeatured($brand);
+
+        return $this->updated(new BrandResource($brand), 'Brand featured status toggled successfully.');
+    }
+
+    /**
+     * Recalculate and update the brand products count.
+     */
+    public function updateProductsCount(Brand $brand): JsonResponse
+    {
+        $this->authorize('update', $brand);
+
+        $this->brandService->updateProductsCount($brand);
+
+        return $this->success(
+            new BrandResource($brand->fresh()),
+            'Brand products count updated successfully.',
+        );
+    }
+
+    /**
+     * Reorder brands by ID list.
+     */
+    public function reorder(Request $request): JsonResponse
+    {
+        $this->authorize('updateAny', Brand::class);
+
+        $validated = $request->validate([
+            'ids' => ['required', 'array', 'min:1'],
+            'ids.*' => ['integer', 'exists:brands,id'],
+        ]);
+
+        $this->brandService->reorder($validated['ids']);
+
+        return $this->success(null, 'Brands reordered successfully.');
     }
 }

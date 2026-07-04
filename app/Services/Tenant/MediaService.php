@@ -6,7 +6,7 @@ namespace App\Services\Tenant;
 
 use App\Contracts\BackgroundRemover;
 use App\Models\Tenant\Media;
-use App\Models\Tenant\MediaLibraryFolder;
+use App\Models\Tenant\MediaFolder;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Pagination\LengthAwarePaginator;
@@ -26,7 +26,7 @@ class MediaService
 {
     private const string LIBRARY_COLLECTION = 'library';
 
-    private const string LIBRARY_MODEL_TYPE = MediaLibraryFolder::class;
+    private const string LIBRARY_MODEL_TYPE = MediaFolder::class;
 
     /**
      * Base query for library media items.

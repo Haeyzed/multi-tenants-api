@@ -32,6 +32,11 @@ class CategoryPolicy
         return $user->can('categories.update');
     }
 
+    public function updateAny(TenantUser $user): bool
+    {
+        return $user->can('categories.update');
+    }
+
     public function delete(TenantUser $user, Category $category): bool
     {
         return $user->can('categories.delete');

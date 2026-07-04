@@ -25,7 +25,7 @@ class UpdateMediaRequest extends FormRequest
         return [
             'title' => ['sometimes', 'string', 'max:255'],
             'alt_text' => ['nullable', 'string', 'max:500'],
-            'folder_id' => ['nullable', 'integer', Rule::exists('media_library_folders', 'id')],
+            'folder_id' => ['nullable', 'integer', Rule::exists('media_folders', 'id')],
         ];
     }
 }

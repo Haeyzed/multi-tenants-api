@@ -9,11 +9,23 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Support\Carbon;
 use Spatie\Sluggable\HasSlug;
 use Spatie\Sluggable\SlugOptions;
 
 /**
  * Tag for labeling products.
+ *
+ * @property int $id
+ * @property string $name
+ * @property string $slug
+ * @property string|null $color
+ * @property string|null $icon
+ * @property bool $is_visible
+ * @property int $sort_order
+ * @property int $products_count
+ * @property Carbon|null $created_at
+ * @property Carbon|null $updated_at
  */
 class Tag extends Model
 {
@@ -26,12 +38,27 @@ class Tag extends Model
     protected $fillable = [
         'name',
         'slug',
+        'color',
+        'icon',
+        'is_visible',
+        'sort_order',
+        'products_count',
     ];
 
     /**
+     * @return array<string, string>
+     */
+    protected function casts(): array
+    {
+        return [
+            'is_visible' => 'boolean',
+            'sort_order' => 'integer',
+            'products_count' => 'integer',
+        ];
+    }
+
+    /**
      * Create a new factory instance for the model.
-     *
-     * @return TagFactory
      */
     protected static function newFactory(): TagFactory
     {
@@ -40,8 +67,6 @@ class Tag extends Model
 
     /**
      * Get the options for generating the slug.
-     *
-     * @return SlugOptions
      */
     public function getSlugOptions(): SlugOptions
     {
@@ -64,7 +89,6 @@ class Tag extends Model
      * Scope a query to search tags by name.
      *
      * @param  Builder<Tag>  $query
-     * @param  string  $search
      * @return Builder<Tag>
      */
     public function scopeSearch(Builder $query, string $search): Builder

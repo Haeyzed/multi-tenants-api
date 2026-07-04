@@ -6,9 +6,23 @@ namespace App\Models\Tenant;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\MorphTo;
+use Illuminate\Support\Carbon;
 
 /**
- * Rule linking a tax rate to a geographic region.
+ * Override rule for a tax rate on a specific entity.
+ *
+ * @property int $id
+ * @property int $tax_rate_id
+ * @property string $applicable_type
+ * @property int $applicable_id
+ * @property string $rule_type
+ * @property string|null $adjustment_rate
+ * @property Carbon|null $effective_from
+ * @property Carbon|null $effective_to
+ * @property bool $is_active
+ * @property Carbon|null $created_at
+ * @property Carbon|null $updated_at
  */
 class TaxRule extends Model
 {
@@ -17,8 +31,12 @@ class TaxRule extends Model
      */
     protected $fillable = [
         'tax_rate_id',
-        'tax_region_id',
-        'applies_to',
+        'applicable_type',
+        'applicable_id',
+        'rule_type',
+        'adjustment_rate',
+        'effective_from',
+        'effective_to',
         'is_active',
     ];
 
@@ -28,7 +46,10 @@ class TaxRule extends Model
     protected function casts(): array
     {
         return [
+            'adjustment_rate' => 'decimal:4',
             'is_active' => 'boolean',
+            'effective_from' => 'date',
+            'effective_to' => 'date',
         ];
     }
 
@@ -41,10 +62,10 @@ class TaxRule extends Model
     }
 
     /**
-     * @return BelongsTo<TaxRegion, $this>
+     * @return MorphTo<Model, $this>
      */
-    public function taxRegion(): BelongsTo
+    public function applicable(): MorphTo
     {
-        return $this->belongsTo(TaxRegion::class);
+        return $this->morphTo();
     }
 }

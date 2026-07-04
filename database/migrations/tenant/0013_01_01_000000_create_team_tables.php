@@ -10,13 +10,6 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::table('users', function (Blueprint $table) {
-            $table->timestamp('suspended_at')->nullable()->after('is_active');
-            $table->text('two_factor_secret')->nullable()->after('suspended_at');
-            $table->text('two_factor_recovery_codes')->nullable()->after('two_factor_secret');
-            $table->timestamp('two_factor_confirmed_at')->nullable()->after('two_factor_recovery_codes');
-        });
-
         Schema::create('login_histories', function (Blueprint $table) {
             $table->id();
             $table->foreignId('user_id')->constrained()->cascadeOnDelete();
@@ -49,14 +42,5 @@ return new class extends Migration
     {
         Schema::dropIfExists('team_invitations');
         Schema::dropIfExists('login_histories');
-
-        Schema::table('users', function (Blueprint $table) {
-            $table->dropColumn([
-                'suspended_at',
-                'two_factor_secret',
-                'two_factor_recovery_codes',
-                'two_factor_confirmed_at',
-            ]);
-        });
     }
 };

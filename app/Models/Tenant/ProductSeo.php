@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Models\Tenant;
 
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
@@ -12,6 +13,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  *
  * @property int $id
  * @property int $product_id
+ * @property string|null $canonical_url
  * @property string|null $og_title
  * @property string|null $og_description
  * @property int|null $og_image_media_id
@@ -21,19 +23,23 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property int|null $twitter_image_media_id
  * @property string|null $schema_markup
  * @property string|null $robots_meta
- * @property \Carbon\Carbon|null $created_at
- * @property \Carbon\Carbon|null $updated_at
+ * @property array<string, mixed>|null $custom_meta
+ * @property Carbon|null $created_at
+ * @property Carbon|null $updated_at
  * @property-read Product $product
  * @property-read Media|null $ogImageMedia
  * @property-read Media|null $twitterImageMedia
  */
 class ProductSeo extends Model
 {
+    protected $table = 'product_seo';
+
     /**
      * @var list<string>
      */
     protected $fillable = [
         'product_id',
+        'canonical_url',
         'og_title',
         'og_description',
         'og_image_media_id',
@@ -43,7 +49,18 @@ class ProductSeo extends Model
         'twitter_image_media_id',
         'schema_markup',
         'robots_meta',
+        'custom_meta',
     ];
+
+    /**
+     * @return array<string, string>
+     */
+    protected function casts(): array
+    {
+        return [
+            'custom_meta' => 'array',
+        ];
+    }
 
     /**
      * Get the product this SEO data belongs to.
@@ -66,6 +83,14 @@ class ProductSeo extends Model
     }
 
     /**
+     * @return BelongsTo<Media, $this>
+     */
+    public function ogImage(): BelongsTo
+    {
+        return $this->ogImageMedia();
+    }
+
+    /**
      * Get the Twitter image media.
      *
      * @return BelongsTo<Media, $this>
@@ -73,5 +98,13 @@ class ProductSeo extends Model
     public function twitterImageMedia(): BelongsTo
     {
         return $this->belongsTo(Media::class, 'twitter_image_media_id');
+    }
+
+    /**
+     * @return BelongsTo<Media, $this>
+     */
+    public function twitterImage(): BelongsTo
+    {
+        return $this->twitterImageMedia();
     }
 }

@@ -4,11 +4,13 @@ declare(strict_types=1);
 
 namespace App\Models\Tenant;
 
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 /**
@@ -21,18 +23,24 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @property float $price
  * @property float|null $compare_at_price
  * @property float|null $cost_price
- * @property array<string, mixed>|null $options
  * @property bool $is_default
+ * @property bool $is_active
  * @property int|null $image_media_id
+ * @property int $sort_order
  * @property string|null $barcode
  * @property float|null $weight
- * @property \Carbon\Carbon|null $created_at
- * @property \Carbon\Carbon|null $updated_at
- * @property \Carbon\Carbon|null $deleted_at
+ * @property Carbon|null $created_at
+ * @property Carbon|null $updated_at
+ * @property Carbon|null $deleted_at
  * @property-read Product $product
- * @property-read Inventory|null $inventory
+ * @property-read Collection<int, AttributeValue> $attributeValues
+ * @property-read Collection<int, Inventory> $inventories
+ * @property-read Collection<int, ProductImage> $images
+ * @property-read Collection<int, ProductPriceTier> $priceTiers
  * @property-read Media|null $imageMedia
- * @property-read \Illuminate\Database\Eloquent\Collection<int, ProductPricingTier> $pricingTiers
+ * @property-read Media|null $image
+ * @property-read float $final_price
+ * @property-read bool $is_in_stock
  */
 class ProductVariant extends Model
 {
@@ -48,9 +56,10 @@ class ProductVariant extends Model
         'price',
         'compare_at_price',
         'cost_price',
-        'options',
         'is_default',
+        'is_active',
         'image_media_id',
+        'sort_order',
         'barcode',
         'weight',
     ];
@@ -64,8 +73,9 @@ class ProductVariant extends Model
             'price' => 'decimal:2',
             'compare_at_price' => 'decimal:2',
             'cost_price' => 'decimal:2',
-            'options' => 'array',
             'is_default' => 'boolean',
+            'is_active' => 'boolean',
+            'sort_order' => 'integer',
             'weight' => 'decimal:3',
         ];
     }
@@ -81,13 +91,51 @@ class ProductVariant extends Model
     }
 
     /**
-     * Get the inventory for this product variant.
-     *
-     * @return HasOne<Inventory, $this>
+     * @return BelongsToMany<AttributeValue, $this>
      */
-    public function inventory(): HasOne
+    public function attributeValues(): BelongsToMany
     {
-        return $this->hasOne(Inventory::class, 'product_variant_id');
+        return $this->belongsToMany(AttributeValue::class, 'variant_attribute_values')
+            ->withPivot(['attribute_id'])
+            ->withTimestamps();
+    }
+
+    /**
+     * @return HasMany<Inventory, $this>
+     */
+    public function inventories(): HasMany
+    {
+        return $this->hasMany(Inventory::class);
+    }
+
+    /**
+     * Get inventory for an optional warehouse.
+     */
+    public function inventory(?int $warehouseId = null): ?Inventory
+    {
+        $query = $this->inventories();
+
+        if ($warehouseId) {
+            $query->where('warehouse_id', $warehouseId);
+        }
+
+        return $query->first();
+    }
+
+    /**
+     * @return HasMany<ProductImage, $this>
+     */
+    public function images(): HasMany
+    {
+        return $this->hasMany(ProductImage::class);
+    }
+
+    /**
+     * @return HasMany<ProductPriceTier, $this>
+     */
+    public function priceTiers(): HasMany
+    {
+        return $this->hasMany(ProductPriceTier::class, 'variant_id');
     }
 
     /**
@@ -101,35 +149,63 @@ class ProductVariant extends Model
     }
 
     /**
-     * Get pricing tiers for this variant.
-     *
-     * @return HasMany<ProductPricingTier, $this>
+     * @return BelongsTo<Media, $this>
+     */
+    public function image(): BelongsTo
+    {
+        return $this->imageMedia();
+    }
+
+    /**
+     * @return HasMany<ProductPriceTier, $this>
      */
     public function pricingTiers(): HasMany
     {
-        return $this->hasMany(ProductPricingTier::class, 'variant_id');
+        return $this->priceTiers();
+    }
+
+    /**
+     * @param  Builder<ProductVariant>  $query
+     * @return Builder<ProductVariant>
+     */
+    public function scopeActive(Builder $query): Builder
+    {
+        return $query->where('is_active', true);
     }
 
     /**
      * Scope a query to search variants by name or sku.
      *
      * @param  Builder<ProductVariant>  $query
-     * @param  string  $search
      * @return Builder<ProductVariant>
      */
     public function scopeSearch(Builder $query, string $search): Builder
     {
         return $query->where(function (Builder $q) use ($search) {
             $q->where('name', 'like', "%{$search}%")
-              ->orWhere('sku', 'like', "%{$search}%")
-              ->orWhere('barcode', 'like', "%{$search}%");
+                ->orWhere('sku', 'like', "%{$search}%")
+                ->orWhere('barcode', 'like', "%{$search}%");
         });
+    }
+
+    public function getFinalPriceAttribute(): float
+    {
+        return (float) ($this->price ?? $this->product->price);
+    }
+
+    public function getIsInStockAttribute(): bool
+    {
+        $inventory = $this->inventory();
+
+        if (! $inventory) {
+            return ! $this->product->track_inventory || $this->product->allow_backorders;
+        }
+
+        return $inventory->available_quantity > 0 || $this->product->allow_backorders;
     }
 
     /**
      * Calculate discount percentage.
-     *
-     * @return float|null
      */
     public function discountPercentage(): ?float
     {
@@ -142,8 +218,6 @@ class ProductVariant extends Model
 
     /**
      * Check if variant is on sale.
-     *
-     * @return bool
      */
     public function isOnSale(): bool
     {

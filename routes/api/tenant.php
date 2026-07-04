@@ -14,7 +14,7 @@ use App\Http\Controllers\Tenant\DepartmentController;
 use App\Http\Controllers\Tenant\FlashSaleController;
 use App\Http\Controllers\Tenant\HrController;
 use App\Http\Controllers\Tenant\MediaController;
-use App\Http\Controllers\Tenant\MediaLibraryFolderController;
+use App\Http\Controllers\Tenant\MediaFolderController;
 use App\Http\Controllers\Tenant\NotificationController;
 use App\Http\Controllers\Tenant\OnboardingController;
 use App\Http\Controllers\Tenant\OrderController;
@@ -196,11 +196,26 @@ Route::prefix('v1/tenant')->group(function (): void {
         Route::prefix('categories')->group(function (): void {
             Route::get('statistics', [CategoryController::class, 'statistics']);
             Route::get('options', [CategoryController::class, 'options']);
+            Route::get('tree', [CategoryController::class, 'tree']);
+            Route::get('tree-select', [CategoryController::class, 'treeForSelect']);
+            Route::get('slug/{slug}', [CategoryController::class, 'showBySlug']);
+            Route::put('reorder', [CategoryController::class, 'reorder']);
             Route::delete('bulk', [CategoryController::class, 'destroyMany']);
             Route::post('export', [CategoryController::class, 'export']);
             Route::get('import/sample', [CategoryController::class, 'importSample']);
             Route::post('import', [CategoryController::class, 'import']);
             Route::post('bulk-restore', [CategoryController::class, 'restoreMany']);
+            Route::get('{category}/products', [CategoryController::class, 'products']);
+            Route::get('{category}/breadcrumbs', [CategoryController::class, 'breadcrumbs']);
+            Route::get('{category}/children', [CategoryController::class, 'children']);
+            Route::get('{category}/descendants', [CategoryController::class, 'descendants']);
+            Route::patch('{category}/move', [CategoryController::class, 'move']);
+            Route::post('{category}/toggle-visibility', [CategoryController::class, 'toggleVisibility']);
+            Route::post('{category}/toggle-featured', [CategoryController::class, 'toggleFeatured']);
+            Route::post('{category}/update-products-count', [CategoryController::class, 'updateProductsCount']);
+            Route::put('{category}/attribute-sets', [CategoryController::class, 'syncAttributeSets']);
+            Route::post('{category}/attribute-sets', [CategoryController::class, 'assignAttributeSet']);
+            Route::delete('{category}/attribute-sets/{attributeSet}', [CategoryController::class, 'removeAttributeSet']);
             Route::post('{category}/restore', [CategoryController::class, 'restore'])->withTrashed();
             Route::delete('{category}/force', [CategoryController::class, 'forceDestroy'])->withTrashed();
         });
@@ -209,11 +224,17 @@ Route::prefix('v1/tenant')->group(function (): void {
         Route::prefix('brands')->group(function (): void {
             Route::get('statistics', [BrandController::class, 'statistics']);
             Route::get('options', [BrandController::class, 'options']);
+            Route::get('slug/{slug}', [BrandController::class, 'showBySlug']);
+            Route::put('reorder', [BrandController::class, 'reorder']);
             Route::delete('bulk', [BrandController::class, 'destroyMany']);
             Route::post('export', [BrandController::class, 'export']);
             Route::get('import/sample', [BrandController::class, 'importSample']);
             Route::post('import', [BrandController::class, 'import']);
             Route::post('bulk-restore', [BrandController::class, 'restoreMany']);
+            Route::get('{brand}/products', [BrandController::class, 'products']);
+            Route::post('{brand}/toggle-visibility', [BrandController::class, 'toggleVisibility']);
+            Route::post('{brand}/toggle-featured', [BrandController::class, 'toggleFeatured']);
+            Route::post('{brand}/update-products-count', [BrandController::class, 'updateProductsCount']);
             Route::post('{brand}/restore', [BrandController::class, 'restore'])->withTrashed();
             Route::delete('{brand}/force', [BrandController::class, 'forceDestroy'])->withTrashed();
         });
@@ -238,15 +259,25 @@ Route::prefix('v1/tenant')->group(function (): void {
         Route::apiResource('media', MediaController::class)->parameters(['media' => 'media']);
 
         Route::prefix('media-folders')->group(function (): void {
-            Route::get('tree', [MediaLibraryFolderController::class, 'tree']);
-            Route::delete('bulk', [MediaLibraryFolderController::class, 'bulkDestroy']);
+            Route::get('tree', [MediaFolderController::class, 'tree']);
+            Route::delete('bulk', [MediaFolderController::class, 'bulkDestroy']);
         });
-        Route::apiResource('media-folders', MediaLibraryFolderController::class)->parameters(['media-folders' => 'folder']);
+        Route::apiResource('media-folders', MediaFolderController::class)->parameters(['media-folders' => 'folder']);
 
         // Products
+        Route::prefix('products')->group(function (): void {
+            Route::get('statistics', [ProductController::class, 'statistics']);
+            Route::get('options', [ProductController::class, 'options']);
+            Route::delete('bulk', [ProductController::class, 'destroyMany']);
+            Route::post('export', [ProductController::class, 'export']);
+            Route::post('bulk-restore', [ProductController::class, 'restoreMany']);
+            Route::post('{product}/restore', [ProductController::class, 'restore'])->withTrashed();
+            Route::delete('{product}/force', [ProductController::class, 'forceDestroy'])->withTrashed();
+            Route::post('{product}/variants', [ProductController::class, 'storeVariant']);
+            Route::put('{product}/variants/{variant}', [ProductController::class, 'updateVariant']);
+            Route::delete('{product}/variants/{variant}', [ProductController::class, 'destroyVariant']);
+        });
         Route::apiResource('products', ProductController::class);
-        Route::post('products/{product}/variants', [ProductController::class, 'storeVariant']);
-        Route::delete('products/{product}/variants/{variant}', [ProductController::class, 'destroyVariant']);
 
         // -----------------------------------------------------------------------------
 

@@ -32,6 +32,11 @@ class BrandPolicy
         return $user->can('brands.update');
     }
 
+    public function updateAny(TenantUser $user): bool
+    {
+        return $user->can('brands.update');
+    }
+
     public function delete(TenantUser $user, Brand $brand): bool
     {
         return $user->can('brands.delete');

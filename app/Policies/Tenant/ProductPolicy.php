@@ -36,4 +36,24 @@ class ProductPolicy
     {
         return $user->can('products.delete');
     }
+
+    public function deleteAny(TenantUser $user): bool
+    {
+        return $user->can('products.delete');
+    }
+
+    public function restore(TenantUser $user, Product $product): bool
+    {
+        return $user->can('products.delete');
+    }
+
+    public function restoreAny(TenantUser $user): bool
+    {
+        return $user->can('products.delete');
+    }
+
+    public function forceDelete(TenantUser $user, Product $product): bool
+    {
+        return $user->can('products.delete');
+    }
 }
