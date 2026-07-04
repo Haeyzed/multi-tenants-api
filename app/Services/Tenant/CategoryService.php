@@ -14,6 +14,10 @@ use Illuminate\Support\Collection;
 
 /**
  * Manages product categories within a tenant store.
+ *
+ * Coordinates hierarchical category CRUD, tree navigation, attribute-set links,
+ * product relationships, visibility/featured toggles, and sort reordering.
+ * Slugs, depth, and path values are maintained automatically by this service.
  */
 class CategoryService
 {
@@ -322,17 +326,25 @@ class CategoryService
         return $query->paginate((int) ($filters['per_page'] ?? 20));
     }
 
+    /**
+     * Assign a single attribute set to the category without removing existing links.
+     */
     public function assignAttributeSet(Category $category, int $attributeSetId): void
     {
         $category->attributeSets()->syncWithoutDetaching([$attributeSetId]);
     }
 
+    /**
+     * Detach an attribute set from the category.
+     */
     public function removeAttributeSet(Category $category, int $attributeSetId): void
     {
         $category->attributeSets()->detach($attributeSetId);
     }
 
     /**
+     * Replace all attribute set links for the category.
+     *
      * @param  list<int>  $attributeSetIds
      */
     public function syncAttributeSets(Category $category, array $attributeSetIds): void
@@ -340,6 +352,9 @@ class CategoryService
         $category->attributeSets()->sync($attributeSetIds);
     }
 
+    /**
+     * Recalculate and persist the active product count for a category.
+     */
     public function updateProductsCount(Category $category): void
     {
         $count = $category->products()
@@ -349,6 +364,9 @@ class CategoryService
         $category->update(['products_count' => $count]);
     }
 
+    /**
+     * Flip the category visibility flag.
+     */
     public function toggleVisibility(Category $category): Category
     {
         $category->update(['is_visible' => ! $category->is_visible]);
@@ -356,6 +374,9 @@ class CategoryService
         return $category->fresh(self::MEDIA_RELATIONS);
     }
 
+    /**
+     * Flip the category featured flag.
+     */
     public function toggleFeatured(Category $category): Category
     {
         $category->update(['is_featured' => ! $category->is_featured]);
@@ -363,6 +384,9 @@ class CategoryService
         return $category->fresh(self::MEDIA_RELATIONS);
     }
 
+    /**
+     * Build the materialized path string for a category and its ancestors.
+     */
     private function updatePath(Category $category): void
     {
         $category->loadMissing('parent');
@@ -378,6 +402,9 @@ class CategoryService
         $category->update(['path' => $path]);
     }
 
+    /**
+     * Recursively update depth for all descendants after a parent move.
+     */
     private function updateChildrenDepth(Category $category): void
     {
         $category->loadMissing('children');
@@ -388,6 +415,9 @@ class CategoryService
         }
     }
 
+    /**
+     * Recursively rebuild path values for all descendants after a parent move.
+     */
     private function updateDescendantPaths(Category $category): void
     {
         $category->loadMissing('children');

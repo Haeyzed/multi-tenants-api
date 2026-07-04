@@ -12,6 +12,10 @@ use Illuminate\Support\Collection;
 
 /**
  * Manages product brands within a tenant store.
+ *
+ * Coordinates brand listing, CRUD, soft-delete lifecycle, export queries,
+ * product relationships, visibility/featured toggles, and sort reordering.
+ * Slugs are generated automatically by the {@see Brand} model.
  */
 class BrandService
 {
@@ -128,6 +132,8 @@ class BrandService
     }
 
     /**
+     * Build the export query for spreadsheet downloads.
+     *
      * @param  list<int>|null  $ids
      * @return Collection<int, Brand>
      */
@@ -154,6 +160,8 @@ class BrandService
     }
 
     /**
+     * Return aggregate counts for the admin dashboard.
+     *
      * @return array{total: int, visible: int, hidden: int}
      */
     public function statistics(): array
@@ -166,6 +174,8 @@ class BrandService
     }
 
     /**
+     * Return visible brands formatted for select inputs.
+     *
      * @return Collection<int, array{label: string, value: int}>
      */
     public function getOptions(): Collection
@@ -182,6 +192,8 @@ class BrandService
     }
 
     /**
+     * Paginate products assigned to the brand.
+     *
      * @param  array<string, mixed>  $filters
      * @return LengthAwarePaginator<int, Product>
      */
@@ -200,6 +212,9 @@ class BrandService
         return $query->paginate((int) ($filters['per_page'] ?? 20));
     }
 
+    /**
+     * Flip the brand visibility flag.
+     */
     public function toggleVisibility(Brand $brand): Brand
     {
         $brand->update(['is_visible' => ! $brand->is_visible]);
@@ -207,6 +222,9 @@ class BrandService
         return $brand->fresh(self::MEDIA_RELATIONS);
     }
 
+    /**
+     * Flip the brand featured flag.
+     */
     public function toggleFeatured(Brand $brand): Brand
     {
         $brand->update(['is_featured' => ! $brand->is_featured]);
@@ -214,6 +232,9 @@ class BrandService
         return $brand->fresh(self::MEDIA_RELATIONS);
     }
 
+    /**
+     * Recalculate and persist the active product count for a brand.
+     */
     public function updateProductsCount(Brand $brand): void
     {
         $count = $brand->products()
@@ -224,6 +245,8 @@ class BrandService
     }
 
     /**
+     * Persist sort order values from an ordered ID list.
+     *
      * @param  list<int>  $orderedIds
      */
     public function reorder(array $orderedIds): void

@@ -24,7 +24,10 @@ use Maatwebsite\Excel\Facades\Excel;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 /**
- * Manages product categories within a tenant store API.
+ * HTTP API for managing product categories within a tenant store.
+ *
+ * Exposes CRUD, bulk operations, import/export, statistics, hierarchy helpers,
+ * attribute-set links, and extension endpoints such as toggles and reordering.
  */
 class CategoryController extends ApiController
 {
@@ -98,7 +101,9 @@ class CategoryController extends ApiController
     }
 
     /**
-     * Delete a category.
+     * Soft delete a category.
+     *
+     * Returns 422 when the category still has child categories.
      */
     public function destroy(Category $category): JsonResponse
     {

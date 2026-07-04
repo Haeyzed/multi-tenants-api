@@ -22,7 +22,10 @@ use Maatwebsite\Excel\Facades\Excel;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 /**
- * Manages product brands within a tenant store API.
+ * HTTP API for managing product brands within a tenant store.
+ *
+ * Exposes CRUD, bulk operations, import/export, statistics, and extension
+ * endpoints such as slug lookup, product listing, toggles, and reordering.
  */
 class BrandController extends ApiController
 {
@@ -95,7 +98,7 @@ class BrandController extends ApiController
     }
 
     /**
-     * Delete a brand.
+     * Soft delete a brand.
      */
     public function destroy(Brand $brand): JsonResponse
     {

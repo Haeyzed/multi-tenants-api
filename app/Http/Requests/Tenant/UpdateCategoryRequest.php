@@ -27,13 +27,17 @@ class UpdateCategoryRequest extends FormRequest
         return [
             'name' => ['sometimes', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
+            'summary' => ['nullable', 'string', 'max:255'],
             'parent_id' => ['nullable', 'integer', Rule::exists('categories', 'id')->whereNot('id', $categoryId)],
             'is_visible' => ['sometimes', 'boolean'],
+            'is_featured' => ['sometimes', 'boolean'],
             'sort_order' => ['nullable', 'integer', 'min:0'],
             'image_media_id' => ['nullable', 'integer', Rule::exists('media', 'id')],
             'banner_media_id' => ['nullable', 'integer', Rule::exists('media', 'id')],
+            'icon_media_id' => ['nullable', 'integer', Rule::exists('media', 'id')],
             'color' => ['nullable', 'string', 'max:50'],
-            'icon' => ['nullable', 'string', 'max:100'],
+            'icon_class' => ['nullable', 'string', 'max:100'],
+            'layout_template' => ['nullable', 'string', 'max:255'],
             'meta_title' => ['nullable', 'string', 'max:255'],
             'meta_description' => ['nullable', 'string'],
         ];
