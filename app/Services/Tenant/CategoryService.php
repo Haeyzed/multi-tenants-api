@@ -20,17 +20,17 @@ class CategoryService
     /**
      * @var list<string>
      */
-    private const MEDIA_RELATIONS = ['imageMedia', 'bannerMedia', 'iconMedia'];
+    private const array MEDIA_RELATIONS = ['imageMedia', 'bannerMedia', 'iconMedia'];
 
     /**
      * @var list<string>
      */
-    private const LIST_RELATIONS = ['parent', 'imageMedia', 'bannerMedia', 'iconMedia'];
+    private const array LIST_RELATIONS = ['parent', 'imageMedia', 'bannerMedia', 'iconMedia'];
 
     /**
      * @var list<string>
      */
-    private const DETAIL_RELATIONS = ['parent', 'children', 'attributeSets', 'imageMedia', 'bannerMedia', 'iconMedia'];
+    private const array DETAIL_RELATIONS = ['parent', 'children', 'attributeSets', 'imageMedia', 'bannerMedia', 'iconMedia'];
 
     /**
      * Paginate the categories.
