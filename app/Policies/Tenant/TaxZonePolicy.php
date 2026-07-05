@@ -4,20 +4,20 @@ declare(strict_types=1);
 
 namespace App\Policies\Tenant;
 
-use App\Models\Tenant\TaxClass;
+use App\Models\Tenant\TaxZone;
 use App\Models\Tenant\TenantUser;
 
 /**
- * Authorization rules for tax configuration.
+ * Authorization rules for tax zone configuration.
  */
-class TaxClassPolicy
+class TaxZonePolicy
 {
     public function viewAny(TenantUser $user): bool
     {
         return $user->can('tax.view');
     }
 
-    public function view(TenantUser $user, TaxClass $taxClass): bool
+    public function view(TenantUser $user, TaxZone $taxZone): bool
     {
         return $user->can('tax.view');
     }
@@ -27,12 +27,12 @@ class TaxClassPolicy
         return $user->can('tax.create');
     }
 
-    public function update(TenantUser $user, TaxClass $taxClass): bool
+    public function update(TenantUser $user, TaxZone $taxZone): bool
     {
         return $user->can('tax.update');
     }
 
-    public function delete(TenantUser $user, TaxClass $taxClass): bool
+    public function delete(TenantUser $user, TaxZone $taxZone): bool
     {
         return $user->can('tax.delete');
     }
@@ -47,7 +47,7 @@ class TaxClassPolicy
         return $user->can('tax.update');
     }
 
-    public function restore(TenantUser $user, TaxClass $taxClass): bool
+    public function restore(TenantUser $user, TaxZone $taxZone): bool
     {
         return $user->can('tax.delete');
     }
@@ -57,13 +57,8 @@ class TaxClassPolicy
         return $user->can('tax.delete');
     }
 
-    public function forceDelete(TenantUser $user, TaxClass $taxClass): bool
+    public function forceDelete(TenantUser $user, TaxZone $taxZone): bool
     {
         return $user->can('tax.delete');
-    }
-
-    public function calculate(TenantUser $user): bool
-    {
-        return $user->can('tax.calculate');
     }
 }

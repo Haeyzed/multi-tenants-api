@@ -4,14 +4,14 @@ declare(strict_types=1);
 
 namespace App\Http\Resources\Tenant;
 
-use App\Models\Tenant\TaxClass;
+use App\Models\Tenant\TaxZone;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
 /**
- * @mixin TaxClass
+ * @mixin TaxZone
  */
-class TaxClassResource extends JsonResource
+class TaxZoneResource extends JsonResource
 {
     /**
      * @return array<string, mixed>
@@ -21,13 +21,18 @@ class TaxClassResource extends JsonResource
         return [
             'id' => $this->id,
             'name' => $this->name,
-            'code' => $this->code,
-            'description' => $this->description,
+            'country_code' => $this->country_code,
+            'state' => $this->state,
+            'city' => $this->city,
+            'postal_code' => $this->postal_code,
+            'postal_code_pattern' => $this->postal_code_pattern,
+            'latitude' => $this->latitude,
+            'longitude' => $this->longitude,
+            'radius_km' => $this->radius_km,
             'is_default' => $this->is_default,
             'is_active' => $this->is_active,
             'sort_order' => $this->sort_order,
             'rates_count' => $this->whenCounted('rates'),
-            'products_count' => $this->whenCounted('products'),
             'rates' => $this->whenLoaded('rates', fn () => TaxRateResource::collection($this->rates)),
             'created_at' => $this->created_at?->toIso8601String(),
             'updated_at' => $this->updated_at?->toIso8601String(),

@@ -23,7 +23,9 @@ use App\Http\Controllers\Tenant\PositionController;
 use App\Http\Controllers\Tenant\ProductController;
 use App\Http\Controllers\Tenant\SettingsController;
 use App\Http\Controllers\Tenant\StaffController;
+use App\Http\Controllers\Tenant\TaxClassController;
 use App\Http\Controllers\Tenant\TaxController;
+use App\Http\Controllers\Tenant\TaxZoneController;
 use App\Http\Controllers\Tenant\TeamController;
 use App\Http\Controllers\Tenant\TeamInvitationController;
 use App\Http\Controllers\Tenant\WaitlistController;
@@ -175,13 +177,45 @@ Route::prefix('v1/tenant')->group(function (): void {
             Route::put('staff/{staff}/payroll', [HrController::class, 'upsertPayroll']);
         });
 
+        Route::prefix('tax-classes')->group(function (): void {
+            Route::get('statistics', [TaxClassController::class, 'statistics']);
+            Route::get('options', [TaxClassController::class, 'options']);
+            Route::get('code/{code}', [TaxClassController::class, 'showByCode']);
+            Route::put('reorder', [TaxClassController::class, 'reorder']);
+            Route::delete('bulk', [TaxClassController::class, 'destroyMany']);
+            Route::post('export', [TaxClassController::class, 'export']);
+            Route::get('import/sample', [TaxClassController::class, 'importSample']);
+            Route::post('import', [TaxClassController::class, 'import']);
+            Route::post('bulk-restore', [TaxClassController::class, 'restoreMany']);
+            Route::post('{taxClass}/set-default', [TaxClassController::class, 'setDefault']);
+            Route::post('{taxClass}/toggle-active', [TaxClassController::class, 'toggleActive']);
+            Route::get('{taxClass}/rates', [TaxClassController::class, 'rates']);
+            Route::post('{taxClass}/rates', [TaxController::class, 'storeRate']);
+            Route::post('{taxClass}/restore', [TaxClassController::class, 'restore'])->withTrashed();
+            Route::delete('{taxClass}/force', [TaxClassController::class, 'forceDestroy'])->withTrashed();
+        });
+        Route::apiResource('tax-classes', TaxClassController::class);
+
+        Route::prefix('tax-zones')->group(function (): void {
+            Route::get('statistics', [TaxZoneController::class, 'statistics']);
+            Route::get('options', [TaxZoneController::class, 'options']);
+            Route::get('match/address', [TaxZoneController::class, 'matchByAddress']);
+            Route::get('match/coordinates', [TaxZoneController::class, 'matchByCoordinates']);
+            Route::put('reorder', [TaxZoneController::class, 'reorder']);
+            Route::delete('bulk', [TaxZoneController::class, 'destroyMany']);
+            Route::post('export', [TaxZoneController::class, 'export']);
+            Route::get('import/sample', [TaxZoneController::class, 'importSample']);
+            Route::post('import', [TaxZoneController::class, 'import']);
+            Route::post('bulk-restore', [TaxZoneController::class, 'restoreMany']);
+            Route::post('{taxZone}/set-default', [TaxZoneController::class, 'setDefault']);
+            Route::post('{taxZone}/toggle-active', [TaxZoneController::class, 'toggleActive']);
+            Route::get('{taxZone}/rates', [TaxZoneController::class, 'rates']);
+            Route::post('{taxZone}/restore', [TaxZoneController::class, 'restore'])->withTrashed();
+            Route::delete('{taxZone}/force', [TaxZoneController::class, 'forceDestroy'])->withTrashed();
+        });
+        Route::apiResource('tax-zones', TaxZoneController::class);
+
         Route::prefix('tax')->group(function (): void {
-            Route::get('classes', [TaxController::class, 'indexClasses']);
-            Route::post('classes', [TaxController::class, 'storeClass']);
-            Route::get('classes/{taxClass}', [TaxController::class, 'showClass']);
-            Route::put('classes/{taxClass}', [TaxController::class, 'updateClass']);
-            Route::delete('classes/{taxClass}', [TaxController::class, 'destroyClass']);
-            Route::post('classes/{taxClass}/rates', [TaxController::class, 'storeRate']);
             Route::put('rates/{taxRate}', [TaxController::class, 'updateRate']);
             Route::delete('rates/{taxRate}', [TaxController::class, 'destroyRate']);
             Route::post('rates/{taxRate}/rules', [TaxController::class, 'storeRule']);

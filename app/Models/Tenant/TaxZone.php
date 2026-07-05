@@ -72,12 +72,54 @@ class TaxZone extends Model
     }
 
     /**
-     * Tax rates configured for this zone.
-     *
      * @return HasMany<TaxRate, $this>
      */
     public function rates(): HasMany
     {
         return $this->hasMany(TaxRate::class);
+    }
+
+    /**
+     * @param  Builder<TaxZone>  $query
+     * @param  array<string, mixed>  $filters
+     * @return Builder<TaxZone>
+     */
+    public function scopeFilter(Builder $query, array $filters): Builder
+    {
+        return $query
+            ->when(! empty($filters['search']), function (Builder $q) use ($filters): void {
+                $search = (string) $filters['search'];
+                $q->where(function (Builder $builder) use ($search): void {
+                    $builder->where('name', 'like', "%{$search}%")
+                        ->orWhere('country_code', 'like', "%{$search}%")
+                        ->orWhere('state', 'like', "%{$search}%")
+                        ->orWhere('city', 'like', "%{$search}%");
+                });
+            })
+            ->when(! empty($filters['country_code']), function (Builder $q) use ($filters): void {
+                $q->where('country_code', $filters['country_code']);
+            })
+            ->when(! empty($filters['is_active']), function (Builder $q) use ($filters): void {
+                $statuses = is_array($filters['is_active'])
+                    ? $filters['is_active']
+                    : explode(',', (string) $filters['is_active']);
+
+                $booleans = [];
+
+                if (in_array('active', $statuses, true)) {
+                    $booleans[] = true;
+                }
+
+                if (in_array('inactive', $statuses, true)) {
+                    $booleans[] = false;
+                }
+
+                if (! empty($booleans)) {
+                    $q->whereIn('is_active', $booleans);
+                }
+            })
+            ->when(isset($filters['is_default']), function (Builder $q) use ($filters): void {
+                $q->where('is_default', filter_var($filters['is_default'], FILTER_VALIDATE_BOOLEAN));
+            });
     }
 }
