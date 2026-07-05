@@ -9,7 +9,8 @@ use App\Models\Tenant\TaxRate;
 use App\Models\Tenant\TaxZone;
 use DomainException;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
-use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Database\Eloquent\Collection as EloquentCollection;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 
 /**
@@ -195,13 +196,13 @@ class TaxZoneService
      * Build the export query for spreadsheet downloads.
      *
      * @param  list<int>|null  $ids
-     * @return Collection<int, TaxZone>
+     * @return EloquentCollection<int, TaxZone>
      */
     public function exportQuery(
         ?array $ids = null,
         ?string $startDate = null,
         ?string $endDate = null,
-    ): Collection {
+    ): EloquentCollection {
         $query = TaxZone::query()->orderBy('sort_order')->latest();
 
         if ($ids !== null && $ids !== []) {
@@ -222,9 +223,9 @@ class TaxZoneService
     /**
      * Get rates for a tax zone.
      *
-     * @return Collection<int, TaxRate>
+     * @return EloquentCollection<int, TaxRate>
      */
-    public function getRates(TaxZone $taxZone): Collection
+    public function getRates(TaxZone $taxZone): EloquentCollection
     {
         return $this->find($taxZone->id)->rates;
     }
@@ -289,6 +290,7 @@ class TaxZoneService
         return TaxZone::query()
             ->where('is_active', true)
             ->orderBy('sort_order')
+            ->orderBy('name')
             ->get(['id', 'name'])
             ->map(fn (TaxZone $taxZone): array => [
                 'label' => $taxZone->name,

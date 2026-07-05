@@ -28,6 +28,10 @@ use Illuminate\Support\Carbon;
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  * @property Carbon|null $deleted_at
+ * @property-read TaxClass $taxClass
+ * @property-read TaxZone $taxZone
+ *
+ * @method static Builder<TaxRate>|TaxRate query()
  */
 class TaxRate extends Model
 {
@@ -106,6 +110,45 @@ class TaxRate extends Model
             ->where(function (Builder $q): void {
                 $q->whereNull('effective_to')
                     ->orWhere('effective_to', '>=', now());
+            });
+    }
+
+    /**
+     * @param  Builder<TaxRate>  $query
+     * @param  array<string, mixed>  $filters
+     * @return Builder<TaxRate>
+     */
+    public function scopeFilter(Builder $query, array $filters): Builder
+    {
+        return $query
+            ->when(! empty($filters['search']), function (Builder $q) use ($filters): void {
+                $search = (string) $filters['search'];
+                $q->where('name', 'like', "%{$search}%");
+            })
+            ->when(! empty($filters['tax_class_id']), function (Builder $q) use ($filters): void {
+                $q->where('tax_class_id', $filters['tax_class_id']);
+            })
+            ->when(! empty($filters['tax_zone_id']), function (Builder $q) use ($filters): void {
+                $q->where('tax_zone_id', $filters['tax_zone_id']);
+            })
+            ->when(! empty($filters['is_active']), function (Builder $q) use ($filters): void {
+                $statuses = is_array($filters['is_active'])
+                    ? $filters['is_active']
+                    : explode(',', (string) $filters['is_active']);
+
+                $booleans = [];
+
+                if (in_array('active', $statuses, true)) {
+                    $booleans[] = true;
+                }
+
+                if (in_array('inactive', $statuses, true)) {
+                    $booleans[] = false;
+                }
+
+                if (! empty($booleans)) {
+                    $q->whereIn('is_active', $booleans);
+                }
             });
     }
 }

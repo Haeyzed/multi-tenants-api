@@ -40,6 +40,7 @@ use Illuminate\Support\Carbon;
  * @property-read EloquentCollection<int, Inventory> $inventories
  *
  * @method static Builder<Warehouse>|Warehouse query()
+ * @method static Builder<Warehouse>|Warehouse filter(array $filters)
  */
 class Warehouse extends Model
 {
@@ -80,6 +81,47 @@ class Warehouse extends Model
             'is_primary' => 'boolean',
             'sort_order' => 'integer',
         ];
+    }
+
+    /**
+     * Scope a query to filter warehouses.
+     *
+     * @param  Builder<Warehouse>  $query
+     * @param  array<string, mixed>  $filters
+     * @return Builder<Warehouse>
+     */
+    public function scopeFilter(Builder $query, array $filters): Builder
+    {
+        return $query
+            ->when(! empty($filters['search']), function (Builder $q) use ($filters): void {
+                $search = $filters['search'];
+                $q->where(function (Builder $inner) use ($search): void {
+                    $inner->where('name', 'like', '%'.$search.'%')
+                        ->orWhere('code', 'like', '%'.$search.'%');
+                });
+            })
+            ->when(! empty($filters['is_active']), function (Builder $q) use ($filters): void {
+                $statuses = is_array($filters['is_active'])
+                    ? $filters['is_active']
+                    : explode(',', (string) $filters['is_active']);
+
+                $booleans = [];
+
+                if (in_array('active', $statuses, true)) {
+                    $booleans[] = true;
+                }
+
+                if (in_array('inactive', $statuses, true)) {
+                    $booleans[] = false;
+                }
+
+                if (! empty($booleans)) {
+                    $q->whereIn('is_active', $booleans);
+                }
+            })
+            ->when(! empty($filters['country']), function (Builder $q) use ($filters): void {
+                $q->where('country', $filters['country']);
+            });
     }
 
     /**

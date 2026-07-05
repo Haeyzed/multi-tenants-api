@@ -9,7 +9,8 @@ use App\Models\Tenant\TaxClass;
 use App\Models\Tenant\TaxRate;
 use DomainException;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
-use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Database\Eloquent\Collection as EloquentCollection;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 
 /**
@@ -208,13 +209,13 @@ class TaxClassService
      * Build the export query for spreadsheet downloads.
      *
      * @param  list<int>|null  $ids
-     * @return Collection<int, TaxClass>
+     * @return EloquentCollection<int, TaxClass>
      */
     public function exportQuery(
         ?array $ids = null,
         ?string $startDate = null,
         ?string $endDate = null,
-    ): Collection {
+    ): EloquentCollection {
         $query = TaxClass::query()->orderBy('sort_order')->latest();
 
         if ($ids !== null && $ids !== []) {
@@ -235,9 +236,9 @@ class TaxClassService
     /**
      * Get rates for a tax class.
      *
-     * @return Collection<int, TaxRate>
+     * @return EloquentCollection<int, TaxRate>
      */
-    public function getRates(TaxClass $taxClass): Collection
+    public function getRates(TaxClass $taxClass): EloquentCollection
     {
         return $this->find($taxClass->id)->rates;
     }
@@ -302,6 +303,7 @@ class TaxClassService
         return TaxClass::query()
             ->where('is_active', true)
             ->orderBy('sort_order')
+            ->orderBy('name')
             ->get(['id', 'name'])
             ->map(fn (TaxClass $taxClass): array => [
                 'label' => $taxClass->name,

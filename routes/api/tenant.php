@@ -23,12 +23,16 @@ use App\Http\Controllers\Tenant\PositionController;
 use App\Http\Controllers\Tenant\ProductController;
 use App\Http\Controllers\Tenant\SettingsController;
 use App\Http\Controllers\Tenant\StaffController;
+use App\Http\Controllers\Tenant\SupplierController;
 use App\Http\Controllers\Tenant\TaxClassController;
 use App\Http\Controllers\Tenant\TaxController;
+use App\Http\Controllers\Tenant\TaxRateController;
+use App\Http\Controllers\Tenant\TaxRuleController;
 use App\Http\Controllers\Tenant\TaxZoneController;
 use App\Http\Controllers\Tenant\TeamController;
 use App\Http\Controllers\Tenant\TeamInvitationController;
 use App\Http\Controllers\Tenant\WaitlistController;
+use App\Http\Controllers\Tenant\WarehouseController;
 use App\Http\Controllers\Tenant\WorldController;
 use App\Models\Tenant\TenantUser;
 use Illuminate\Support\Facades\Route;
@@ -190,7 +194,6 @@ Route::prefix('v1/tenant')->group(function (): void {
             Route::post('{taxClass}/set-default', [TaxClassController::class, 'setDefault']);
             Route::post('{taxClass}/toggle-active', [TaxClassController::class, 'toggleActive']);
             Route::get('{taxClass}/rates', [TaxClassController::class, 'rates']);
-            Route::post('{taxClass}/rates', [TaxController::class, 'storeRate']);
             Route::post('{taxClass}/restore', [TaxClassController::class, 'restore'])->withTrashed();
             Route::delete('{taxClass}/force', [TaxClassController::class, 'forceDestroy'])->withTrashed();
         });
@@ -215,10 +218,31 @@ Route::prefix('v1/tenant')->group(function (): void {
         });
         Route::apiResource('tax-zones', TaxZoneController::class);
 
+        Route::prefix('tax-rates')->group(function (): void {
+            Route::get('statistics', [TaxRateController::class, 'statistics']);
+            Route::get('options', [TaxRateController::class, 'options']);
+            Route::post('calculate', [TaxRateController::class, 'calculate']);
+            Route::delete('bulk', [TaxRateController::class, 'destroyMany']);
+            Route::post('export', [TaxRateController::class, 'export']);
+            Route::get('import/sample', [TaxRateController::class, 'importSample']);
+            Route::post('import', [TaxRateController::class, 'import']);
+            Route::post('bulk-restore', [TaxRateController::class, 'restoreMany']);
+            Route::post('{taxRate}/toggle-active', [TaxRateController::class, 'toggleActive']);
+            Route::get('{taxRate}/rules', [TaxRateController::class, 'rules']);
+            Route::post('{taxRate}/restore', [TaxRateController::class, 'restore'])->withTrashed();
+            Route::delete('{taxRate}/force', [TaxRateController::class, 'forceDestroy'])->withTrashed();
+        });
+        Route::apiResource('tax-rates', TaxRateController::class);
+
+        Route::prefix('tax-rules')->group(function (): void {
+            Route::get('statistics', [TaxRuleController::class, 'statistics']);
+            Route::delete('bulk', [TaxRuleController::class, 'destroyMany']);
+            Route::post('export', [TaxRuleController::class, 'export']);
+            Route::post('{taxRule}/toggle-active', [TaxRuleController::class, 'toggleActive']);
+        });
+        Route::apiResource('tax-rules', TaxRuleController::class);
+
         Route::prefix('tax')->group(function (): void {
-            Route::put('rates/{taxRate}', [TaxController::class, 'updateRate']);
-            Route::delete('rates/{taxRate}', [TaxController::class, 'destroyRate']);
-            Route::post('rates/{taxRate}/rules', [TaxController::class, 'storeRule']);
             Route::post('regions', [TaxController::class, 'storeRegion']);
             Route::post('calculate', [TaxController::class, 'calculate']);
         });
@@ -273,6 +297,62 @@ Route::prefix('v1/tenant')->group(function (): void {
             Route::delete('{brand}/force', [BrandController::class, 'forceDestroy'])->withTrashed();
         });
         Route::apiResource('brands', BrandController::class);
+
+        Route::prefix('suppliers')->group(function (): void {
+            Route::get('statistics', [SupplierController::class, 'statistics']);
+            Route::get('options', [SupplierController::class, 'options']);
+            Route::get('slug/{slug}', [SupplierController::class, 'showBySlug']);
+            Route::get('code/{code}', [SupplierController::class, 'showByCode']);
+            Route::delete('bulk', [SupplierController::class, 'destroyMany']);
+            Route::post('export', [SupplierController::class, 'export']);
+            Route::get('import/sample', [SupplierController::class, 'importSample']);
+            Route::post('import', [SupplierController::class, 'import']);
+            Route::get('{supplier}/products', [SupplierController::class, 'products']);
+            Route::post('{supplier}/toggle-active', [SupplierController::class, 'toggleActive']);
+            Route::post('{supplier}/update-products-count', [SupplierController::class, 'updateProductsCount']);
+            Route::post('{supplier}/restore', [SupplierController::class, 'restore'])->withTrashed();
+            Route::delete('{supplier}/force', [SupplierController::class, 'forceDestroy'])->withTrashed();
+            Route::get('{supplier}/contacts', [SupplierController::class, 'contacts']);
+            Route::post('{supplier}/contacts', [SupplierController::class, 'storeContact']);
+            Route::put('{supplier}/contacts/{contact}', [SupplierController::class, 'updateContact']);
+            Route::delete('{supplier}/contacts/{contact}', [SupplierController::class, 'destroyContact']);
+            Route::post('{supplier}/contacts/{contact}/set-primary', [SupplierController::class, 'setPrimaryContact']);
+            Route::get('{supplier}/addresses', [SupplierController::class, 'addresses']);
+            Route::post('{supplier}/addresses', [SupplierController::class, 'storeAddress']);
+            Route::put('{supplier}/addresses/{address}', [SupplierController::class, 'updateAddress']);
+            Route::delete('{supplier}/addresses/{address}', [SupplierController::class, 'destroyAddress']);
+            Route::post('{supplier}/addresses/{address}/set-default', [SupplierController::class, 'setDefaultAddress']);
+            Route::get('{supplier}/bank-accounts', [SupplierController::class, 'bankAccounts']);
+            Route::post('{supplier}/bank-accounts', [SupplierController::class, 'storeBankAccount']);
+            Route::put('{supplier}/bank-accounts/{bankAccount}', [SupplierController::class, 'updateBankAccount']);
+            Route::delete('{supplier}/bank-accounts/{bankAccount}', [SupplierController::class, 'destroyBankAccount']);
+            Route::post('{supplier}/bank-accounts/{bankAccount}/set-default', [SupplierController::class, 'setDefaultBankAccount']);
+        });
+        Route::apiResource('suppliers', SupplierController::class);
+
+        Route::prefix('warehouses')->group(function (): void {
+            Route::get('statistics', [WarehouseController::class, 'statistics']);
+            Route::get('options', [WarehouseController::class, 'options']);
+            Route::get('primary', [WarehouseController::class, 'primary']);
+            Route::get('code/{code}', [WarehouseController::class, 'showByCode']);
+            Route::delete('bulk', [WarehouseController::class, 'destroyMany']);
+            Route::post('export', [WarehouseController::class, 'export']);
+            Route::get('import/sample', [WarehouseController::class, 'importSample']);
+            Route::post('import', [WarehouseController::class, 'import']);
+            Route::post('{warehouse}/toggle-active', [WarehouseController::class, 'toggleActive']);
+            Route::post('{warehouse}/set-primary', [WarehouseController::class, 'setPrimary']);
+            Route::post('{warehouse}/restore', [WarehouseController::class, 'restore'])->withTrashed();
+            Route::delete('{warehouse}/force', [WarehouseController::class, 'forceDestroy'])->withTrashed();
+            Route::get('{warehouse}/zones', [WarehouseController::class, 'zones']);
+            Route::post('{warehouse}/zones', [WarehouseController::class, 'storeZone']);
+            Route::put('{warehouse}/zones/{zone}', [WarehouseController::class, 'updateZone']);
+            Route::delete('{warehouse}/zones/{zone}', [WarehouseController::class, 'destroyZone']);
+            Route::get('{warehouse}/locations', [WarehouseController::class, 'locations']);
+            Route::post('{warehouse}/locations', [WarehouseController::class, 'storeLocation']);
+            Route::put('{warehouse}/locations/{location}', [WarehouseController::class, 'updateLocation']);
+            Route::delete('{warehouse}/locations/{location}', [WarehouseController::class, 'destroyLocation']);
+        });
+        Route::apiResource('warehouses', WarehouseController::class);
 
         // -----------------------------------------------------------------------------
         // Media Library

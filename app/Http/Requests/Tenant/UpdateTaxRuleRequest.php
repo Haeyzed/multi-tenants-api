@@ -7,7 +7,7 @@ namespace App\Http\Requests\Tenant;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
-class StoreTaxRuleRequest extends FormRequest
+class UpdateTaxRuleRequest extends FormRequest
 {
     public function authorize(): bool
     {
@@ -20,10 +20,10 @@ class StoreTaxRuleRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'tax_rate_id' => ['required', 'integer', 'exists:tax_rates,id'],
-            'applicable_type' => ['required', 'string', Rule::in(['product', 'customer_group'])],
-            'applicable_id' => ['required', 'integer', 'min:1'],
-            'rule_type' => ['required', 'string', Rule::in(['override', 'exempt', 'reduce', 'increase'])],
+            'tax_rate_id' => ['sometimes', 'integer', 'exists:tax_rates,id'],
+            'applicable_type' => ['sometimes', 'string', Rule::in(['product', 'customer_group'])],
+            'applicable_id' => ['sometimes', 'integer', 'min:1'],
+            'rule_type' => ['sometimes', 'string', Rule::in(['override', 'exempt', 'reduce', 'increase'])],
             'adjustment_rate' => ['nullable', 'numeric', 'min:0', 'max:100'],
             'effective_from' => ['nullable', 'date'],
             'effective_to' => ['nullable', 'date', 'after_or_equal:effective_from'],

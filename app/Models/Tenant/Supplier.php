@@ -10,6 +10,8 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Carbon;
+use Spatie\Sluggable\HasSlug;
+use Spatie\Sluggable\SlugOptions;
 
 /**
  * Product supplier or procurement partner.
@@ -36,10 +38,11 @@ use Illuminate\Support\Carbon;
  * @property-read EloquentCollection<int, Product> $products
  *
  * @method static Builder<Supplier>|Supplier query()
+ * @method static Builder<Supplier>|Supplier filter(array $filters)
  */
 class Supplier extends Model
 {
-    use SoftDeletes;
+    use HasSlug, SoftDeletes;
 
     /**
      * @var list<string>
@@ -68,6 +71,55 @@ class Supplier extends Model
             'is_active' => 'boolean',
             'products_count' => 'integer',
         ];
+    }
+
+    /**
+     * Get the options for generating the slug.
+     */
+    public function getSlugOptions(): SlugOptions
+    {
+        return SlugOptions::create()
+            ->generateSlugsFrom('name')
+            ->saveSlugsTo('slug');
+    }
+
+    /**
+     * Scope a query to filter suppliers.
+     *
+     * @param  Builder<Supplier>  $query
+     * @param  array<string, mixed>  $filters
+     * @return Builder<Supplier>
+     */
+    public function scopeFilter(Builder $query, array $filters): Builder
+    {
+        return $query
+            ->when(! empty($filters['search']), function (Builder $q) use ($filters): void {
+                $search = $filters['search'];
+                $q->where(function (Builder $inner) use ($search): void {
+                    $inner->where('name', 'like', '%'.$search.'%')
+                        ->orWhere('code', 'like', '%'.$search.'%')
+                        ->orWhere('contact_email', 'like', '%'.$search.'%');
+                });
+            })
+            ->when(! empty($filters['is_active']), function (Builder $q) use ($filters): void {
+                $statuses = is_array($filters['is_active'])
+                    ? $filters['is_active']
+                    : explode(',', (string) $filters['is_active']);
+
+                $booleans = [];
+
+                if (in_array('active', $statuses, true)) {
+                    $booleans[] = true;
+                }
+
+                if (in_array('inactive', $statuses, true)) {
+                    $booleans[] = false;
+                }
+
+                if (! empty($booleans)) {
+                    $q->whereIn('is_active', $booleans);
+                }
+            });
     }
 
     /**

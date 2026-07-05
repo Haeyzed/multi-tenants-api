@@ -21,13 +21,20 @@ class TaxRateResource extends JsonResource
         return [
             'id' => $this->id,
             'tax_class_id' => $this->tax_class_id,
+            'tax_zone_id' => $this->tax_zone_id,
             'name' => $this->name,
             'rate' => $this->rate,
-            'type' => $this->type?->value,
+            'priority' => $this->priority,
             'is_compound' => $this->is_compound,
+            'applies_to_shipping' => $this->applies_to_shipping,
+            'effective_from' => $this->effective_from?->toDateString(),
+            'effective_to' => $this->effective_to?->toDateString(),
             'is_active' => $this->is_active,
+            'tax_class' => $this->whenLoaded('taxClass', fn () => new TaxClassResource($this->taxClass)),
+            'tax_zone' => $this->whenLoaded('taxZone', fn () => new TaxZoneResource($this->taxZone)),
             'rules' => $this->whenLoaded('rules', fn () => TaxRuleResource::collection($this->rules)),
             'created_at' => $this->created_at?->toIso8601String(),
+            'updated_at' => $this->updated_at?->toIso8601String(),
         ];
     }
 }
