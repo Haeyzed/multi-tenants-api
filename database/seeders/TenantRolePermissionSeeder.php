@@ -24,6 +24,7 @@ class TenantRolePermissionSeeder extends Seeder
             'brands.view', 'brands.create', 'brands.update', 'brands.delete',
             'suppliers.view', 'suppliers.create', 'suppliers.update', 'suppliers.delete',
             'warehouses.view', 'warehouses.create', 'warehouses.update', 'warehouses.delete',
+            'units.view', 'units.create', 'units.update', 'units.delete',
             'inventory.view', 'inventory.manage',
             'orders.view', 'orders.manage', 'orders.create',
             'flash-sales.view', 'flash-sales.create', 'flash-sales.update', 'flash-sales.delete', 'flash-sales.manage',
@@ -52,6 +53,7 @@ class TenantRolePermissionSeeder extends Seeder
             'brands.view', 'brands.create', 'brands.update', 'brands.delete',
             'suppliers.view', 'suppliers.create', 'suppliers.update', 'suppliers.delete',
             'warehouses.view', 'warehouses.create', 'warehouses.update', 'warehouses.delete',
+            'units.view', 'units.create', 'units.update', 'units.delete',
             'inventory.view', 'inventory.manage',
         ];
 

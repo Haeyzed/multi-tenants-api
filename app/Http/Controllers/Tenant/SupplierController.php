@@ -21,7 +21,6 @@ use App\Http\Resources\Tenant\ProductResource;
 use App\Http\Resources\Tenant\SupplierAddressResource;
 use App\Http\Resources\Tenant\SupplierBankAccountResource;
 use App\Http\Resources\Tenant\SupplierContactResource;
-use App\Http\Resources\Tenant\SupplierContactResource;
 use App\Http\Resources\Tenant\SupplierResource;
 use App\Imports\Tenant\SuppliersImport;
 use App\Models\Tenant\Supplier;

@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace App\Models\Tenant;
 
+use Database\Factories\Tenant\UnitFactory;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Carbon;
 
@@ -26,6 +28,9 @@ use Illuminate\Support\Carbon;
  */
 class Unit extends Model
 {
+    /** @use HasFactory<UnitFactory> */
+    use HasFactory;
+
     /**
      * @var list<string>
      */
@@ -39,6 +44,11 @@ class Unit extends Model
         'sort_order',
     ];
 
+    protected static function newFactory(): UnitFactory
+    {
+        return UnitFactory::new();
+    }
+
     /**
      * @return array<string, string>
      */
@@ -49,5 +59,33 @@ class Unit extends Model
             'is_base' => 'boolean',
             'sort_order' => 'integer',
         ];
+    }
+
+    /**
+     * @param  Builder<Unit>  $query
+     * @param  array<string, mixed>  $filters
+     * @return Builder<Unit>
+     */
+    public function scopeFilter(Builder $query, array $filters): Builder
+    {
+        return $query
+            ->when(! empty($filters['search']), function (Builder $q) use ($filters): void {
+                $search = (string) $filters['search'];
+                $q->where(function (Builder $builder) use ($search): void {
+                    $builder->where('name', 'like', "%{$search}%")
+                        ->orWhere('code', 'like', "%{$search}%")
+                        ->orWhere('symbol', 'like', "%{$search}%");
+                });
+            })
+            ->when(! empty($filters['type']), function (Builder $q) use ($filters): void {
+                $types = is_array($filters['type'])
+                    ? $filters['type']
+                    : explode(',', (string) $filters['type']);
+
+                $q->whereIn('type', $types);
+            })
+            ->when(isset($filters['is_base']), function (Builder $q) use ($filters): void {
+                $q->where('is_base', filter_var($filters['is_base'], FILTER_VALIDATE_BOOLEAN));
+            });
     }
 }

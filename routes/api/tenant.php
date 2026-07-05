@@ -31,6 +31,7 @@ use App\Http\Controllers\Tenant\TaxRuleController;
 use App\Http\Controllers\Tenant\TaxZoneController;
 use App\Http\Controllers\Tenant\TeamController;
 use App\Http\Controllers\Tenant\TeamInvitationController;
+use App\Http\Controllers\Tenant\UnitController;
 use App\Http\Controllers\Tenant\WaitlistController;
 use App\Http\Controllers\Tenant\WarehouseController;
 use App\Http\Controllers\Tenant\WorldController;
@@ -353,6 +354,23 @@ Route::prefix('v1/tenant')->group(function (): void {
             Route::delete('{warehouse}/locations/{location}', [WarehouseController::class, 'destroyLocation']);
         });
         Route::apiResource('warehouses', WarehouseController::class);
+
+        Route::prefix('units')->group(function (): void {
+            Route::get('statistics', [UnitController::class, 'statistics']);
+            Route::get('options', [UnitController::class, 'options']);
+            Route::get('type-options', [UnitController::class, 'typeOptions']);
+            Route::get('code/{code}', [UnitController::class, 'showByCode']);
+            Route::get('type/{type}', [UnitController::class, 'byType']);
+            Route::get('type/{type}/base', [UnitController::class, 'baseUnit']);
+            Route::post('convert', [UnitController::class, 'convert']);
+            Route::put('reorder', [UnitController::class, 'reorder']);
+            Route::delete('bulk', [UnitController::class, 'destroyMany']);
+            Route::post('export', [UnitController::class, 'export']);
+            Route::get('import/sample', [UnitController::class, 'importSample']);
+            Route::post('import', [UnitController::class, 'import']);
+            Route::post('{unit}/set-base', [UnitController::class, 'setBase']);
+        });
+        Route::apiResource('units', UnitController::class);
 
         // -----------------------------------------------------------------------------
         // Media Library
