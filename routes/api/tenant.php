@@ -486,6 +486,8 @@ Route::prefix('v1/tenant')->group(function (): void {
             Route::get('options', [ProductController::class, 'options']);
             Route::delete('bulk', [ProductController::class, 'destroyMany']);
             Route::post('export', [ProductController::class, 'export']);
+            Route::get('import/sample', [ProductController::class, 'importSample']);
+            Route::post('import', [ProductController::class, 'import']);
             Route::post('bulk-restore', [ProductController::class, 'restoreMany']);
             Route::post('{product}/restore', [ProductController::class, 'restore'])->withTrashed();
             Route::delete('{product}/force', [ProductController::class, 'forceDestroy'])->withTrashed();

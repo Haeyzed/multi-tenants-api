@@ -8,8 +8,10 @@ use App\Enums\Tenant\ProductStatus;
 use App\Enums\Tenant\ProductType;
 use App\Enums\Tenant\ProductVisibility;
 use App\Exports\Tenant\ProductsExport;
+use App\Exports\Tenant\ProductsImportSample;
 use App\Http\Controllers\ApiController;
 use App\Http\Controllers\Tenant\Concerns\ExportsSpreadsheets;
+use App\Http\Controllers\Tenant\Concerns\ImportsSpreadsheets;
 use App\Http\Requests\Tenant\ExportResourceRequest;
 use App\Http\Requests\Tenant\GenerateProductVariantsRequest;
 use App\Http\Requests\Tenant\StoreProductRequest;
@@ -32,12 +34,14 @@ use App\Http\Resources\Tenant\ProductServiceResource;
 use App\Http\Resources\Tenant\ProductSubscriptionResource;
 use App\Http\Resources\Tenant\ProductSupplierResource;
 use App\Http\Resources\Tenant\ProductVariantResource;
+use App\Imports\Tenant\ProductsImport;
 use App\Models\Tenant\Product;
 use App\Models\Tenant\ProductVariant;
 use App\Services\Tenant\ProductService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
 use Throwable;
 
 /**
@@ -45,7 +49,7 @@ use Throwable;
  */
 class ProductController extends ApiController
 {
-    use ExportsSpreadsheets;
+    use ExportsSpreadsheets, ImportsSpreadsheets;
 
     public function __construct(
         private readonly ProductService $productService,
@@ -199,6 +203,36 @@ class ProductController extends ApiController
             'products-export',
             'Products Export',
             'Your products export is attached.',
+        );
+    }
+
+    /**
+     * Download a sample import template for products.
+     */
+    public function importSample(Request $request): BinaryFileResponse
+    {
+        $this->authorize('create', Product::class);
+
+        return $this->importSampleDownload($request, new ProductsImportSample, 'products');
+    }
+
+    /**
+     * Import products from Excel.
+     *
+     * @throws Throwable
+     */
+    public function import(Request $request): JsonResponse
+    {
+        $this->authorize('create', Product::class);
+
+        $request->validate([
+            'file' => ['required', 'file', 'mimes:xlsx,xls,csv'],
+        ]);
+
+        return $this->runSpreadsheetImport(
+            new ProductsImport($this->productService),
+            $request->file('file'),
+            'Products imported successfully.',
         );
     }
 

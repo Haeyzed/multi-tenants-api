@@ -36,20 +36,16 @@ class TaxZonesImportSample implements FromArray, WithHeadings
     public function array(): array
     {
         return [
-            [
-                'United Kingdom',
-                'GB',
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                true,
-                true,
-                1,
-            ],
+            ['Nigeria Nationwide', 'NG', null, null, null, null, null, null, null, true, true, 1],
+            ['Lagos State', 'NG', 'Lagos', null, null, null, 6.5244, 3.3792, null, false, true, 2],
+            ['Abuja FCT', 'NG', 'FCT', 'Abuja', null, null, 9.0765, 7.3986, null, false, true, 3],
+            ['United Kingdom', 'GB', null, null, null, null, null, null, null, false, true, 4],
+            ['United States - California', 'US', 'CA', null, null, null, 36.7783, -119.4179, null, false, true, 5],
+            ['United States - New York', 'US', 'NY', null, null, null, 40.7128, -74.0060, null, false, true, 6],
+            ['Ghana Nationwide', 'GH', null, null, null, null, null, null, null, false, true, 7],
+            ['Kenya Nationwide', 'KE', null, null, null, null, null, null, null, false, true, 8],
+            ['South Africa - Gauteng', 'ZA', 'GP', 'Johannesburg', null, null, -26.2041, 28.0473, null, false, true, 9],
+            ['European Union', 'DE', null, null, null, null, null, null, null, false, true, 10],
         ];
     }
 }

@@ -2,6 +2,11 @@
 
 declare(strict_types=1);
 
+use App\Exports\Tenant\SuppliersImportSample;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Storage;
+use Maatwebsite\Excel\Facades\Excel;
+
 it('manages tenant suppliers with nested contacts addresses and bank accounts', function (): void {
     $ctx = initializeTenantForTest();
 
@@ -112,4 +117,30 @@ it('manages tenant suppliers with nested contacts addresses and bank accounts', 
     $this->withToken($ctx->token)
         ->deleteJson("http://{$ctx->domain}/api/v1/tenant/suppliers/{$supplierId}")
         ->assertSuccessful();
+});
+
+it('imports suppliers from spreadsheet', function (): void {
+    $ctx = initializeTenantForTest();
+
+    $path = 'testing/suppliers-import.xlsx';
+    Excel::store(new SuppliersImportSample, $path, 'local');
+
+    $file = new UploadedFile(
+        Storage::disk('local')->path($path),
+        'suppliers-import.xlsx',
+        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        null,
+        true,
+    );
+
+    $this->withToken($ctx->token)
+        ->post("http://{$ctx->domain}/api/v1/tenant/suppliers/import", ['file' => $file])
+        ->assertSuccessful()
+        ->assertJsonPath('data.imported', 10);
+
+    $this->withToken($ctx->token)
+        ->getJson("http://{$ctx->domain}/api/v1/tenant/suppliers")
+        ->assertSuccessful()
+        ->assertJsonPath('meta.total', 10)
+        ->assertJsonPath('data.0.code', 'SUP-ACME-001');
 });

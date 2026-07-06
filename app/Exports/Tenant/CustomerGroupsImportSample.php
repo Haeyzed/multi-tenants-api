@@ -28,12 +28,16 @@ class CustomerGroupsImportSample implements FromArray, WithHeadings
     public function array(): array
     {
         return [
-            [
-                'VIP',
-                'High-value repeat customers.',
-                10,
-                true,
-            ],
+            ['Retail', 'Standard walk-in and online shoppers.', 0, true],
+            ['VIP', 'High-value repeat customers with loyalty perks.', 10, true],
+            ['Wholesale', 'Bulk buyers with negotiated pricing.', 15, true],
+            ['Staff', 'Employees eligible for internal discounts.', 20, true],
+            ['Students', 'Verified students with education discount.', 8, true],
+            ['Corporate', 'Business accounts with invoicing terms.', 12, true],
+            ['Affiliates', 'Partners promoting the store.', 5, true],
+            ['Members', 'Paid membership program subscribers.', 7, true],
+            ['First-Time Buyers', 'Welcome discount for new customers.', 5, true],
+            ['Inactive Win-Back', 'Re-engagement offers for dormant accounts.', 10, true],
         ];
     }
 }

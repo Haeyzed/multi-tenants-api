@@ -33,17 +33,16 @@ class AttributesImportSample implements FromArray, WithHeadings
     public function array(): array
     {
         return [
-            [
-                'Color',
-                'color',
-                'COLOR',
-                'select',
-                'swatch',
-                true,
-                true,
-                true,
-                1,
-            ],
+            ['Color', 'color', 'COLOR', 'select', 'swatch', true, true, true, 1],
+            ['Size', 'size', 'SIZE', 'select', 'dropdown', true, true, true, 2],
+            ['Material', 'material', 'MATERIAL', 'select', 'dropdown', true, false, false, 3],
+            ['Brand Line', 'brand-line', 'BRAND_LINE', 'text', 'text', false, false, false, 4],
+            ['Warranty Period', 'warranty-period', 'WARRANTY', 'number', 'text', false, false, false, 5],
+            ['Voltage', 'voltage', 'VOLTAGE', 'select', 'dropdown', true, false, false, 6],
+            ['Capacity', 'capacity', 'CAPACITY', 'text', 'text', true, false, false, 7],
+            ['Fit Type', 'fit-type', 'FIT', 'select', 'dropdown', true, true, false, 8],
+            ['Flavor', 'flavor', 'FLAVOR', 'select', 'dropdown', true, true, false, 9],
+            ['Pattern', 'pattern', 'PATTERN', 'select', 'swatch', true, false, false, 10],
         ];
     }
 }

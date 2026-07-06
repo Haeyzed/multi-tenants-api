@@ -4,46 +4,81 @@ declare(strict_types=1);
 
 namespace App\Imports\Tenant;
 
+use App\Imports\Concerns\NormalizesImportRows;
+use App\Imports\Concerns\TracksImportResults;
 use App\Models\Tenant\Warehouse;
+use Illuminate\Support\Collection;
 use Maatwebsite\Excel\Concerns\SkipsFailures;
 use Maatwebsite\Excel\Concerns\SkipsOnFailure;
-use Maatwebsite\Excel\Concerns\ToModel;
+use Maatwebsite\Excel\Concerns\ToCollection;
 use Maatwebsite\Excel\Concerns\WithHeadingRow;
 use Maatwebsite\Excel\Concerns\WithValidation;
 
-class WarehousesImport implements SkipsOnFailure, ToModel, WithHeadingRow, WithValidation
+class WarehousesImport implements SkipsOnFailure, ToCollection, WithHeadingRow, WithValidation
 {
-    use SkipsFailures;
+    use NormalizesImportRows, SkipsFailures, TracksImportResults;
+
+    public function collection(Collection $rows): void
+    {
+        foreach ($rows as $row) {
+            $code = (string) $row['code'];
+            $isPrimary = $this->parseBoolean($row['is_primary'] ?? false, false);
+
+            if ($isPrimary) {
+                Warehouse::query()->where('is_primary', true)->update(['is_primary' => false]);
+            }
+
+            $attributes = [
+                'name' => (string) $row['name'],
+                'description' => filled($row['description'] ?? null) ? (string) $row['description'] : null,
+                'address_line_1' => filled($row['address_line_1'] ?? null) ? (string) $row['address_line_1'] : null,
+                'address_line_2' => filled($row['address_line_2'] ?? null) ? (string) $row['address_line_2'] : null,
+                'city' => filled($row['city'] ?? null) ? (string) $row['city'] : null,
+                'state' => filled($row['state'] ?? null) ? (string) $row['state'] : null,
+                'postal_code' => filled($row['postal_code'] ?? null) ? (string) $row['postal_code'] : null,
+                'country' => filled($row['country'] ?? null) ? strtoupper((string) $row['country']) : null,
+                'phone' => filled($row['phone'] ?? null) ? (string) $row['phone'] : null,
+                'email' => filled($row['email'] ?? null) ? (string) $row['email'] : null,
+                'manager_name' => filled($row['manager_name'] ?? null) ? (string) $row['manager_name'] : null,
+                'latitude' => filled($row['latitude'] ?? null) ? (float) $row['latitude'] : null,
+                'longitude' => filled($row['longitude'] ?? null) ? (float) $row['longitude'] : null,
+                'is_active' => $this->parseBoolean($row['is_active'] ?? true),
+                'is_primary' => $isPrimary,
+                'sort_order' => filled($row['sort_order'] ?? null) ? (int) $row['sort_order'] : 0,
+            ];
+
+            $existing = Warehouse::withTrashed()->where('code', $code)->first();
+
+            if ($existing?->trashed()) {
+                $existing->restore();
+            }
+
+            Warehouse::query()->updateOrCreate(['code' => $code], $attributes);
+
+            $this->incrementImported();
+        }
+    }
 
     /**
-     * @param  array<string, mixed>  $row
+     * @param  array<string, mixed>  $data
+     * @return array<string, mixed>
      */
-    public function model(array $row): Warehouse
+    public function prepareForValidation($data, $index): array
     {
-        $isPrimary = filter_var($row['is_primary'] ?? false, FILTER_VALIDATE_BOOLEAN);
-
-        if ($isPrimary) {
-            Warehouse::query()->where('is_primary', true)->update(['is_primary' => false]);
-        }
-
-        return new Warehouse([
-            'name' => (string) $row['name'],
-            'code' => (string) $row['code'],
-            'description' => $row['description'] ?? null,
-            'address_line_1' => $row['address_line_1'] ?? null,
-            'address_line_2' => $row['address_line_2'] ?? null,
-            'city' => $row['city'] ?? null,
-            'state' => $row['state'] ?? null,
-            'postal_code' => $row['postal_code'] ?? null,
-            'country' => $row['country'] ?? null,
-            'phone' => $row['phone'] ?? null,
-            'email' => $row['email'] ?? null,
-            'manager_name' => $row['manager_name'] ?? null,
-            'latitude' => filled($row['latitude'] ?? null) ? (float) $row['latitude'] : null,
-            'longitude' => filled($row['longitude'] ?? null) ? (float) $row['longitude'] : null,
-            'is_active' => filter_var($row['is_active'] ?? true, FILTER_VALIDATE_BOOLEAN),
-            'is_primary' => $isPrimary,
-            'sort_order' => filled($row['sort_order'] ?? null) ? (int) $row['sort_order'] : 0,
+        return $this->nullifyEmpty($data, [
+            'description',
+            'address_line_1',
+            'address_line_2',
+            'city',
+            'state',
+            'postal_code',
+            'country',
+            'phone',
+            'email',
+            'manager_name',
+            'latitude',
+            'longitude',
+            'sort_order',
         ]);
     }
 
@@ -54,7 +89,7 @@ class WarehousesImport implements SkipsOnFailure, ToModel, WithHeadingRow, WithV
     {
         return [
             '*.name' => ['required', 'string', 'max:255'],
-            '*.code' => ['required', 'string', 'max:50', 'unique:warehouses,code'],
+            '*.code' => ['required', 'string', 'max:50'],
             '*.description' => ['nullable', 'string'],
             '*.address_line_1' => ['nullable', 'string', 'max:255'],
             '*.address_line_2' => ['nullable', 'string', 'max:255'],

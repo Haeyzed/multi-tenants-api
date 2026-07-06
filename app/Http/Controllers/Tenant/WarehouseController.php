@@ -8,6 +8,7 @@ use App\Exports\Tenant\WarehousesExport;
 use App\Exports\Tenant\WarehousesImportSample;
 use App\Http\Controllers\ApiController;
 use App\Http\Controllers\Tenant\Concerns\ExportsSpreadsheets;
+use App\Http\Controllers\Tenant\Concerns\ImportsSpreadsheets;
 use App\Http\Requests\Tenant\ExportResourceRequest;
 use App\Http\Requests\Tenant\StoreWarehouseLocationRequest;
 use App\Http\Requests\Tenant\StoreWarehouseRequest;
@@ -26,7 +27,6 @@ use App\Services\Tenant\WarehouseService;
 use DomainException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Maatwebsite\Excel\Facades\Excel;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
@@ -35,7 +35,7 @@ use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
  */
 class WarehouseController extends ApiController
 {
-    use ExportsSpreadsheets;
+    use ExportsSpreadsheets, ImportsSpreadsheets;
 
     public function __construct(
         private readonly WarehouseService $warehouseService,
@@ -251,9 +251,11 @@ class WarehouseController extends ApiController
             'file' => ['required', 'file', 'mimes:xlsx,xls,csv'],
         ]);
 
-        Excel::import(new WarehousesImport, $request->file('file'));
-
-        return $this->success(null, 'Warehouses imported successfully.');
+        return $this->runSpreadsheetImport(
+            new WarehousesImport,
+            $request->file('file'),
+            'Warehouses imported successfully.',
+        );
     }
 
     /**

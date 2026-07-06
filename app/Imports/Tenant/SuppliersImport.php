@@ -4,33 +4,65 @@ declare(strict_types=1);
 
 namespace App\Imports\Tenant;
 
+use App\Imports\Concerns\NormalizesImportRows;
+use App\Imports\Concerns\TracksImportResults;
 use App\Models\Tenant\Supplier;
+use Illuminate\Support\Collection;
 use Maatwebsite\Excel\Concerns\SkipsFailures;
 use Maatwebsite\Excel\Concerns\SkipsOnFailure;
-use Maatwebsite\Excel\Concerns\ToModel;
+use Maatwebsite\Excel\Concerns\ToCollection;
 use Maatwebsite\Excel\Concerns\WithHeadingRow;
 use Maatwebsite\Excel\Concerns\WithValidation;
 
-class SuppliersImport implements SkipsOnFailure, ToModel, WithHeadingRow, WithValidation
+class SuppliersImport implements SkipsOnFailure, ToCollection, WithHeadingRow, WithValidation
 {
-    use SkipsFailures;
+    use NormalizesImportRows, SkipsFailures, TracksImportResults;
+
+    public function collection(Collection $rows): void
+    {
+        foreach ($rows as $row) {
+            $code = (string) $row['code'];
+
+            $attributes = [
+                'name' => (string) $row['name'],
+                'description' => filled($row['description'] ?? null) ? (string) $row['description'] : null,
+                'contact_name' => filled($row['contact_name'] ?? null) ? (string) $row['contact_name'] : null,
+                'contact_email' => filled($row['contact_email'] ?? null) ? (string) $row['contact_email'] : null,
+                'contact_phone' => filled($row['contact_phone'] ?? null) ? (string) $row['contact_phone'] : null,
+                'website_url' => filled($row['website_url'] ?? null) ? (string) $row['website_url'] : null,
+                'tax_id' => filled($row['tax_id'] ?? null) ? (string) $row['tax_id'] : null,
+                'registration_number' => filled($row['registration_number'] ?? null)
+                    ? (string) $row['registration_number']
+                    : null,
+                'is_active' => $this->parseBoolean($row['is_active'] ?? true),
+            ];
+
+            $existing = Supplier::withTrashed()->where('code', $code)->first();
+
+            if ($existing?->trashed()) {
+                $existing->restore();
+            }
+
+            Supplier::query()->updateOrCreate(['code' => $code], $attributes);
+
+            $this->incrementImported();
+        }
+    }
 
     /**
-     * @param  array<string, mixed>  $row
+     * @param  array<string, mixed>  $data
+     * @return array<string, mixed>
      */
-    public function model(array $row): Supplier
+    public function prepareForValidation($data, $index): array
     {
-        return new Supplier([
-            'name' => (string) $row['name'],
-            'code' => (string) $row['code'],
-            'description' => $row['description'] ?? null,
-            'contact_name' => $row['contact_name'] ?? null,
-            'contact_email' => $row['contact_email'] ?? null,
-            'contact_phone' => $row['contact_phone'] ?? null,
-            'website_url' => $row['website_url'] ?? null,
-            'tax_id' => $row['tax_id'] ?? null,
-            'registration_number' => $row['registration_number'] ?? null,
-            'is_active' => filter_var($row['is_active'] ?? true, FILTER_VALIDATE_BOOLEAN),
+        return $this->nullifyEmpty($data, [
+            'description',
+            'contact_name',
+            'contact_email',
+            'contact_phone',
+            'website_url',
+            'tax_id',
+            'registration_number',
         ]);
     }
 
@@ -41,7 +73,7 @@ class SuppliersImport implements SkipsOnFailure, ToModel, WithHeadingRow, WithVa
     {
         return [
             '*.name' => ['required', 'string', 'max:255'],
-            '*.code' => ['required', 'string', 'max:50', 'unique:suppliers,code'],
+            '*.code' => ['required', 'string', 'max:50'],
             '*.description' => ['nullable', 'string'],
             '*.contact_name' => ['nullable', 'string', 'max:255'],
             '*.contact_email' => ['nullable', 'email', 'max:255'],

@@ -8,6 +8,7 @@ use App\Exports\Tenant\SuppliersExport;
 use App\Exports\Tenant\SuppliersImportSample;
 use App\Http\Controllers\ApiController;
 use App\Http\Controllers\Tenant\Concerns\ExportsSpreadsheets;
+use App\Http\Controllers\Tenant\Concerns\ImportsSpreadsheets;
 use App\Http\Requests\Tenant\ExportResourceRequest;
 use App\Http\Requests\Tenant\StoreSupplierAddressRequest;
 use App\Http\Requests\Tenant\StoreSupplierBankAccountRequest;
@@ -30,7 +31,6 @@ use App\Models\Tenant\SupplierContact;
 use App\Services\Tenant\SupplierService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Maatwebsite\Excel\Facades\Excel;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
@@ -39,7 +39,7 @@ use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
  */
 class SupplierController extends ApiController
 {
-    use ExportsSpreadsheets;
+    use ExportsSpreadsheets, ImportsSpreadsheets;
 
     public function __construct(
         private readonly SupplierService $supplierService,
@@ -249,9 +249,11 @@ class SupplierController extends ApiController
             'file' => ['required', 'file', 'mimes:xlsx,xls,csv'],
         ]);
 
-        Excel::import(new SuppliersImport, $request->file('file'));
-
-        return $this->success(null, 'Suppliers imported successfully.');
+        return $this->runSpreadsheetImport(
+            new SuppliersImport,
+            $request->file('file'),
+            'Suppliers imported successfully.',
+        );
     }
 
     /**
