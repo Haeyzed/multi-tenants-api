@@ -3,16 +3,20 @@
 declare(strict_types=1);
 
 use App\Http\Controllers\Tenant\AnalyticsController;
+use App\Http\Controllers\Tenant\AttributeController;
+use App\Http\Controllers\Tenant\AttributeSetController;
 use App\Http\Controllers\Tenant\AuthController;
 use App\Http\Controllers\Tenant\BrandController;
 use App\Http\Controllers\Tenant\CartController;
 use App\Http\Controllers\Tenant\CategoryController;
+use App\Http\Controllers\Tenant\CollectionController;
 use App\Http\Controllers\Tenant\CustomerAuthController;
 use App\Http\Controllers\Tenant\CustomerController;
 use App\Http\Controllers\Tenant\CustomerGroupController;
 use App\Http\Controllers\Tenant\DepartmentController;
 use App\Http\Controllers\Tenant\FlashSaleController;
 use App\Http\Controllers\Tenant\HrController;
+use App\Http\Controllers\Tenant\InventoryController;
 use App\Http\Controllers\Tenant\MediaController;
 use App\Http\Controllers\Tenant\MediaFolderController;
 use App\Http\Controllers\Tenant\NotificationController;
@@ -24,6 +28,7 @@ use App\Http\Controllers\Tenant\ProductController;
 use App\Http\Controllers\Tenant\SettingsController;
 use App\Http\Controllers\Tenant\StaffController;
 use App\Http\Controllers\Tenant\SupplierController;
+use App\Http\Controllers\Tenant\TagController;
 use App\Http\Controllers\Tenant\TaxClassController;
 use App\Http\Controllers\Tenant\TaxController;
 use App\Http\Controllers\Tenant\TaxRateController;
@@ -299,6 +304,85 @@ Route::prefix('v1/tenant')->group(function (): void {
         });
         Route::apiResource('brands', BrandController::class);
 
+        Route::prefix('attributes')->group(function (): void {
+            Route::get('statistics', [AttributeController::class, 'statistics']);
+            Route::get('options', [AttributeController::class, 'options']);
+            Route::get('filterable', [AttributeController::class, 'filterable']);
+            Route::get('variant-attributes', [AttributeController::class, 'variantAttributes']);
+            Route::get('slug/{slug}', [AttributeController::class, 'showBySlug']);
+            Route::get('code/{code}', [AttributeController::class, 'showByCode']);
+            Route::put('reorder', [AttributeController::class, 'reorder']);
+            Route::delete('bulk', [AttributeController::class, 'destroyMany']);
+            Route::post('export', [AttributeController::class, 'export']);
+            Route::get('import/sample', [AttributeController::class, 'importSample']);
+            Route::post('import', [AttributeController::class, 'import']);
+            Route::post('bulk-restore', [AttributeController::class, 'restoreMany']);
+            Route::post('{attribute}/toggle-filterable', [AttributeController::class, 'toggleFilterable']);
+            Route::post('{attribute}/toggle-variant', [AttributeController::class, 'toggleVariant']);
+            Route::post('{attribute}/restore', [AttributeController::class, 'restore'])->withTrashed();
+            Route::delete('{attribute}/force', [AttributeController::class, 'forceDestroy'])->withTrashed();
+            Route::get('{attribute}/values', [AttributeController::class, 'values']);
+            Route::post('{attribute}/values', [AttributeController::class, 'storeValue']);
+            Route::put('{attribute}/values/reorder', [AttributeController::class, 'reorderValues']);
+            Route::put('{attribute}/values/{value}', [AttributeController::class, 'updateValue']);
+            Route::delete('{attribute}/values/{value}', [AttributeController::class, 'destroyValue']);
+        });
+        Route::apiResource('attributes', AttributeController::class);
+
+        Route::prefix('attribute-sets')->group(function (): void {
+            Route::get('statistics', [AttributeSetController::class, 'statistics']);
+            Route::get('options', [AttributeSetController::class, 'options']);
+            Route::get('slug/{slug}', [AttributeSetController::class, 'showBySlug']);
+            Route::put('reorder', [AttributeSetController::class, 'reorder']);
+            Route::delete('bulk', [AttributeSetController::class, 'destroyMany']);
+            Route::post('export', [AttributeSetController::class, 'export']);
+            Route::get('import/sample', [AttributeSetController::class, 'importSample']);
+            Route::post('import', [AttributeSetController::class, 'import']);
+            Route::get('{attribute_set}/attributes', [AttributeSetController::class, 'attributes']);
+            Route::put('{attribute_set}/attributes', [AttributeSetController::class, 'syncAttributes']);
+            Route::post('{attribute_set}/attributes/{attribute}', [AttributeSetController::class, 'attachAttribute']);
+            Route::delete('{attribute_set}/attributes/{attribute}', [AttributeSetController::class, 'detachAttribute']);
+            Route::get('{attribute_set}/categories', [AttributeSetController::class, 'categories']);
+            Route::put('{attribute_set}/categories', [AttributeSetController::class, 'syncCategories']);
+        });
+        Route::apiResource('attribute-sets', AttributeSetController::class);
+
+        Route::prefix('tags')->group(function (): void {
+            Route::get('statistics', [TagController::class, 'statistics']);
+            Route::get('options', [TagController::class, 'options']);
+            Route::get('slug/{slug}', [TagController::class, 'showBySlug']);
+            Route::put('reorder', [TagController::class, 'reorder']);
+            Route::delete('bulk', [TagController::class, 'destroyMany']);
+            Route::post('export', [TagController::class, 'export']);
+            Route::get('import/sample', [TagController::class, 'importSample']);
+            Route::post('import', [TagController::class, 'import']);
+            Route::get('{tag}/products', [TagController::class, 'products']);
+            Route::post('{tag}/toggle-visibility', [TagController::class, 'toggleVisibility']);
+            Route::post('{tag}/update-products-count', [TagController::class, 'updateProductsCount']);
+        });
+        Route::apiResource('tags', TagController::class);
+
+        Route::prefix('collections')->group(function (): void {
+            Route::get('statistics', [CollectionController::class, 'statistics']);
+            Route::get('options', [CollectionController::class, 'options']);
+            Route::get('slug/{slug}', [CollectionController::class, 'showBySlug']);
+            Route::put('reorder', [CollectionController::class, 'reorder']);
+            Route::delete('bulk', [CollectionController::class, 'destroyMany']);
+            Route::post('export', [CollectionController::class, 'export']);
+            Route::get('import/sample', [CollectionController::class, 'importSample']);
+            Route::post('import', [CollectionController::class, 'import']);
+            Route::post('bulk-restore', [CollectionController::class, 'restoreMany']);
+            Route::get('{collection}/products', [CollectionController::class, 'products']);
+            Route::put('{collection}/products', [CollectionController::class, 'syncProducts']);
+            Route::put('{collection}/products/reorder', [CollectionController::class, 'reorderProducts']);
+            Route::post('{collection}/toggle-visibility', [CollectionController::class, 'toggleVisibility']);
+            Route::post('{collection}/toggle-featured', [CollectionController::class, 'toggleFeatured']);
+            Route::post('{collection}/refresh-automated', [CollectionController::class, 'refreshAutomated']);
+            Route::post('{collection}/restore', [CollectionController::class, 'restore'])->withTrashed();
+            Route::delete('{collection}/force', [CollectionController::class, 'forceDestroy'])->withTrashed();
+        });
+        Route::apiResource('collections', CollectionController::class);
+
         Route::prefix('suppliers')->group(function (): void {
             Route::get('statistics', [SupplierController::class, 'statistics']);
             Route::get('options', [SupplierController::class, 'options']);
@@ -406,10 +490,28 @@ Route::prefix('v1/tenant')->group(function (): void {
             Route::post('{product}/restore', [ProductController::class, 'restore'])->withTrashed();
             Route::delete('{product}/force', [ProductController::class, 'forceDestroy'])->withTrashed();
             Route::post('{product}/variants', [ProductController::class, 'storeVariant']);
+            Route::post('{product}/variants/generate', [ProductController::class, 'generateVariants']);
             Route::put('{product}/variants/{variant}', [ProductController::class, 'updateVariant']);
             Route::delete('{product}/variants/{variant}', [ProductController::class, 'destroyVariant']);
+            Route::put('{product}/options', [ProductController::class, 'syncOptions']);
+            Route::put('{product}/suppliers', [ProductController::class, 'syncSuppliers']);
+            Route::put('{product}/relations', [ProductController::class, 'syncRelations']);
+            Route::put('{product}/downloads', [ProductController::class, 'syncDownloads']);
+            Route::put('{product}/bundle-items', [ProductController::class, 'syncBundleItems']);
+            Route::put('{product}/service', [ProductController::class, 'syncService']);
+            Route::put('{product}/subscription', [ProductController::class, 'syncSubscription']);
+            Route::get('{product}/variants/{variant}/inventories', [InventoryController::class, 'variantInventories']);
         });
         Route::apiResource('products', ProductController::class);
+
+        Route::prefix('inventories')->group(function (): void {
+            Route::get('statistics', [InventoryController::class, 'statistics']);
+            Route::get('movements', [InventoryController::class, 'movements']);
+            Route::get('stock-alerts', [InventoryController::class, 'stockAlerts']);
+            Route::post('{inventory}/adjust', [InventoryController::class, 'adjust']);
+            Route::post('{inventory}/transfer', [InventoryController::class, 'transfer']);
+        });
+        Route::apiResource('inventories', InventoryController::class)->only(['index', 'show', 'update']);
 
         // -----------------------------------------------------------------------------
 

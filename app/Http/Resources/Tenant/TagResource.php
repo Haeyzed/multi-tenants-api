@@ -22,6 +22,13 @@ class TagResource extends JsonResource
             'id' => $this->id,
             'name' => $this->name,
             'slug' => $this->slug,
+            'color' => $this->color,
+            'icon' => $this->icon,
+            'is_visible' => $this->is_visible,
+            'sort_order' => $this->sort_order,
+            'products_count' => $this->products_count,
+            'created_at' => $this->created_at?->toIso8601String(),
+            'updated_at' => $this->updated_at?->toIso8601String(),
         ];
     }
 }

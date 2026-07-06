@@ -4,8 +4,10 @@ declare(strict_types=1);
 
 namespace App\Models\Tenant;
 
+use Database\Factories\Tenant\AttributeFactory;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection as EloquentCollection;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -39,10 +41,12 @@ use Illuminate\Support\Carbon;
  * @property-read EloquentCollection<int, Product> $products
  *
  * @method static Builder<Attribute>|Attribute query()
+ * @method static Builder<Attribute>|Attribute filter(array $filters)
  */
 class Attribute extends Model
 {
-    use SoftDeletes;
+    /** @use HasFactory<AttributeFactory> */
+    use HasFactory, SoftDeletes;
 
     /**
      * @var list<string>
@@ -115,5 +119,38 @@ class Attribute extends Model
         return $this->belongsToMany(Product::class, 'product_attribute_values')
             ->withPivot(['attribute_value_id', 'custom_value', 'sort_order'])
             ->withTimestamps();
+    }
+
+    /**
+     * Create a new factory instance for the model.
+     */
+    protected static function newFactory(): AttributeFactory
+    {
+        return AttributeFactory::new();
+    }
+
+    /**
+     * @param  Builder<Attribute>  $query
+     * @param  array<string, mixed>  $filters
+     * @return Builder<Attribute>
+     */
+    public function scopeFilter(Builder $query, array $filters): Builder
+    {
+        return $query
+            ->when(! empty($filters['search']), function (Builder $q) use ($filters): void {
+                $q->where(function (Builder $inner) use ($filters): void {
+                    $inner->where('name', 'like', '%'.$filters['search'].'%')
+                        ->orWhere('code', 'like', '%'.$filters['search'].'%');
+                });
+            })
+            ->when(isset($filters['is_filterable']), function (Builder $q) use ($filters): void {
+                $q->where('is_filterable', filter_var($filters['is_filterable'], FILTER_VALIDATE_BOOLEAN));
+            })
+            ->when(isset($filters['is_variant']), function (Builder $q) use ($filters): void {
+                $q->where('is_variant', filter_var($filters['is_variant'], FILTER_VALIDATE_BOOLEAN));
+            })
+            ->when(! empty($filters['type']), function (Builder $q) use ($filters): void {
+                $q->where('type', $filters['type']);
+            });
     }
 }

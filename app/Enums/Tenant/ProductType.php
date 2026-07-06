@@ -5,118 +5,86 @@ declare(strict_types=1);
 namespace App\Enums\Tenant;
 
 /**
- * Product type enumeration for catalog classification.
+ * Catalog product type — defines behavior, not sellable SKU.
  */
 enum ProductType: string
 {
-    case Standard = 'standard';
+    case Simple = 'simple';
+    case Variable = 'variable';
+    case Bundle = 'bundle';
     case Digital = 'digital';
     case Service = 'service';
-    case Combo = 'combo';
+    case Subscription = 'subscription';
+    case GiftCard = 'gift_card';
+    case Configurable = 'configurable';
 
     /**
-     * Get human-readable label.
+     * @return list<string>
      */
+    public static function values(): array
+    {
+        return array_column(self::cases(), 'value');
+    }
+
     public function label(): string
     {
         return match ($this) {
-            self::Standard => 'Standard Product',
-            self::Digital => 'Digital Product',
+            self::Simple => 'Simple',
+            self::Variable => 'Variable',
+            self::Bundle => 'Bundle',
+            self::Digital => 'Digital',
             self::Service => 'Service',
-            self::Combo => 'Combo / Bundle',
+            self::Subscription => 'Subscription',
+            self::GiftCard => 'Gift Card',
+            self::Configurable => 'Configurable',
         };
     }
 
-    /**
-     * Get description of the type.
-     */
     public function description(): string
     {
         return match ($this) {
-            self::Standard => 'Physical product with inventory tracking and shipping.',
-            self::Digital => 'Downloadable product with file attachments and no shipping.',
-            self::Service => 'Non-physical service with booking duration and provider assignment.',
-            self::Combo => 'Bundle of multiple products sold together at a combined price.',
+            self::Simple => 'Single SKU product with one default variant.',
+            self::Variable => 'Product with multiple variants generated from options.',
+            self::Bundle => 'Grouped sellable bundle of other products.',
+            self::Digital => 'Downloadable or license-based product.',
+            self::Service => 'Bookable service with scheduling.',
+            self::Subscription => 'Recurring billing product.',
+            self::GiftCard => 'Stored-value gift card product.',
+            self::Configurable => 'Parent product with child simple variants.',
         };
     }
 
-    /**
-     * Get fields applicable to this product type.
-     *
-     * @return list<string>
-     */
-    public function applicableFields(): array
+    public function requiresVariants(): bool
     {
         return match ($this) {
-            self::Standard => [
-                'sku', 'barcode', 'mpn', 'gtin', 'weight', 'length', 'width', 'height',
-                'weight_unit', 'dimension_unit', 'cost_price', 'compare_at_price',
-                'inventory', 'primary_image_media_id', 'gallery_media_ids',
-            ],
-            self::Digital => [
-                'sku', 'cost_price', 'compare_at_price',
-                'download_limit', 'download_expiry_days', 'file_media_ids',
-                'preview_media_id', 'primary_image_media_id', 'gallery_media_ids',
-            ],
-            self::Service => [
-                'sku', 'cost_price', 'compare_at_price',
-                'duration_minutes', 'buffer_minutes', 'max_participants',
-                'location_type', 'service_location', 'provider_ids',
-                'primary_image_media_id', 'gallery_media_ids',
-            ],
-            self::Combo => [
-                'sku', 'barcode', 'cost_price', 'compare_at_price',
-                'combo_items', 'allow_partial_combo', 'primary_image_media_id', 'gallery_media_ids',
-            ],
+            self::Variable, self::Configurable => true,
+            default => false,
         };
     }
 
-    /**
-     * Get fields that are required for this type.
-     *
-     * @return list<string>
-     */
-    public function requiredFields(): array
-    {
-        return match ($this) {
-            self::Standard => ['sku', 'price', 'weight'],
-            self::Digital => ['sku', 'price', 'file_media_ids'],
-            self::Service => ['sku', 'price', 'duration_minutes'],
-            self::Combo => ['sku', 'price', 'combo_items'],
-        };
-    }
-
-    /**
-     * Check if shipping is applicable.
-     */
     public function requiresShipping(): bool
     {
         return match ($this) {
-            self::Standard, self::Combo => true,
-            self::Digital, self::Service => false,
+            self::Simple, self::Variable, self::Bundle, self::Configurable => true,
+            self::Digital, self::Service, self::Subscription, self::GiftCard => false,
         };
     }
 
-    /**
-     * Check if inventory tracking is applicable.
-     */
     public function tracksInventory(): bool
     {
         return match ($this) {
-            self::Standard, self::Combo => true,
-            self::Digital, self::Service => false,
+            self::Digital, self::Service, self::GiftCard => false,
+            default => true,
         };
     }
 
     /**
-     * Get all values as array.
-     *
      * @return list<array{value: string, label: string, description: string}>
      */
     public static function toArray(): array
     {
         return array_map(
-            fn (self $type) => [
+            fn (self $type): array => [
                 'value' => $type->value,
                 'label' => $type->label(),
                 'description' => $type->description(),

@@ -14,7 +14,7 @@ use Illuminate\Support\Carbon;
  *
  * @property int $id
  * @property int $product_id
- * @property int|null $variant_id
+ * @property int $product_variant_id
  * @property int $min_quantity
  * @property int|null $max_quantity
  * @property string $price
@@ -34,8 +34,7 @@ class ProductPriceTier extends Model
      * @var list<string>
      */
     protected $fillable = [
-        'product_id',
-        'variant_id',
+        'product_variant_id',
         'min_quantity',
         'max_quantity',
         'price',
@@ -59,23 +58,13 @@ class ProductPriceTier extends Model
     }
 
     /**
-     * Product this tier belongs to.
-     *
-     * @return BelongsTo<Product, $this>
-     */
-    public function product(): BelongsTo
-    {
-        return $this->belongsTo(Product::class);
-    }
-
-    /**
-     * Variant this tier applies to, if any.
+     * Variant this tier applies to.
      *
      * @return BelongsTo<ProductVariant, $this>
      */
     public function variant(): BelongsTo
     {
-        return $this->belongsTo(ProductVariant::class, 'variant_id');
+        return $this->belongsTo(ProductVariant::class, 'product_variant_id');
     }
 
     /**

@@ -95,4 +95,36 @@ class Tag extends Model
     {
         return $query->where('name', 'like', "%{$search}%");
     }
+
+    /**
+     * @param  Builder<Tag>  $query
+     * @param  array<string, mixed>  $filters
+     * @return Builder<Tag>
+     */
+    public function scopeFilter(Builder $query, array $filters): Builder
+    {
+        return $query
+            ->when(! empty($filters['search']), function (Builder $q) use ($filters): void {
+                $q->where('name', 'like', '%'.$filters['search'].'%');
+            })
+            ->when(! empty($filters['is_visible']), function (Builder $q) use ($filters): void {
+                $statuses = is_array($filters['is_visible'])
+                    ? $filters['is_visible']
+                    : explode(',', (string) $filters['is_visible']);
+
+                $booleans = [];
+
+                if (in_array('visible', $statuses, true)) {
+                    $booleans[] = true;
+                }
+
+                if (in_array('hidden', $statuses, true)) {
+                    $booleans[] = false;
+                }
+
+                if (! empty($booleans)) {
+                    $q->whereIn('is_visible', $booleans);
+                }
+            });
+    }
 }

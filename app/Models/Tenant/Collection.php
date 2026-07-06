@@ -4,8 +4,10 @@ declare(strict_types=1);
 
 namespace App\Models\Tenant;
 
+use Database\Factories\Tenant\CollectionFactory;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection as EloquentCollection;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
@@ -37,10 +39,12 @@ use Illuminate\Support\Carbon;
  * @property-read Media|null $banner
  *
  * @method static Builder<Collection>|Collection query()
+ * @method static Builder<Collection>|Collection filter(array $filters)
  */
 class Collection extends Model
 {
-    use SoftDeletes;
+    /** @use HasFactory<CollectionFactory> */
+    use HasFactory, SoftDeletes;
 
     /**
      * @var list<string>
@@ -132,5 +136,51 @@ class Collection extends Model
     public function getIsAutomatedAttribute(): bool
     {
         return $this->type === 'automated';
+    }
+
+    /**
+     * Create a new factory instance for the model.
+     */
+    protected static function newFactory(): CollectionFactory
+    {
+        return CollectionFactory::new();
+    }
+
+    /**
+     * @param  Builder<Collection>  $query
+     * @param  array<string, mixed>  $filters
+     * @return Builder<Collection>
+     */
+    public function scopeFilter(Builder $query, array $filters): Builder
+    {
+        return $query
+            ->when(! empty($filters['search']), function (Builder $q) use ($filters): void {
+                $q->where('name', 'like', '%'.$filters['search'].'%');
+            })
+            ->when(! empty($filters['is_visible']), function (Builder $q) use ($filters): void {
+                $statuses = is_array($filters['is_visible'])
+                    ? $filters['is_visible']
+                    : explode(',', (string) $filters['is_visible']);
+
+                $booleans = [];
+
+                if (in_array('visible', $statuses, true)) {
+                    $booleans[] = true;
+                }
+
+                if (in_array('hidden', $statuses, true)) {
+                    $booleans[] = false;
+                }
+
+                if (! empty($booleans)) {
+                    $q->whereIn('is_visible', $booleans);
+                }
+            })
+            ->when(isset($filters['is_featured']), function (Builder $q) use ($filters): void {
+                $q->where('is_featured', filter_var($filters['is_featured'], FILTER_VALIDATE_BOOLEAN));
+            })
+            ->when(! empty($filters['type']), function (Builder $q) use ($filters): void {
+                $q->where('type', $filters['type']);
+            });
     }
 }

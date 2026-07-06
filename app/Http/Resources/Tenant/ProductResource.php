@@ -4,10 +4,12 @@ declare(strict_types=1);
 
 namespace App\Http\Resources\Tenant;
 
-use App\Enums\Tenant\ProductType;
 use App\Models\Tenant\Product;
+use App\Models\Tenant\ProductImage;
+use App\Models\Tenant\ProductVariant;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
+use Illuminate\Support\Collection;
 
 /**
  * @mixin Product
@@ -19,89 +21,118 @@ class ProductResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
-        $productType = ProductType::tryFrom($this->product_type);
+        $defaultVariant = $this->resolveDefaultVariant();
+        $images = $this->resolveProductImages();
 
         return [
-            // Core info
             'id' => $this->id,
             'name' => $this->name,
             'slug' => $this->slug,
+            'subtitle' => $this->subtitle,
+            'summary' => $this->summary,
             'description' => $this->description,
-            'short_description' => $this->short_description,
-            'sku' => $this->sku,
-            'barcode' => $this->barcode,
-            'mpn' => $this->mpn,
-            'gtin' => $this->gtin,
 
-            // Product Type
-            'product_type' => [
-                'value' => $this->product_type,
-                'label' => $productType?->label(),
-                'description' => $productType?->description(),
-                'requires_shipping' => $productType?->requiresShipping() ?? true,
-                'tracks_inventory' => $productType?->tracksInventory() ?? true,
+            'type' => [
+                'value' => $this->type?->value ?? $this->type,
+                'label' => $this->type?->label(),
+                'description' => $this->type?->description(),
+                'requires_shipping' => $this->type?->requiresShipping() ?? true,
+                'tracks_inventory' => $this->type?->tracksInventory() ?? true,
+            ],
+            'condition' => [
+                'value' => $this->condition?->value ?? $this->condition,
+                'label' => $this->condition?->label(),
+            ],
+            'status' => [
+                'value' => $this->status?->value ?? $this->status,
+                'label' => $this->status?->label(),
+            ],
+            'visibility' => [
+                'value' => $this->visibility?->value ?? $this->visibility,
+                'label' => $this->visibility?->label(),
             ],
 
-            // Pricing
-            'price' => $this->price,
-            'selling_price' => $this->sellingPrice(),
-            'compare_at_price' => $this->compare_at_price,
-            'sale_price' => $this->sale_price,
-            'cost_price' => $this->cost_price,
-            'discount_percentage' => $this->discountPercentage(),
-            'is_on_sale' => $this->isOnSale(),
-            'profit_margin' => $this->profitMargin(),
-
-            // Status
-            'status' => $this->status?->value ?? $this->status,
-            'status_label' => $this->status?->label(),
-            'is_visible' => $this->is_visible,
+            'brand_id' => $this->brand_id,
+            'attribute_set_id' => $this->attribute_set_id,
+            'tax_class_id' => $this->tax_class_id,
             'is_featured' => $this->is_featured,
-            'taxable' => $this->taxable,
+            'is_returnable' => $this->is_returnable,
+            'return_period_days' => $this->return_period_days,
+            'warranty_period_months' => $this->warranty_period_months,
+            'min_order_quantity' => $this->min_order_quantity,
+            'max_order_quantity' => $this->max_order_quantity,
             'track_inventory' => $this->track_inventory,
             'allow_backorders' => $this->allow_backorders,
-            'stock_status' => $this->stockStatus(),
+            'requires_shipping' => $this->requires_shipping,
+            'is_taxable' => $this->is_taxable,
             'published_at' => $this->published_at?->toIso8601String(),
+            'discontinued_at' => $this->discontinued_at?->toIso8601String(),
+            'is_published' => $this->isPublished(),
 
-            // SEO
             'meta_title' => $this->meta_title,
             'meta_description' => $this->meta_description,
             'meta_keywords' => $this->meta_keywords,
-            'canonical_url' => $this->canonical_url,
+            'search_keywords' => $this->search_keywords,
 
-            // Dimensions
-            'weight' => $this->weight,
-            'length' => $this->length,
-            'width' => $this->width,
-            'height' => $this->height,
-            'weight_unit' => $this->weight_unit,
-            'dimension_unit' => $this->dimension_unit,
+            'price' => $defaultVariant?->price,
+            'compare_at_price' => $defaultVariant?->compare_at_price,
+            'selling_price' => $defaultVariant?->sellingPrice(),
+            'is_on_sale' => $defaultVariant?->isOnSale(),
+            'discount_percentage' => $defaultVariant?->discountPercentage(),
+            'sku' => $defaultVariant?->sku,
 
-            // Media - Primary Image
-            'primary_image_media' => $this->whenLoaded('primaryImageMedia', fn (): array => [
-                'id' => $this->primaryImageMedia?->id,
-                'file_name' => $this->primaryImageMedia?->file_name,
-                'mime_type' => $this->primaryImageMedia?->mime_type,
-                'url' => $this->primaryImageMedia?->getUrl(),
-            ]),
-
-            // Gallery Images (multiple, ordered)
-            'gallery' => $this->whenLoaded('productImages', function () {
-                return $this->productImages->map(fn ($pi) => [
-                    'id' => $pi->id,
-                    'sort_order' => $pi->sort_order,
-                    'alt_text' => $pi->alt_text,
-                    'caption' => $pi->caption,
-                    'is_primary' => $pi->is_primary_gallery,
-                    'media' => [
-                        'id' => $pi->media->id,
-                        'file_name' => $pi->media->file_name,
-                        'url' => $pi->media->getUrl(),
-                    ],
+            'brand' => new BrandResource($this->whenLoaded('brand')),
+            'categories' => CategoryResource::collection($this->whenLoaded('categories')),
+            'primary_category_id' => $this->whenLoaded(
+                'categories',
+                fn () => $this->categories->firstWhere('pivot.is_primary', true)?->id,
+            ),
+            'category_ids' => $this->whenLoaded(
+                'categories',
+                fn () => $this->categories->pluck('id')->values(),
+            ),
+            'tags' => TagResource::collection($this->whenLoaded('tags')),
+            'collections' => CollectionResource::collection($this->whenLoaded('collections')),
+            'collection_ids' => $this->whenLoaded(
+                'collections',
+                fn () => $this->collections->pluck('id')->values(),
+            ),
+            'suppliers' => $this->whenLoaded('productSuppliers', function () {
+                return $this->productSuppliers->map(fn ($assignment) => [
+                    'id' => $assignment->id,
+                    'supplier_id' => $assignment->supplier_id,
+                    'supplier_sku' => $assignment->supplier_sku,
+                    'supplier_cost' => $assignment->supplier_cost,
+                    'lead_time_days' => $assignment->lead_time_days,
+                    'minimum_quantity' => $assignment->minimum_quantity,
+                    'is_primary' => $assignment->is_primary,
+                    'supplier' => $assignment->relationLoaded('supplier') && $assignment->supplier
+                        ? [
+                            'id' => $assignment->supplier->id,
+                            'name' => $assignment->supplier->name,
+                            'code' => $assignment->supplier->code,
+                        ]
+                        : null,
                 ]);
             }),
+            'primary_supplier_id' => $this->whenLoaded(
+                'productSuppliers',
+                fn () => $this->productSuppliers->firstWhere('is_primary', true)?->supplier_id,
+            ),
 
-            // YouTube Videos (multiple)
+            'images' => $this->when(
+                $this->imagesAreLoaded(),
+                fn () => $this->formatProductImages($images),
+            ),
+            'gallery' => $this->when(
+                $this->imagesAreLoaded(),
+                fn () => $this->formatProductGallery($images),
+            ),
+            'primary_image_media' => $this->when(
+                $this->imagesAreLoaded(),
+                fn () => $this->formatPrimaryImageMedia($images),
+            ),
+
             'videos' => $this->whenLoaded('videos', function () {
                 return $this->videos->map(fn ($video) => [
                     'id' => $video->id,
@@ -117,47 +148,49 @@ class ProductResource extends JsonResource
                 ]);
             }),
 
-            // Relationships
-            'category' => new CategoryResource($this->whenLoaded('category')),
-            'categories' => CategoryResource::collection($this->whenLoaded('categories')),
-            'category_ids' => $this->whenLoaded(
-                'categories',
-                fn () => $this->categories->pluck('id')->values(),
-            ),
-            'brand' => new BrandResource($this->whenLoaded('brand')),
-            'tags' => TagResource::collection($this->whenLoaded('tags')),
+            'downloads' => ProductDownloadResource::collection($this->whenLoaded('downloads')),
+            'bundle_items' => ProductBundleResource::collection($this->whenLoaded('bundleItems')),
+            'service' => new ProductServiceResource($this->whenLoaded('service')),
+            'subscription' => new ProductSubscriptionResource($this->whenLoaded('subscription')),
+            'providers' => ProductProviderResource::collection($this->whenLoaded('providers')),
+
             'variants_count' => $this->whenCounted('variants'),
             'reviews_count' => $this->whenCounted('reviews'),
-
-            // Variants
+            'default_variant' => new ProductVariantResource($this->when(
+                $this->relationLoaded('defaultVariant') && $this->defaultVariant,
+                $this->defaultVariant,
+            )),
             'variants' => ProductVariantResource::collection($this->whenLoaded('variants')),
-            'default_variant' => new ProductVariantResource($this->whenLoaded('defaultVariant')),
+            'options' => ProductOptionResource::collection($this->whenLoaded('options')),
 
-            // Inventory
-            'inventory' => new InventoryResource($this->whenLoaded('inventory')),
-
-            // Attributes
             'attributes' => $this->whenLoaded('attributeValues', function () {
-                return $this->attributeValues->map(fn ($av) => [
+                return $this->attributeValues->map(fn ($attributeValue) => [
                     'attribute' => [
-                        'id' => $av->attribute->id,
-                        'name' => $av->attribute->name,
-                        'slug' => $av->attribute->slug,
+                        'id' => $attributeValue->attribute->id,
+                        'name' => $attributeValue->attribute->name,
+                        'slug' => $attributeValue->attribute->slug,
                     ],
                     'value' => [
-                        'id' => $av->attributeValue->id,
-                        'value' => $av->attributeValue->value,
-                        'slug' => $av->attributeValue->slug,
+                        'id' => $attributeValue->attributeValue?->id,
+                        'value' => $attributeValue->display_value,
+                        'slug' => $attributeValue->attributeValue?->slug,
                     ],
                 ]);
             }),
 
-            // Reviews
-            'average_rating' => $this->average_rating,
-            'review_count' => $this->review_count,
-            'reviews' => ProductReviewResource::collection($this->whenLoaded('reviews')),
+            'reviews' => $this->whenLoaded('reviews', function () {
+                return $this->reviews->map(fn ($review) => [
+                    'id' => $review->id,
+                    'rating' => $review->rating,
+                    'title' => $review->title,
+                    'content' => $review->content,
+                    'author_name' => $review->author_name,
+                    'is_verified_purchase' => $review->is_verified_purchase,
+                    'is_approved' => $review->is_approved,
+                    'created_at' => $review->created_at?->toIso8601String(),
+                ]);
+            }),
 
-            // Product Relations
             'related_products' => ProductResource::collection(
                 $this->whenLoaded('relatedProducts', fn () => $this->relatedProducts->pluck('relatedProduct'))
             ),
@@ -168,126 +201,149 @@ class ProductResource extends JsonResource
                 $this->whenLoaded('upSellProducts', fn () => $this->upSellProducts->pluck('relatedProduct'))
             ),
 
-            // Pricing Tiers
-            'pricing_tiers' => $this->whenLoaded('pricingTiers', function () {
-                return $this->pricingTiers->whereNull('variant_id')->map(fn ($tier) => [
-                    'id' => $tier->id,
-                    'min_quantity' => $tier->min_quantity,
-                    'max_quantity' => $tier->max_quantity,
-                    'price' => $tier->price,
-                    'customer_group_id' => $tier->customer_group_id,
-                ]);
-            }),
-
-            // Collections
-            'collections' => ProductCollectionResource::collection($this->whenLoaded('collections')),
-
-            // SEO Data
             'seo' => $this->whenLoaded('seo', fn () => [
+                'canonical_url' => $this->seo->canonical_url,
                 'og_title' => $this->seo->og_title,
                 'og_description' => $this->seo->og_description,
+                'og_image_media_id' => $this->seo->og_image_media_id,
                 'og_image' => $this->when($this->seo->ogImageMedia, fn () => [
                     'id' => $this->seo->ogImageMedia->id,
                     'url' => $this->seo->ogImageMedia->getUrl(),
+                    'name' => $this->seo->ogImageMedia->name,
                 ]),
                 'twitter_card' => $this->seo->twitter_card,
                 'twitter_title' => $this->seo->twitter_title,
                 'twitter_description' => $this->seo->twitter_description,
+                'twitter_image_media_id' => $this->seo->twitter_image_media_id,
+                'twitter_image' => $this->when($this->seo->twitterImageMedia, fn () => [
+                    'id' => $this->seo->twitterImageMedia->id,
+                    'url' => $this->seo->twitterImageMedia->getUrl(),
+                    'name' => $this->seo->twitterImageMedia->name,
+                ]),
                 'robots_meta' => $this->seo->robots_meta,
             ]),
-
-            // -----------------------------------------------------------------
-            // TYPE-SPECIFIC DATA
-            // -----------------------------------------------------------------
-
-            // Digital Product Fields
-            'digital' => $this->when(
-                $productType === ProductType::Digital,
-                fn () => [
-                    'download_limit' => $this->download_limit,
-                    'download_expiry_days' => $this->download_expiry_days,
-                    'preview_media' => $this->whenLoaded('previewMedia', fn (): array => [
-                        'id' => $this->previewMedia?->id,
-                        'file_name' => $this->previewMedia?->file_name,
-                        'url' => $this->previewMedia?->getUrl(),
-                    ]),
-                    'files' => $this->whenLoaded('digitalFiles', function () {
-                        return $this->digitalFiles->map(fn ($file) => [
-                            'id' => $file->id,
-                            'file_name' => $file->file_name,
-                            'download_count' => $file->download_count,
-                            'sort_order' => $file->sort_order,
-                            'media' => [
-                                'id' => $file->media->id,
-                                'file_name' => $file->media->file_name,
-                                'url' => $file->media->getUrl(),
-                            ],
-                        ]);
-                    }),
-                ]
-            ),
-
-            // Service Product Fields
-            'service' => $this->when(
-                $productType === ProductType::Service,
-                fn () => [
-                    'duration_minutes' => $this->duration_minutes,
-                    'buffer_minutes' => $this->buffer_minutes,
-                    'max_participants' => $this->max_participants,
-                    'location_type' => $this->location_type,
-                    'service_location' => $this->service_location,
-                    'providers' => $this->whenLoaded('serviceProviders', function () {
-                        return $this->serviceProviders->map(fn ($sp) => [
-                            'id' => $sp->provider->id,
-                            'name' => $sp->provider->name,
-                            'email' => $sp->provider->email,
-                            'is_primary' => $sp->is_primary,
-                        ]);
-                    }),
-                ]
-            ),
-
-            // Combo Product Fields
-            'combo' => $this->when(
-                $productType === ProductType::Combo,
-                fn () => [
-                    'allow_partial_combo' => $this->allow_partial_combo,
-                    'total_value' => $this->comboTotalValue(),
-                    'savings' => $this->comboSavings(),
-                    'items' => $this->whenLoaded('comboItems', function () {
-                        return $this->comboItems->map(fn ($item) => [
-                            'id' => $item->id,
-                            'quantity' => $item->quantity,
-                            'is_optional' => $item->is_optional,
-                            'discount_percentage' => $item->discount_percentage,
-                            'sort_order' => $item->sort_order,
-                            'product' => [
-                                'id' => $item->includedProduct->id,
-                                'name' => $item->includedProduct->name,
-                                'slug' => $item->includedProduct->slug,
-                                'price' => $item->includedProduct->price,
-                                'primary_image' => $this->when($item->includedProduct->primaryImageMedia, fn () => [
-                                    'url' => $item->includedProduct->primaryImageMedia->getUrl(),
-                                ]),
-                            ],
-                            'variant' => $this->when($item->includedVariant, fn () => [
-                                'id' => $item->includedVariant->id,
-                                'name' => $item->includedVariant->name,
-                                'price' => $item->includedVariant->price,
-                            ]),
-                        ]);
-                    }),
-                ]
-            ),
-
-            // Analytics
-            'view_count' => $this->view_count,
-
-            // Structured data for SEO
-            'structured_data' => $this->when($request->has('with_structured_data'), fn () => $this->toStructuredData()),
 
             'created_at' => $this->created_at?->toIso8601String(),
             'updated_at' => $this->updated_at?->toIso8601String(),
         ];
+    }
+
+    private function resolveDefaultVariant(): ?ProductVariant
+    {
+        if ($this->relationLoaded('defaultVariant') && $this->defaultVariant) {
+            return $this->defaultVariant;
+        }
+
+        if ($this->relationLoaded('variants')) {
+            return $this->variants->firstWhere('is_default', true) ?? $this->variants->first();
+        }
+
+        return null;
+    }
+
+    /**
+     * @return Collection<int, ProductImage>
+     */
+    private function resolveProductImages(): Collection
+    {
+        if ($this->relationLoaded('productImages')) {
+            return $this->productImages;
+        }
+
+        if ($this->relationLoaded('images')) {
+            return $this->images;
+        }
+
+        return collect();
+    }
+
+    /**
+     * @param  Collection<int, ProductImage>  $images
+     * @return list<array<string, mixed>>
+     */
+    private function formatProductImages(Collection $images): array
+    {
+        if ($images->isEmpty()) {
+            return [];
+        }
+
+        return $images->map(fn (ProductImage $image): array => [
+            'id' => $image->id,
+            'media_id' => $image->media_id,
+            'sort_order' => $image->sort_order,
+            'alt_text' => $image->alt_text,
+            'caption' => $image->caption,
+            'is_primary' => $image->is_primary,
+            'product_variant_id' => $image->product_variant_id,
+            'media' => $image->relationLoaded('media') && $image->media
+                ? [
+                    'id' => $image->media->id,
+                    'file_name' => $image->media->file_name,
+                    'name' => $image->media->name,
+                    'url' => $image->media->getUrl(),
+                ]
+                : null,
+        ])->values()->all();
+    }
+
+    /**
+     * @param  Collection<int, ProductImage>  $images
+     * @return list<array<string, mixed>>
+     */
+    private function formatProductGallery(Collection $images): array
+    {
+        if ($images->isEmpty()) {
+            return [];
+        }
+
+        return $images
+            ->sortBy('sort_order')
+            ->values()
+            ->map(fn (ProductImage $image): array => [
+                'id' => $image->id,
+                'media_id' => $image->media_id,
+                'sort_order' => $image->sort_order,
+                'alt_text' => $image->alt_text,
+                'caption' => $image->caption,
+                'is_primary' => $image->is_primary,
+                'media' => $image->relationLoaded('media') && $image->media
+                    ? [
+                        'id' => $image->media->id,
+                        'file_name' => $image->media->file_name,
+                        'name' => $image->media->name,
+                        'url' => $image->media->getUrl(),
+                    ]
+                    : null,
+            ])
+            ->all();
+    }
+
+    /**
+     * @param  Collection<int, ProductImage>  $images
+     * @return array<string, mixed>|null
+     */
+    private function formatPrimaryImageMedia(Collection $images): ?array
+    {
+        if ($images->isEmpty()) {
+            return null;
+        }
+
+        $primary = $images->firstWhere('is_primary', true) ?? $images->first();
+
+        if (! $primary || ! $primary->relationLoaded('media') || ! $primary->media) {
+            return null;
+        }
+
+        return [
+            'id' => $primary->media->id,
+            'file_name' => $primary->media->file_name,
+            'name' => $primary->media->name,
+            'url' => $primary->media->getUrl(),
+        ];
+    }
+
+    private function imagesAreLoaded(): bool
+    {
+        return $this->relationLoaded('productImages') || $this->relationLoaded('images');
     }
 }

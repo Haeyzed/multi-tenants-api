@@ -39,6 +39,7 @@ class ProductDownload extends Model
      */
     protected $fillable = [
         'product_id',
+        'product_variant_id',
         'media_id',
         'file_name',
         'display_name',

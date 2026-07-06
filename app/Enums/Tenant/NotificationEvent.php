@@ -19,4 +19,6 @@ enum NotificationEvent: string
     case LeaveRequestSubmitted = 'leave_request_submitted';
     case FlashSaleActivated = 'flash_sale_activated';
     case FlashSaleEnded = 'flash_sale_ended';
+    case StockLow = 'stock_low';
+    case BackInStock = 'back_in_stock';
 }

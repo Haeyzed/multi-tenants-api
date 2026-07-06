@@ -4,21 +4,40 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Tenant;
 
+use App\Enums\Tenant\ProductStatus;
+use App\Enums\Tenant\ProductType;
+use App\Enums\Tenant\ProductVisibility;
 use App\Exports\Tenant\ProductsExport;
 use App\Http\Controllers\ApiController;
 use App\Http\Controllers\Tenant\Concerns\ExportsSpreadsheets;
 use App\Http\Requests\Tenant\ExportResourceRequest;
+use App\Http\Requests\Tenant\GenerateProductVariantsRequest;
 use App\Http\Requests\Tenant\StoreProductRequest;
 use App\Http\Requests\Tenant\StoreProductVariantRequest;
+use App\Http\Requests\Tenant\SyncProductBundleItemsRequest;
+use App\Http\Requests\Tenant\SyncProductDownloadsRequest;
+use App\Http\Requests\Tenant\SyncProductOptionsRequest;
+use App\Http\Requests\Tenant\SyncProductRelationsRequest;
+use App\Http\Requests\Tenant\SyncProductServiceRequest;
+use App\Http\Requests\Tenant\SyncProductSubscriptionRequest;
+use App\Http\Requests\Tenant\SyncProductSuppliersRequest;
 use App\Http\Requests\Tenant\UpdateProductRequest;
 use App\Http\Requests\Tenant\UpdateProductVariantRequest;
+use App\Http\Resources\Tenant\ProductBundleResource;
+use App\Http\Resources\Tenant\ProductDownloadResource;
+use App\Http\Resources\Tenant\ProductOptionResource;
+use App\Http\Resources\Tenant\ProductProviderResource;
 use App\Http\Resources\Tenant\ProductResource;
+use App\Http\Resources\Tenant\ProductServiceResource;
+use App\Http\Resources\Tenant\ProductSubscriptionResource;
+use App\Http\Resources\Tenant\ProductSupplierResource;
 use App\Http\Resources\Tenant\ProductVariantResource;
 use App\Models\Tenant\Product;
 use App\Models\Tenant\ProductVariant;
 use App\Services\Tenant\ProductService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 use Throwable;
 
 /**
@@ -41,19 +60,23 @@ class ProductController extends ApiController
             'category_id' => ['nullable', 'integer'],
             'category_ids' => ['nullable', 'array'],
             'category_ids.*' => ['integer'],
+            'primary_category_id' => ['nullable', 'integer'],
             'brand_id' => ['nullable', 'integer'],
             'status' => ['nullable', 'array'],
-            'status.*' => ['string', 'in:draft,active,archived'],
-            'is_visible' => ['nullable', 'array'],
-            'is_visible.*' => ['string', 'in:visible,hidden'],
+            'status.*' => ['string', Rule::in(array_column(ProductStatus::cases(), 'value'))],
+            'visibility' => ['nullable', 'array'],
+            'visibility.*' => ['string', Rule::in(ProductVisibility::values())],
             'is_featured' => ['nullable', 'array'],
             'is_featured.*' => ['string', 'in:featured,not_featured'],
-            'product_type' => ['nullable', 'array'],
-            'product_type.*' => ['string'],
+            'type' => ['nullable', 'array'],
+            'type.*' => ['string', Rule::in(ProductType::values())],
+            'condition' => ['nullable', 'array'],
+            'condition.*' => ['string'],
             'min_price' => ['nullable', 'numeric', 'min:0'],
             'max_price' => ['nullable', 'numeric', 'min:0'],
             'in_stock' => ['nullable', 'boolean'],
             'has_variants' => ['nullable', 'boolean'],
+            'track_inventory' => ['nullable', 'boolean'],
             'tag_ids' => ['nullable', 'array'],
             'tag_ids.*' => ['integer'],
         ]);
@@ -221,6 +244,154 @@ class ProductController extends ApiController
         $this->productService->deleteVariant($variant);
 
         return $this->deleted('Product variant deleted successfully.');
+    }
+
+    /**
+     * @throws Throwable
+     */
+    public function syncOptions(SyncProductOptionsRequest $request, Product $product): JsonResponse
+    {
+        $this->authorize('update', $product);
+
+        $product = $this->productService->syncProductOptions(
+            $product,
+            $request->validated('options'),
+        );
+
+        return $this->success(
+            ProductOptionResource::collection($product->options),
+            'Product options synced successfully.',
+        );
+    }
+
+    /**
+     * @throws Throwable
+     */
+    public function syncSuppliers(SyncProductSuppliersRequest $request, Product $product): JsonResponse
+    {
+        $this->authorize('update', $product);
+
+        $product = $this->productService->syncProductSuppliers(
+            $product,
+            $request->validated('suppliers'),
+        );
+
+        return $this->success(
+            ProductSupplierResource::collection($product->productSuppliers),
+            'Product suppliers synced successfully.',
+        );
+    }
+
+    /**
+     * @throws Throwable
+     */
+    public function syncRelations(SyncProductRelationsRequest $request, Product $product): JsonResponse
+    {
+        $this->authorize('update', $product);
+
+        $product = $this->productService->syncProductRelations($product, $request->validated());
+
+        return $this->success([
+            'related_product_ids' => $product->relatedProducts->pluck('related_product_id')->values(),
+            'cross_sell_product_ids' => $product->crossSellProducts->pluck('related_product_id')->values(),
+            'up_sell_product_ids' => $product->upSellProducts->pluck('related_product_id')->values(),
+            'related_products' => ProductResource::collection(
+                $product->relatedProducts->pluck('relatedProduct')->filter(),
+            ),
+            'cross_sell_products' => ProductResource::collection(
+                $product->crossSellProducts->pluck('relatedProduct')->filter(),
+            ),
+            'up_sell_products' => ProductResource::collection(
+                $product->upSellProducts->pluck('relatedProduct')->filter(),
+            ),
+        ], 'Product relations synced successfully.');
+    }
+
+    /**
+     * @throws Throwable
+     */
+    public function syncDownloads(SyncProductDownloadsRequest $request, Product $product): JsonResponse
+    {
+        $this->authorize('update', $product);
+
+        $product = $this->productService->syncProductDownloads(
+            $product,
+            $request->validated('downloads'),
+        );
+
+        return $this->success(
+            ProductDownloadResource::collection($product->downloads),
+            'Product downloads synced successfully.',
+        );
+    }
+
+    /**
+     * @throws Throwable
+     */
+    public function syncBundleItems(SyncProductBundleItemsRequest $request, Product $product): JsonResponse
+    {
+        $this->authorize('update', $product);
+
+        $product = $this->productService->syncProductBundleItems(
+            $product,
+            $request->validated('bundle_items'),
+        );
+
+        return $this->success(
+            ProductBundleResource::collection($product->bundleItems),
+            'Product bundle items synced successfully.',
+        );
+    }
+
+    /**
+     * @throws Throwable
+     */
+    public function syncService(SyncProductServiceRequest $request, Product $product): JsonResponse
+    {
+        $this->authorize('update', $product);
+
+        $product = $this->productService->syncProductService($product, $request->validated());
+
+        return $this->success([
+            'service' => new ProductServiceResource($product->service),
+            'providers' => ProductProviderResource::collection($product->providers),
+        ], 'Product service synced successfully.');
+    }
+
+    /**
+     * @throws Throwable
+     */
+    public function syncSubscription(SyncProductSubscriptionRequest $request, Product $product): JsonResponse
+    {
+        $this->authorize('update', $product);
+
+        $product = $this->productService->syncProductSubscription(
+            $product,
+            $request->validated('subscription'),
+        );
+
+        return $this->success(
+            new ProductSubscriptionResource($product->subscription),
+            'Product subscription synced successfully.',
+        );
+    }
+
+    /**
+     * @throws Throwable
+     */
+    public function generateVariants(GenerateProductVariantsRequest $request, Product $product): JsonResponse
+    {
+        $this->authorize('update', $product);
+
+        $variants = $this->productService->generateVariantsFromOptions(
+            $product,
+            $request->validated(),
+        );
+
+        return $this->created(
+            ProductVariantResource::collection($variants),
+            "{$variants->count()} variants generated successfully.",
+        );
     }
 
     public function forceDestroy(Product $product): JsonResponse

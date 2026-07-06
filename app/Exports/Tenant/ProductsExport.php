@@ -31,15 +31,17 @@ class ProductsExport extends BaseTenantExport
             'id',
             'name',
             'slug',
-            'sku',
-            'barcode',
-            'price',
-            'compare_at_price',
-            'sale_price',
-            'cost_price',
+            'subtitle',
+            'summary',
+            'type',
+            'condition',
             'status',
+            'visibility',
             'is_featured',
-            'product_type',
+            'default_variant_sku',
+            'default_variant_price',
+            'default_variant_compare_at_price',
+            'default_variant_cost_price',
             'category',
             'brand',
             'quantity',
@@ -65,51 +67,61 @@ class ProductsExport extends BaseTenantExport
                 'heading' => 'Slug',
                 'map' => fn (Product $product) => $product->slug,
             ],
-            'sku' => [
-                'heading' => 'SKU',
-                'map' => fn (Product $product) => $product->sku,
+            'subtitle' => [
+                'heading' => 'Subtitle',
+                'map' => fn (Product $product) => $product->subtitle,
             ],
-            'barcode' => [
-                'heading' => 'Barcode',
-                'map' => fn (Product $product) => $product->barcode,
+            'summary' => [
+                'heading' => 'Summary',
+                'map' => fn (Product $product) => $product->summary,
             ],
-            'price' => [
-                'heading' => 'Price',
-                'map' => fn (Product $product) => (string) $product->price,
+            'type' => [
+                'heading' => 'Type',
+                'map' => fn (Product $product) => $product->type?->value ?? (string) $product->type,
             ],
-            'compare_at_price' => [
-                'heading' => 'Compare At Price',
-                'map' => fn (Product $product) => $product->compare_at_price !== null
-                    ? (string) $product->compare_at_price
-                    : null,
-            ],
-            'sale_price' => [
-                'heading' => 'Sale Price',
-                'map' => fn (Product $product) => $product->sale_price !== null
-                    ? (string) $product->sale_price
-                    : null,
-            ],
-            'cost_price' => [
-                'heading' => 'Cost Price',
-                'map' => fn (Product $product) => $product->cost_price !== null
-                    ? (string) $product->cost_price
-                    : null,
+            'condition' => [
+                'heading' => 'Condition',
+                'map' => fn (Product $product) => $product->condition?->value ?? (string) $product->condition,
             ],
             'status' => [
                 'heading' => 'Status',
                 'map' => fn (Product $product) => $product->status?->value ?? (string) $product->status,
             ],
+            'visibility' => [
+                'heading' => 'Visibility',
+                'map' => fn (Product $product) => $product->visibility?->value ?? (string) $product->visibility,
+            ],
             'is_featured' => [
                 'heading' => 'Featured',
                 'map' => fn (Product $product) => $product->is_featured ? 'yes' : 'no',
             ],
-            'product_type' => [
-                'heading' => 'Type',
-                'map' => fn (Product $product) => $product->product_type?->value ?? (string) $product->product_type,
+            'default_variant_sku' => [
+                'heading' => 'SKU',
+                'map' => fn (Product $product) => $product->defaultVariant?->sku,
+            ],
+            'default_variant_price' => [
+                'heading' => 'Price',
+                'map' => fn (Product $product) => $product->defaultVariant?->price !== null
+                    ? (string) $product->defaultVariant->price
+                    : null,
+            ],
+            'default_variant_compare_at_price' => [
+                'heading' => 'Compare At Price',
+                'map' => fn (Product $product) => $product->defaultVariant?->compare_at_price !== null
+                    ? (string) $product->defaultVariant->compare_at_price
+                    : null,
+            ],
+            'default_variant_cost_price' => [
+                'heading' => 'Cost Price',
+                'map' => fn (Product $product) => $product->defaultVariant?->cost_price !== null
+                    ? (string) $product->defaultVariant->cost_price
+                    : null,
             ],
             'category' => [
                 'heading' => 'Category',
-                'map' => fn (Product $product) => $product->category?->name,
+                'map' => fn (Product $product) => $product->categories
+                    ->firstWhere('pivot.is_primary', true)?->name
+                    ?? $product->categories->first()?->name,
             ],
             'brand' => [
                 'heading' => 'Brand',
@@ -117,7 +129,7 @@ class ProductsExport extends BaseTenantExport
             ],
             'quantity' => [
                 'heading' => 'Quantity',
-                'map' => fn (Product $product) => (string) ($product->inventory?->quantity ?? 0),
+                'map' => fn (Product $product) => (string) ($product->defaultVariant?->inventories->sum('quantity') ?? 0),
             ],
             'created_at' => [
                 'heading' => 'Created At',
