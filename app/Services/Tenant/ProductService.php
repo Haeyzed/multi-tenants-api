@@ -56,6 +56,7 @@ class ProductService
                 'brand',
                 'categories',
                 'tags',
+                'labels',
                 'defaultVariant.imageMedia',
                 'images' => fn ($query) => $query->where('is_primary', true)->with('media'),
             ])
@@ -75,6 +76,7 @@ class ProductService
                 'categories',
                 'brand.logoMedia',
                 'tags',
+                'labels',
                 'options.values',
                 'variants.inventories.warehouse',
                 'variants.imageMedia',
@@ -123,6 +125,7 @@ class ProductService
                 'categories',
                 'brand.logoMedia',
                 'tags',
+                'labels',
                 'options.values',
                 'activeVariants.inventories',
                 'activeVariants.imageMedia',
@@ -171,6 +174,7 @@ class ProductService
 
             $this->syncCategories($product, $nested['category_ids'], $nested['primary_category_id']);
             $this->syncTags($product, $nested['tag_ids']);
+            $this->syncLabels($product, $nested['label_ids']);
             $this->syncCollections($product, $nested['collection_ids']);
             $this->syncProductSuppliers($product, $nested['suppliers']);
             $this->syncGallery($product, $nested['gallery']);
@@ -238,6 +242,10 @@ class ProductService
 
             if ($nested['tag_ids'] !== null) {
                 $this->syncTags($product, $nested['tag_ids']);
+            }
+
+            if ($nested['label_ids'] !== null) {
+                $this->syncLabels($product, $nested['label_ids']);
             }
 
             if ($nested['collection_ids'] !== null) {
@@ -337,6 +345,26 @@ class ProductService
     public function deleteMany(array $ids): int
     {
         return Product::query()->whereIn('id', $ids)->delete();
+    }
+
+    /**
+     * Bulk update product fields.
+     *
+     * @param  list<int>  $ids
+     * @param  array<string, mixed>  $data
+     */
+    public function updateMany(array $ids, array $data): int
+    {
+        $updates = array_filter([
+            'status' => $data['status'] ?? null,
+            'visibility' => $data['visibility'] ?? null,
+        ], fn ($value) => $value !== null);
+
+        if ($updates === []) {
+            return 0;
+        }
+
+        return Product::query()->whereIn('id', $ids)->update($updates);
     }
 
     /**
@@ -899,7 +927,10 @@ class ProductService
     public function getOptions(): Collection
     {
         return Product::query()
-            ->with('defaultVariant:id,product_id,sku')
+            ->with([
+                'defaultVariant:id,product_id,sku',
+                'images' => fn ($query) => $query->where('is_primary', true)->with('media'),
+            ])
             ->where('status', ProductStatus::Active)
             ->orderBy('name')
             ->get(['id', 'name', 'slug'])
@@ -910,6 +941,7 @@ class ProductService
                     $product->defaultVariant?->sku ?? $product->slug,
                 ),
                 'value' => $product->id,
+                'image_url' => $product->images->first()?->media?->getUrl(),
             ]);
     }
 
@@ -963,6 +995,7 @@ class ProductService
 
         $nested = [
             'tag_ids' => array_key_exists('tag_ids', $data) ? $data['tag_ids'] : ($isUpdate ? null : []),
+            'label_ids' => array_key_exists('label_ids', $data) ? $data['label_ids'] : ($isUpdate ? null : []),
             'category_ids' => array_key_exists('category_ids', $data) ? $data['category_ids'] : ($isUpdate ? null : []),
             'primary_category_id' => $data['primary_category_id'] ?? $data['category_id'] ?? null,
             'collection_ids' => array_key_exists('collection_ids', $data) ? $data['collection_ids'] : ($isUpdate ? null : []),
@@ -1013,6 +1046,7 @@ class ProductService
 
         unset(
             $data['tag_ids'],
+            $data['label_ids'],
             $data['category_ids'],
             $data['category_id'],
             $data['primary_category_id'],
@@ -1134,6 +1168,21 @@ class ProductService
     private function syncTags(Product $product, array $tagIds): void
     {
         $product->tags()->sync($tagIds);
+    }
+
+    /**
+     * @param  list<int>  $labelIds
+     */
+    private function syncLabels(Product $product, array $labelIds): void
+    {
+        $product->labels()->sync(
+            collect($labelIds)
+                ->values()
+                ->mapWithKeys(fn (int $id, int $index): array => [
+                    $id => ['sort_order' => $index],
+                ])
+                ->all(),
+        );
     }
 
     /**

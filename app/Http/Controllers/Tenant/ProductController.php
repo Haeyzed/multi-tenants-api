@@ -41,6 +41,7 @@ use App\Services\Tenant\ProductService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\Rules\Enum;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 use Throwable;
 
@@ -178,6 +179,25 @@ class ProductController extends ApiController
         $count = $this->productService->deleteMany($validated['ids']);
 
         return $this->success(null, "{$count} products deleted successfully.");
+    }
+
+    public function updateMany(Request $request): JsonResponse
+    {
+        $this->authorize('updateAny', Product::class);
+
+        $validated = $request->validate([
+            'ids' => ['required', 'array'],
+            'ids.*' => ['integer', 'exists:products,id'],
+            'status' => ['sometimes', new Enum(ProductStatus::class)],
+            'visibility' => ['sometimes', new Enum(ProductVisibility::class)],
+        ]);
+
+        $count = $this->productService->updateMany(
+            $validated['ids'],
+            $validated,
+        );
+
+        return $this->success(null, "{$count} products updated successfully.");
     }
 
     public function export(Request $request)

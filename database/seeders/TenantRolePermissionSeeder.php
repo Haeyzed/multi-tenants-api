@@ -25,6 +25,7 @@ class TenantRolePermissionSeeder extends Seeder
             'attributes.view', 'attributes.create', 'attributes.update', 'attributes.delete',
             'attribute-sets.view', 'attribute-sets.create', 'attribute-sets.update', 'attribute-sets.delete',
             'tags.view', 'tags.create', 'tags.update', 'tags.delete',
+            'product-labels.view', 'product-labels.create', 'product-labels.update', 'product-labels.delete',
             'collections.view', 'collections.create', 'collections.update', 'collections.delete',
             'suppliers.view', 'suppliers.create', 'suppliers.update', 'suppliers.delete',
             'warehouses.view', 'warehouses.create', 'warehouses.update', 'warehouses.delete',
@@ -58,6 +59,7 @@ class TenantRolePermissionSeeder extends Seeder
             'attributes.view', 'attributes.create', 'attributes.update', 'attributes.delete',
             'attribute-sets.view', 'attribute-sets.create', 'attribute-sets.update', 'attribute-sets.delete',
             'tags.view', 'tags.create', 'tags.update', 'tags.delete',
+            'product-labels.view', 'product-labels.create', 'product-labels.update', 'product-labels.delete',
             'collections.view', 'collections.create', 'collections.update', 'collections.delete',
             'suppliers.view', 'suppliers.create', 'suppliers.update', 'suppliers.delete',
             'warehouses.view', 'warehouses.create', 'warehouses.update', 'warehouses.delete',
@@ -88,7 +90,7 @@ class TenantRolePermissionSeeder extends Seeder
             ],
             'sales-manager' => [
                 'products.view', 'categories.view', 'brands.view',
-                'attributes.view', 'attribute-sets.view', 'tags.view', 'collections.view',
+                'attributes.view', 'attribute-sets.view', 'tags.view', 'product-labels.view', 'collections.view',
                 'flash-sales.view', 'orders.view', 'orders.manage', 'orders.create',
                 'payments.view', 'analytics.view', 'waitlists.view',
                 'customers.view', 'customers.create', 'customers.update',
@@ -106,7 +108,7 @@ class TenantRolePermissionSeeder extends Seeder
             ],
             'marketing-manager' => [
                 'products.view', 'categories.view', 'brands.view',
-                'attributes.view', 'attribute-sets.view', 'tags.view', 'collections.view', 'analytics.view',
+                'attributes.view', 'attribute-sets.view', 'tags.view', 'product-labels.view', 'collections.view', 'analytics.view',
                 'flash-sales.view', 'settings.view',
             ],
             'finance-manager' => [
@@ -118,7 +120,7 @@ class TenantRolePermissionSeeder extends Seeder
             ],
             'customer' => [
                 'products.view', 'categories.view', 'brands.view',
-                'attributes.view', 'attribute-sets.view', 'tags.view', 'collections.view', 'flash-sales.view',
+                'attributes.view', 'attribute-sets.view', 'tags.view', 'product-labels.view', 'collections.view', 'flash-sales.view',
                 'checkout.join', 'waitlists.join', 'cart.manage', 'orders.create',
                 'payments.initiate', 'notifications.view',
             ],

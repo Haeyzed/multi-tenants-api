@@ -92,6 +92,11 @@ class ProductResource extends JsonResource
                 fn () => $this->categories->pluck('id')->values(),
             ),
             'tags' => TagResource::collection($this->whenLoaded('tags')),
+            'labels' => ProductLabelResource::collection($this->whenLoaded('labels')),
+            'label_ids' => $this->whenLoaded(
+                'labels',
+                fn () => $this->labels->pluck('id')->values(),
+            ),
             'collections' => CollectionResource::collection($this->whenLoaded('collections')),
             'collection_ids' => $this->whenLoaded(
                 'collections',

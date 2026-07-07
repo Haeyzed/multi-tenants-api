@@ -49,6 +49,59 @@ it('manages tenant tags with statistics options import and export', function ():
         ->assertSuccessful();
 });
 
+it('manages tenant product labels with statistics options import and export', function (): void {
+    $ctx = initializeTenantForTest();
+
+    $createResponse = $this->withToken($ctx->token)
+        ->postJson("http://{$ctx->domain}/api/v1/tenant/product-labels", [
+            'name' => 'New',
+            'color' => '#ffffff',
+            'background_color' => '#3b82f6',
+            'is_active' => true,
+            'sort_order' => 1,
+        ]);
+
+    $createResponse->assertCreated()
+        ->assertJsonPath('data.name', 'New')
+        ->assertJsonPath('data.is_active', true);
+
+    $labelId = $createResponse->json('data.id');
+
+    $this->withToken($ctx->token)
+        ->getJson("http://{$ctx->domain}/api/v1/tenant/product-labels/statistics")
+        ->assertSuccessful()
+        ->assertJsonPath('data.total', 1);
+
+    $this->withToken($ctx->token)
+        ->getJson("http://{$ctx->domain}/api/v1/tenant/product-labels/options")
+        ->assertSuccessful()
+        ->assertJsonPath('data.0.value', $labelId);
+
+    $this->withToken($ctx->token)
+        ->getJson("http://{$ctx->domain}/api/v1/tenant/product-labels/import/sample")
+        ->assertSuccessful();
+
+    $this->withToken($ctx->token)
+        ->postJson("http://{$ctx->domain}/api/v1/tenant/product-labels/export")
+        ->assertSuccessful();
+
+    $this->withToken($ctx->token)
+        ->putJson("http://{$ctx->domain}/api/v1/tenant/product-labels/{$labelId}", [
+            'name' => 'New Updated',
+        ])
+        ->assertSuccessful()
+        ->assertJsonPath('data.name', 'New Updated');
+
+    $this->withToken($ctx->token)
+        ->postJson("http://{$ctx->domain}/api/v1/tenant/product-labels/{$labelId}/toggle-active")
+        ->assertSuccessful()
+        ->assertJsonPath('data.is_active', false);
+
+    $this->withToken($ctx->token)
+        ->deleteJson("http://{$ctx->domain}/api/v1/tenant/product-labels/{$labelId}")
+        ->assertSuccessful();
+});
+
 it('manages tenant attributes with values', function (): void {
     $ctx = initializeTenantForTest();
 

@@ -32,6 +32,11 @@ class ProductPolicy
         return $user->can('products.update');
     }
 
+    public function updateAny(TenantUser $user): bool
+    {
+        return $user->can('products.update');
+    }
+
     public function delete(TenantUser $user, Product $product): bool
     {
         return $user->can('products.delete');

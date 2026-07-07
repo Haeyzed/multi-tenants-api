@@ -25,6 +25,7 @@ use App\Http\Controllers\Tenant\OrderController;
 use App\Http\Controllers\Tenant\PaymentController;
 use App\Http\Controllers\Tenant\PositionController;
 use App\Http\Controllers\Tenant\ProductController;
+use App\Http\Controllers\Tenant\ProductLabelController;
 use App\Http\Controllers\Tenant\SettingsController;
 use App\Http\Controllers\Tenant\StaffController;
 use App\Http\Controllers\Tenant\SupplierController;
@@ -480,11 +481,23 @@ Route::prefix('v1/tenant')->group(function (): void {
         });
         Route::apiResource('media-folders', MediaFolderController::class)->parameters(['media-folders' => 'folder']);
 
+        Route::prefix('product-labels')->group(function (): void {
+            Route::get('statistics', [ProductLabelController::class, 'statistics']);
+            Route::get('options', [ProductLabelController::class, 'options']);
+            Route::delete('bulk', [ProductLabelController::class, 'destroyMany']);
+            Route::post('export', [ProductLabelController::class, 'export']);
+            Route::get('import/sample', [ProductLabelController::class, 'importSample']);
+            Route::post('import', [ProductLabelController::class, 'import']);
+            Route::post('{product_label}/toggle-active', [ProductLabelController::class, 'toggleActive']);
+        });
+        Route::apiResource('product-labels', ProductLabelController::class);
+
         // Products
         Route::prefix('products')->group(function (): void {
             Route::get('statistics', [ProductController::class, 'statistics']);
             Route::get('options', [ProductController::class, 'options']);
             Route::delete('bulk', [ProductController::class, 'destroyMany']);
+            Route::patch('bulk', [ProductController::class, 'updateMany']);
             Route::post('export', [ProductController::class, 'export']);
             Route::get('import/sample', [ProductController::class, 'importSample']);
             Route::post('import', [ProductController::class, 'import']);

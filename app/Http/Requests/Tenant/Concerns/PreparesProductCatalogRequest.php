@@ -65,6 +65,8 @@ trait PreparesProductCatalogRequest
             'primary_category_id' => ['nullable', 'integer', Rule::exists('categories', 'id')],
             'tag_ids' => ['nullable', 'array'],
             'tag_ids.*' => ['integer', Rule::exists('tags', 'id')],
+            'label_ids' => ['nullable', 'array'],
+            'label_ids.*' => ['integer', Rule::exists('product_labels', 'id')],
             'collection_ids' => ['nullable', 'array'],
             'collection_ids.*' => ['integer', Rule::exists('collections', 'id')],
 

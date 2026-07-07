@@ -274,6 +274,16 @@ class Product extends Model
     }
 
     /**
+     * @return BelongsToMany<ProductLabel, $this>
+     */
+    public function labels(): BelongsToMany
+    {
+        return $this->belongsToMany(ProductLabel::class, 'product_product_label')
+            ->withPivot(['starts_at', 'ends_at', 'sort_order'])
+            ->withTimestamps();
+    }
+
+    /**
      * Get supplier sourcing records for the product.
      *
      * @return HasMany<ProductSupplier, $this>
