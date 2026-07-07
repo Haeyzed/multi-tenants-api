@@ -75,6 +75,14 @@ class ProductVariantResource extends JsonResource
             ),
             'inventories' => InventoryResource::collection($this->whenLoaded('inventories')),
             'price_tiers' => ProductPriceTierResource::collection($this->whenLoaded('priceTiers')),
+            'image_media_id' => $this->image_media_id,
+            'image_media' => $this->whenLoaded('imageMedia', fn () => $this->imageMedia ? [
+                'id' => $this->imageMedia->id,
+                'file_name' => $this->imageMedia->file_name,
+                'name' => $this->imageMedia->name,
+                'mime_type' => $this->imageMedia->mime_type,
+                'url' => $this->imageMedia->getUrl(),
+            ] : null),
             'image' => $this->whenLoaded('imageMedia', fn () => $this->imageMedia ? [
                 'id' => $this->imageMedia->id,
                 'file_name' => $this->imageMedia->file_name,
