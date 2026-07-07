@@ -38,21 +38,6 @@ class Order extends Model
     ];
 
     /**
-     * @return array<string, string>
-     */
-    protected function casts(): array
-    {
-        return [
-            'status' => OrderStatus::class,
-            'subtotal' => 'decimal:2',
-            'discount_total' => 'decimal:2',
-            'tax_total' => 'decimal:2',
-            'shipping_total' => 'decimal:2',
-            'grand_total' => 'decimal:2',
-        ];
-    }
-
-    /**
      * Get the options for activity logging.
      *
      * @return LogOptions
@@ -137,8 +122,8 @@ class Order extends Model
     /**
      * Scope a query to filter orders by order number or customer.
      *
-     * @param  Builder<Order>  $query
-     * @param  string  $search
+     * @param Builder<Order> $query
+     * @param string $search
      * @return Builder<Order>
      */
     public function scopeSearch(Builder $query, string $search): Builder
@@ -146,8 +131,23 @@ class Order extends Model
         return $query->where('order_number', 'like', "%{$search}%")
             ->orWhereHas('customer', function (Builder $q) use ($search) {
                 $q->where('first_name', 'like', "%{$search}%")
-                  ->orWhere('last_name', 'like', "%{$search}%")
-                  ->orWhere('email', 'like', "%{$search}%");
+                    ->orWhere('last_name', 'like', "%{$search}%")
+                    ->orWhere('email', 'like', "%{$search}%");
             });
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    protected function casts(): array
+    {
+        return [
+            'status' => OrderStatus::class,
+            'subtotal' => 'decimal:2',
+            'discount_total' => 'decimal:2',
+            'tax_total' => 'decimal:2',
+            'shipping_total' => 'decimal:2',
+            'grand_total' => 'decimal:2',
+        ];
     }
 }

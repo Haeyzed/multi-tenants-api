@@ -24,12 +24,14 @@ class StaffController extends ApiController
 {
     public function __construct(
         private readonly StaffService $staffService,
-    ) {}
+    )
+    {
+    }
 
     /**
      * Get a paginated list of staff members.
      *
-     * @param  Request  $request
+     * @param Request $request
      * @return JsonResponse
      */
     public function index(Request $request): JsonResponse
@@ -37,8 +39,8 @@ class StaffController extends ApiController
         $this->authorize('viewAny', Staff::class);
 
         $filters = $request->validate([
-            'search'            => ['nullable', 'string'],
-            'department_id'     => ['nullable', 'integer'],
+            'search' => ['nullable', 'string'],
+            'department_id' => ['nullable', 'integer'],
             'employment_status' => ['nullable', new Enum(EmploymentStatus::class)],
             'employment_type' => ['nullable', new Enum(EmploymentType::class)],
         ]);
@@ -73,7 +75,7 @@ class StaffController extends ApiController
     /**
      * Get a single staff member.
      *
-     * @param  Staff  $staff
+     * @param Staff $staff
      * @return JsonResponse
      */
     public function show(Staff $staff): JsonResponse
@@ -109,7 +111,7 @@ class StaffController extends ApiController
     /**
      * Delete a staff member.
      *
-     * @param  Staff  $staff
+     * @param Staff $staff
      * @return JsonResponse
      */
     public function destroy(Staff $staff): JsonResponse

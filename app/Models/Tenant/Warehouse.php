@@ -70,40 +70,26 @@ class Warehouse extends Model
     ];
 
     /**
-     * @return array<string, string>
-     */
-    protected function casts(): array
-    {
-        return [
-            'latitude' => 'decimal:8',
-            'longitude' => 'decimal:8',
-            'is_active' => 'boolean',
-            'is_primary' => 'boolean',
-            'sort_order' => 'integer',
-        ];
-    }
-
-    /**
      * Scope a query to filter warehouses.
      *
-     * @param  Builder<Warehouse>  $query
-     * @param  array<string, mixed>  $filters
+     * @param Builder<Warehouse> $query
+     * @param array<string, mixed> $filters
      * @return Builder<Warehouse>
      */
     public function scopeFilter(Builder $query, array $filters): Builder
     {
         return $query
-            ->when(! empty($filters['search']), function (Builder $q) use ($filters): void {
+            ->when(!empty($filters['search']), function (Builder $q) use ($filters): void {
                 $search = $filters['search'];
                 $q->where(function (Builder $inner) use ($search): void {
-                    $inner->where('name', 'like', '%'.$search.'%')
-                        ->orWhere('code', 'like', '%'.$search.'%');
+                    $inner->where('name', 'like', '%' . $search . '%')
+                        ->orWhere('code', 'like', '%' . $search . '%');
                 });
             })
-            ->when(! empty($filters['is_active']), function (Builder $q) use ($filters): void {
+            ->when(!empty($filters['is_active']), function (Builder $q) use ($filters): void {
                 $statuses = is_array($filters['is_active'])
                     ? $filters['is_active']
-                    : explode(',', (string) $filters['is_active']);
+                    : explode(',', (string)$filters['is_active']);
 
                 $booleans = [];
 
@@ -115,11 +101,11 @@ class Warehouse extends Model
                     $booleans[] = false;
                 }
 
-                if (! empty($booleans)) {
+                if (!empty($booleans)) {
                     $q->whereIn('is_active', $booleans);
                 }
             })
-            ->when(! empty($filters['country']), function (Builder $q) use ($filters): void {
+            ->when(!empty($filters['country']), function (Builder $q) use ($filters): void {
                 $q->where('country', $filters['country']);
             });
     }
@@ -152,5 +138,19 @@ class Warehouse extends Model
     public function inventories(): HasMany
     {
         return $this->hasMany(Inventory::class);
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    protected function casts(): array
+    {
+        return [
+            'latitude' => 'decimal:8',
+            'longitude' => 'decimal:8',
+            'is_active' => 'boolean',
+            'is_primary' => 'boolean',
+            'sort_order' => 'integer',
+        ];
     }
 }

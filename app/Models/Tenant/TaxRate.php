@@ -54,22 +54,6 @@ class TaxRate extends Model
     ];
 
     /**
-     * @return array<string, string>
-     */
-    protected function casts(): array
-    {
-        return [
-            'rate' => 'decimal:4',
-            'priority' => 'integer',
-            'is_compound' => 'boolean',
-            'applies_to_shipping' => 'boolean',
-            'is_active' => 'boolean',
-            'effective_from' => 'date',
-            'effective_to' => 'date',
-        ];
-    }
-
-    /**
      * @return BelongsTo<TaxClass, $this>
      */
     public function taxClass(): BelongsTo
@@ -96,7 +80,7 @@ class TaxRate extends Model
     /**
      * Scope a query to currently active rates.
      *
-     * @param  Builder<TaxRate>  $query
+     * @param Builder<TaxRate> $query
      * @return Builder<TaxRate>
      */
     public function scopeActive(Builder $query): Builder
@@ -114,27 +98,27 @@ class TaxRate extends Model
     }
 
     /**
-     * @param  Builder<TaxRate>  $query
-     * @param  array<string, mixed>  $filters
+     * @param Builder<TaxRate> $query
+     * @param array<string, mixed> $filters
      * @return Builder<TaxRate>
      */
     public function scopeFilter(Builder $query, array $filters): Builder
     {
         return $query
-            ->when(! empty($filters['search']), function (Builder $q) use ($filters): void {
-                $search = (string) $filters['search'];
+            ->when(!empty($filters['search']), function (Builder $q) use ($filters): void {
+                $search = (string)$filters['search'];
                 $q->where('name', 'like', "%{$search}%");
             })
-            ->when(! empty($filters['tax_class_id']), function (Builder $q) use ($filters): void {
+            ->when(!empty($filters['tax_class_id']), function (Builder $q) use ($filters): void {
                 $q->where('tax_class_id', $filters['tax_class_id']);
             })
-            ->when(! empty($filters['tax_zone_id']), function (Builder $q) use ($filters): void {
+            ->when(!empty($filters['tax_zone_id']), function (Builder $q) use ($filters): void {
                 $q->where('tax_zone_id', $filters['tax_zone_id']);
             })
-            ->when(! empty($filters['is_active']), function (Builder $q) use ($filters): void {
+            ->when(!empty($filters['is_active']), function (Builder $q) use ($filters): void {
                 $statuses = is_array($filters['is_active'])
                     ? $filters['is_active']
-                    : explode(',', (string) $filters['is_active']);
+                    : explode(',', (string)$filters['is_active']);
 
                 $booleans = [];
 
@@ -146,9 +130,25 @@ class TaxRate extends Model
                     $booleans[] = false;
                 }
 
-                if (! empty($booleans)) {
+                if (!empty($booleans)) {
                     $q->whereIn('is_active', $booleans);
                 }
             });
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    protected function casts(): array
+    {
+        return [
+            'rate' => 'decimal:4',
+            'priority' => 'integer',
+            'is_compound' => 'boolean',
+            'applies_to_shipping' => 'boolean',
+            'is_active' => 'boolean',
+            'effective_from' => 'date',
+            'effective_to' => 'date',
+        ];
     }
 }

@@ -26,22 +26,22 @@ class TenantFactory extends Factory
 
         return [
             'name' => $name,
-            'slug' => Str::slug($name).'-'.Str::lower(Str::random(4)),
+            'slug' => Str::slug($name) . '-' . Str::lower(Str::random(4)),
             'email' => fake()->companyEmail(),
             'phone' => fake()->phoneNumber(),
             'status' => TenantStatus::Pending,
-            'plan_id' => fn () => Plan::query()->where('slug', 'starter')->value('id'),
+            'plan_id' => fn() => Plan::query()->where('slug', 'starter')->value('id'),
         ];
     }
 
     public function active(): static
     {
-        return $this->state(fn (): array => ['status' => TenantStatus::Active]);
+        return $this->state(fn(): array => ['status' => TenantStatus::Active]);
     }
 
     public function suspended(): static
     {
-        return $this->state(fn (): array => [
+        return $this->state(fn(): array => [
             'status' => TenantStatus::Suspended,
             'suspended_at' => now(),
         ]);
@@ -49,7 +49,7 @@ class TenantFactory extends Factory
 
     public function withPlan(string $slug): static
     {
-        return $this->state(fn (): array => [
+        return $this->state(fn(): array => [
             'plan_id' => Plan::query()->where('slug', $slug)->value('id'),
         ]);
     }

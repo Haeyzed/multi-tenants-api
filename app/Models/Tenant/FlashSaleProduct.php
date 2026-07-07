@@ -25,18 +25,6 @@ class FlashSaleProduct extends Model
     ];
 
     /**
-     * @return array<string, string>
-     */
-    protected function casts(): array
-    {
-        return [
-            'sale_price' => 'decimal:2',
-            'stock_limit' => 'integer',
-            'sold_count' => 'integer',
-        ];
-    }
-
-    /**
      * Get the flash sale this product is attached to.
      *
      * @return BelongsTo<FlashSale, $this>
@@ -67,6 +55,16 @@ class FlashSaleProduct extends Model
     }
 
     /**
+     * Determine if the product is sold out in the context of the flash sale.
+     *
+     * @return bool
+     */
+    public function isSoldOut(): bool
+    {
+        return $this->stock_limit !== null && $this->remainingStock() === 0;
+    }
+
+    /**
      * Get the remaining stock limit for this product in the flash sale.
      *
      * @return int|null
@@ -81,12 +79,14 @@ class FlashSaleProduct extends Model
     }
 
     /**
-     * Determine if the product is sold out in the context of the flash sale.
-     *
-     * @return bool
+     * @return array<string, string>
      */
-    public function isSoldOut(): bool
+    protected function casts(): array
     {
-        return $this->stock_limit !== null && $this->remainingStock() === 0;
+        return [
+            'sale_price' => 'decimal:2',
+            'stock_limit' => 'integer',
+            'sold_count' => 'integer',
+        ];
     }
 }

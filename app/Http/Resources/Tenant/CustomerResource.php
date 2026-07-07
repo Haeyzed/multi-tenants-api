@@ -33,9 +33,9 @@ class CustomerResource extends JsonResource
             'total_spent' => $this->total_spent,
             'orders_count' => $this->orders_count,
             'is_active' => $this->is_active,
-            'group' => $this->whenLoaded('group', fn () => new CustomerGroupResource($this->group)),
-            'tags' => $this->whenLoaded('tags', fn () => CustomerTagResource::collection($this->tags)),
-            'addresses' => $this->whenLoaded('addresses', fn () => CustomerAddressResource::collection($this->addresses)),
+            'group' => $this->whenLoaded('group', fn() => new CustomerGroupResource($this->group)),
+            'tags' => $this->whenLoaded('tags', fn() => CustomerTagResource::collection($this->tags)),
+            'addresses' => $this->whenLoaded('addresses', fn() => CustomerAddressResource::collection($this->addresses)),
             'created_at' => $this->created_at?->toIso8601String(),
         ];
     }

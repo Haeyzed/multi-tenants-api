@@ -31,7 +31,9 @@ class TaxRateController extends ApiController
 
     public function __construct(
         private readonly TaxRateService $taxRateService,
-    ) {}
+    )
+    {
+    }
 
     /**
      * Get a paginated list of tax rates.
@@ -191,6 +193,21 @@ class TaxRateController extends ApiController
     }
 
     /**
+     * Get rules for a tax rate.
+     */
+    public function rules(TaxRate $taxRate): JsonResponse
+    {
+        $this->authorize('view', $taxRate);
+
+        $rules = $this->taxRateService->getRules($taxRate);
+
+        return $this->success(
+            TaxRuleResource::collection($rules),
+            'Tax rules retrieved successfully.',
+        );
+    }
+
+    /**
      * Download a sample import template for tax rates.
      */
     public function importSample(Request $request): BinaryFileResponse
@@ -280,21 +297,6 @@ class TaxRateController extends ApiController
     }
 
     /**
-     * Get rules for a tax rate.
-     */
-    public function rules(TaxRate $taxRate): JsonResponse
-    {
-        $this->authorize('view', $taxRate);
-
-        $rules = $this->taxRateService->getRules($taxRate);
-
-        return $this->success(
-            TaxRuleResource::collection($rules),
-            'Tax rules retrieved successfully.',
-        );
-    }
-
-    /**
      * Calculate tax for an amount, class, and zone.
      */
     public function calculate(Request $request): JsonResponse
@@ -307,11 +309,11 @@ class TaxRateController extends ApiController
             'tax_zone_id' => ['required', 'integer', 'exists:tax_zones,id'],
         ]);
 
-        $amount = (float) $validated['amount'];
+        $amount = (float)$validated['amount'];
         $taxTotal = $this->taxRateService->calculateTax(
             $amount,
-            (int) $validated['tax_class_id'],
-            (int) $validated['tax_zone_id'],
+            (int)$validated['tax_class_id'],
+            (int)$validated['tax_zone_id'],
         );
 
         return $this->success([

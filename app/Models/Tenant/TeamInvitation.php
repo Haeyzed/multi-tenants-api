@@ -27,19 +27,6 @@ class TeamInvitation extends Model
     ];
 
     /**
-     * @return array<string, string>
-     */
-    protected function casts(): array
-    {
-        return [
-            'permissions' => 'array',
-            'expires_at' => 'datetime',
-            'accepted_at' => 'datetime',
-            'cancelled_at' => 'datetime',
-        ];
-    }
-
-    /**
      * @return BelongsTo<TenantUser, $this>
      */
     public function inviter(): BelongsTo
@@ -57,5 +44,18 @@ class TeamInvitation extends Model
     public function isExpired(): bool
     {
         return $this->expires_at->isPast() && $this->accepted_at === null;
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    protected function casts(): array
+    {
+        return [
+            'permissions' => 'array',
+            'expires_at' => 'datetime',
+            'accepted_at' => 'datetime',
+            'cancelled_at' => 'datetime',
+        ];
     }
 }

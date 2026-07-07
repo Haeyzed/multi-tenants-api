@@ -23,16 +23,6 @@ class ShiftAssignment extends Model
     ];
 
     /**
-     * @return array<string, string>
-     */
-    protected function casts(): array
-    {
-        return [
-            'scheduled_date' => 'date',
-        ];
-    }
-
-    /**
      * Get the staff member assigned to the shift.
      *
      * @return BelongsTo<Staff, $this>
@@ -50,5 +40,15 @@ class ShiftAssignment extends Model
     public function shift(): BelongsTo
     {
         return $this->belongsTo(Shift::class);
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    protected function casts(): array
+    {
+        return [
+            'scheduled_date' => 'date',
+        ];
     }
 }

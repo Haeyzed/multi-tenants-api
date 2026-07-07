@@ -11,6 +11,7 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Carbon;
 use Laravel\Sanctum\HasApiTokens;
 use Spatie\Permission\Traits\HasRoles;
 
@@ -22,7 +23,7 @@ use Spatie\Permission\Traits\HasRoles;
  * @property string $email
  * @property string|null $phone
  * @property bool $is_active
- * @property \Illuminate\Support\Carbon|null $suspended_at
+ * @property Carbon|null $suspended_at
  */
 class TenantUser extends Authenticatable
 {
@@ -64,20 +65,6 @@ class TenantUser extends Authenticatable
     }
 
     /**
-     * @return array<string, string>
-     */
-    protected function casts(): array
-    {
-        return [
-            'email_verified_at' => 'datetime',
-            'password' => 'hashed',
-            'is_active' => 'boolean',
-            'two_factor_confirmed_at' => 'datetime',
-            'suspended_at' => 'datetime',
-        ];
-    }
-
-    /**
      * @return HasOne<Customer, $this>
      */
     public function customer(): HasOne
@@ -112,5 +99,19 @@ class TenantUser extends Authenticatable
     public function isSuspended(): bool
     {
         return $this->suspended_at !== null;
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    protected function casts(): array
+    {
+        return [
+            'email_verified_at' => 'datetime',
+            'password' => 'hashed',
+            'is_active' => 'boolean',
+            'two_factor_confirmed_at' => 'datetime',
+            'suspended_at' => 'datetime',
+        ];
     }
 }

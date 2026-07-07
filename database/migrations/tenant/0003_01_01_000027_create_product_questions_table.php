@@ -9,8 +9,7 @@ use Illuminate\Support\Facades\Schema;
 /**
  * Customer-submitted product questions with admin answers.
  */
-return new class extends Migration
-{
+return new class extends Migration {
     public function up(): void
     {
         Schema::create('product_questions', function (Blueprint $table): void {

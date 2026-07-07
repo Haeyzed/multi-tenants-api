@@ -9,8 +9,7 @@ use Illuminate\Support\Facades\Schema;
 /**
  * Product and variant media gallery.
  */
-return new class extends Migration
-{
+return new class extends Migration {
     public function up(): void
     {
         Schema::create('product_images', function (Blueprint $table): void {

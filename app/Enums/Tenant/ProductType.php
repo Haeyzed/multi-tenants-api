@@ -26,6 +26,21 @@ enum ProductType: string
         return array_column(self::cases(), 'value');
     }
 
+    /**
+     * @return list<array{value: string, label: string, description: string}>
+     */
+    public static function toArray(): array
+    {
+        return array_map(
+            fn(self $type): array => [
+                'value' => $type->value,
+                'label' => $type->label(),
+                'description' => $type->description(),
+            ],
+            self::cases()
+        );
+    }
+
     public function label(): string
     {
         return match ($this) {
@@ -76,20 +91,5 @@ enum ProductType: string
             self::Digital, self::Service, self::GiftCard => false,
             default => true,
         };
-    }
-
-    /**
-     * @return list<array{value: string, label: string, description: string}>
-     */
-    public static function toArray(): array
-    {
-        return array_map(
-            fn (self $type): array => [
-                'value' => $type->value,
-                'label' => $type->label(),
-                'description' => $type->description(),
-            ],
-            self::cases()
-        );
     }
 }

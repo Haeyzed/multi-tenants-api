@@ -6,6 +6,7 @@ namespace App\Http\Requests\Tenant;
 
 use App\Enums\Tenant\EmploymentStatus;
 use App\Enums\Tenant\EmploymentType;
+use App\Models\Tenant\Staff;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -24,7 +25,7 @@ class UpdateStaffRequest extends FormRequest
      */
     public function rules(): array
     {
-        /** @var \App\Models\Tenant\Staff|null $staff */
+        /** @var Staff|null $staff */
         $staff = $this->route('staff');
 
         return [

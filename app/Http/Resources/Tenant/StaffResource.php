@@ -35,8 +35,8 @@ class StaffResource extends JsonResource
             'hire_date' => $this->hire_date?->toDateString(),
             'termination_date' => $this->termination_date?->toDateString(),
             'allow_login' => $this->allow_login,
-            'department' => $this->whenLoaded('department', fn () => new DepartmentResource($this->department)),
-            'position' => $this->whenLoaded('position', fn () => new PositionResource($this->position)),
+            'department' => $this->whenLoaded('department', fn() => new DepartmentResource($this->department)),
+            'position' => $this->whenLoaded('position', fn() => new PositionResource($this->position)),
             'created_at' => $this->created_at?->toIso8601String(),
         ];
     }

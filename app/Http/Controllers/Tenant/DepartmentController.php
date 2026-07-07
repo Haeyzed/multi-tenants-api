@@ -20,12 +20,14 @@ class DepartmentController extends ApiController
 {
     public function __construct(
         private readonly DepartmentService $departmentService,
-    ) {}
+    )
+    {
+    }
 
     /**
      * Get a paginated list of departments.
      *
-     * @param  Request  $request
+     * @param Request $request
      * @return JsonResponse
      */
     public function index(Request $request): JsonResponse
@@ -48,7 +50,7 @@ class DepartmentController extends ApiController
     /**
      * Create a new department.
      *
-     * @param  StoreDepartmentRequest  $request
+     * @param StoreDepartmentRequest $request
      * @return JsonResponse
      */
     public function store(StoreDepartmentRequest $request): JsonResponse
@@ -66,7 +68,7 @@ class DepartmentController extends ApiController
     /**
      * Get a single department.
      *
-     * @param  Department  $department
+     * @param Department $department
      * @return JsonResponse
      */
     public function show(Department $department): JsonResponse
@@ -82,8 +84,8 @@ class DepartmentController extends ApiController
     /**
      * Update an existing department.
      *
-     * @param  UpdateDepartmentRequest  $request
-     * @param  Department  $department
+     * @param UpdateDepartmentRequest $request
+     * @param Department $department
      * @return JsonResponse
      */
     public function update(UpdateDepartmentRequest $request, Department $department): JsonResponse
@@ -101,7 +103,7 @@ class DepartmentController extends ApiController
     /**
      * Delete a department.
      *
-     * @param  Department  $department
+     * @param Department $department
      * @return JsonResponse
      */
     public function destroy(Department $department): JsonResponse
@@ -116,7 +118,7 @@ class DepartmentController extends ApiController
     /**
      * Delete multiple departments.
      *
-     * @param  Request  $request
+     * @param Request $request
      * @return JsonResponse
      */
     public function destroyMany(Request $request): JsonResponse
@@ -136,7 +138,7 @@ class DepartmentController extends ApiController
     /**
      * Force delete a department permanently.
      *
-     * @param  Department  $department
+     * @param Department $department
      * @return JsonResponse
      */
     public function forceDestroy(Department $department): JsonResponse
@@ -151,7 +153,7 @@ class DepartmentController extends ApiController
     /**
      * Restore a soft-deleted department.
      *
-     * @param  Department  $department
+     * @param Department $department
      * @return JsonResponse
      */
     public function restore(Department $department): JsonResponse
@@ -169,7 +171,7 @@ class DepartmentController extends ApiController
     /**
      * Restore multiple soft-deleted departments.
      *
-     * @param  Request  $request
+     * @param Request $request
      * @return JsonResponse
      */
     public function restoreMany(Request $request): JsonResponse

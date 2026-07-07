@@ -16,7 +16,9 @@ class SeedTenantSettings
 {
     public function __construct(
         private readonly Tenant $tenant,
-    ) {}
+    )
+    {
+    }
 
     public function handle(): void
     {

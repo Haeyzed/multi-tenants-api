@@ -30,9 +30,9 @@ class TaxRateResource extends JsonResource
             'effective_from' => $this->effective_from?->toDateString(),
             'effective_to' => $this->effective_to?->toDateString(),
             'is_active' => $this->is_active,
-            'tax_class' => $this->whenLoaded('taxClass', fn () => new TaxClassResource($this->taxClass)),
-            'tax_zone' => $this->whenLoaded('taxZone', fn () => new TaxZoneResource($this->taxZone)),
-            'rules' => $this->whenLoaded('rules', fn () => TaxRuleResource::collection($this->rules)),
+            'tax_class' => $this->whenLoaded('taxClass', fn() => new TaxClassResource($this->taxClass)),
+            'tax_zone' => $this->whenLoaded('taxZone', fn() => new TaxZoneResource($this->taxZone)),
+            'rules' => $this->whenLoaded('rules', fn() => TaxRuleResource::collection($this->rules)),
             'created_at' => $this->created_at?->toIso8601String(),
             'updated_at' => $this->updated_at?->toIso8601String(),
         ];

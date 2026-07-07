@@ -23,7 +23,7 @@ class PlanFactory extends Factory
         $name = fake()->words(2, true);
 
         return [
-            'slug' => Str::slug($name).'-'.fake()->unique()->numberBetween(1, 9999),
+            'slug' => Str::slug($name) . '-' . fake()->unique()->numberBetween(1, 9999),
             'name' => ucwords($name),
             'description' => fake()->sentence(),
             'price' => fake()->randomFloat(2, 9, 299),

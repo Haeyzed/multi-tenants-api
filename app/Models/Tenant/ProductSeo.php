@@ -53,16 +53,6 @@ class ProductSeo extends Model
     ];
 
     /**
-     * @return array<string, string>
-     */
-    protected function casts(): array
-    {
-        return [
-            'custom_meta' => 'array',
-        ];
-    }
-
-    /**
      * Get the product this SEO data belongs to.
      *
      * @return BelongsTo<Product, $this>
@@ -70,6 +60,14 @@ class ProductSeo extends Model
     public function product(): BelongsTo
     {
         return $this->belongsTo(Product::class);
+    }
+
+    /**
+     * @return BelongsTo<Media, $this>
+     */
+    public function ogImage(): BelongsTo
+    {
+        return $this->ogImageMedia();
     }
 
     /**
@@ -85,9 +83,9 @@ class ProductSeo extends Model
     /**
      * @return BelongsTo<Media, $this>
      */
-    public function ogImage(): BelongsTo
+    public function twitterImage(): BelongsTo
     {
-        return $this->ogImageMedia();
+        return $this->twitterImageMedia();
     }
 
     /**
@@ -101,10 +99,12 @@ class ProductSeo extends Model
     }
 
     /**
-     * @return BelongsTo<Media, $this>
+     * @return array<string, string>
      */
-    public function twitterImage(): BelongsTo
+    protected function casts(): array
     {
-        return $this->twitterImageMedia();
+        return [
+            'custom_meta' => 'array',
+        ];
     }
 }

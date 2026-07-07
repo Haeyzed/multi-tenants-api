@@ -27,19 +27,6 @@ class CheckoutSession extends Model
     ];
 
     /**
-     * @return array<string, string>
-     */
-    protected function casts(): array
-    {
-        return [
-            'queue_position' => 'integer',
-            'status' => CheckoutSessionStatus::class,
-            'expires_at' => 'datetime',
-            'admitted_at' => 'datetime',
-        ];
-    }
-
-    /**
      * Get the checkout queue this session belongs to.
      *
      * @return BelongsTo<CheckoutQueue, $this>
@@ -69,5 +56,18 @@ class CheckoutSession extends Model
         return $this->status === CheckoutSessionStatus::Admitted
             && $this->expires_at !== null
             && $this->expires_at->isFuture();
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    protected function casts(): array
+    {
+        return [
+            'queue_position' => 'integer',
+            'status' => CheckoutSessionStatus::class,
+            'expires_at' => 'datetime',
+            'admitted_at' => 'datetime',
+        ];
     }
 }

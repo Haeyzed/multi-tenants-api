@@ -17,5 +17,5 @@ use Illuminate\Support\Facades\Route;
 Route::middleware(config('tenancy.middleware'))
     ->prefix('api')
     ->group(function (): void {
-        require __DIR__.'/api/tenant.php';
+        require __DIR__ . '/api/tenant.php';
     });

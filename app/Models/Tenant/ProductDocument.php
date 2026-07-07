@@ -45,17 +45,6 @@ class ProductDocument extends Model
     ];
 
     /**
-     * @return array<string, string>
-     */
-    protected function casts(): array
-    {
-        return [
-            'sort_order' => 'integer',
-            'is_public' => 'boolean',
-        ];
-    }
-
-    /**
      * Product this document belongs to.
      *
      * @return BelongsTo<Product, $this>
@@ -73,5 +62,16 @@ class ProductDocument extends Model
     public function media(): BelongsTo
     {
         return $this->belongsTo(Media::class);
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    protected function casts(): array
+    {
+        return [
+            'sort_order' => 'integer',
+            'is_public' => 'boolean',
+        ];
     }
 }

@@ -33,7 +33,7 @@ class TaxZoneResource extends JsonResource
             'is_active' => $this->is_active,
             'sort_order' => $this->sort_order,
             'rates_count' => $this->whenCounted('rates'),
-            'rates' => $this->whenLoaded('rates', fn () => TaxRateResource::collection($this->rates)),
+            'rates' => $this->whenLoaded('rates', fn() => TaxRateResource::collection($this->rates)),
             'created_at' => $this->created_at?->toIso8601String(),
             'updated_at' => $this->updated_at?->toIso8601String(),
         ];

@@ -20,9 +20,9 @@ class BrandingSettingResource extends JsonResource
     {
         return [
             'theme' => $this->theme,
-            'store_logo' => $this->whenLoaded('media', fn () => new MediaResource($this->getFirstMedia('store_logo'))),
-            'store_banner' => $this->whenLoaded('media', fn () => new MediaResource($this->getFirstMedia('store_banner'))),
-            'favicon' => $this->whenLoaded('media', fn () => new MediaResource($this->getFirstMedia('favicon'))),
+            'store_logo' => $this->whenLoaded('media', fn() => new MediaResource($this->getFirstMedia('store_logo'))),
+            'store_banner' => $this->whenLoaded('media', fn() => new MediaResource($this->getFirstMedia('store_banner'))),
+            'favicon' => $this->whenLoaded('media', fn() => new MediaResource($this->getFirstMedia('favicon'))),
             'updated_at' => $this->updated_at?->toIso8601String(),
         ];
     }

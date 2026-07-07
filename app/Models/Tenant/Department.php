@@ -54,16 +54,6 @@ class Department extends Model
     }
 
     /**
-     * @return array<string, string>
-     */
-    protected function casts(): array
-    {
-        return [
-            'is_active' => 'boolean',
-        ];
-    }
-
-    /**
      * Get the positions within the department.
      *
      * @return HasMany<Position, $this>
@@ -86,15 +76,15 @@ class Department extends Model
     /**
      * Scope a query to filter departments.
      *
-     * @param  Builder<Department>  $query
-     * @param  array<string, mixed>  $filters
+     * @param Builder<Department> $query
+     * @param array<string, mixed> $filters
      * @return Builder<Department>
      */
     public function scopeFilter(Builder $query, array $filters): Builder
     {
         return $query
             ->when(!empty($filters['search']), function (Builder $q) use ($filters): void {
-                $search = (string) $filters['search'];
+                $search = (string)$filters['search'];
                 $q->where(function (Builder $builder) use ($search): void {
                     $builder->where('name', 'like', "%{$search}%")
                         ->orWhere('code', 'like', "%{$search}%");
@@ -103,7 +93,7 @@ class Department extends Model
             ->when(!empty($filters['is_active']), function (Builder $q) use ($filters): void {
                 $statuses = is_array($filters['is_active'])
                     ? $filters['is_active']
-                    : explode(',', (string) $filters['is_active']);
+                    : explode(',', (string)$filters['is_active']);
 
                 $booleans = [];
                 if (in_array('active', $statuses, true)) $booleans[] = true;
@@ -113,5 +103,15 @@ class Department extends Model
                     $q->whereIn('is_active', $booleans);
                 }
             });
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    protected function casts(): array
+    {
+        return [
+            'is_active' => 'boolean',
+        ];
     }
 }

@@ -15,5 +15,7 @@ class TenantActivated
 {
     use Dispatchable, SerializesModels;
 
-    public function __construct(public Tenant $tenant) {}
+    public function __construct(public Tenant $tenant)
+    {
+    }
 }

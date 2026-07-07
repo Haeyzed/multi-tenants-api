@@ -24,17 +24,6 @@ class CartItem extends Model
     ];
 
     /**
-     * @return array<string, string>
-     */
-    protected function casts(): array
-    {
-        return [
-            'quantity' => 'integer',
-            'unit_price' => 'decimal:2',
-        ];
-    }
-
-    /**
      * Get the cart that owns the item.
      *
      * @return BelongsTo<Cart, $this>
@@ -71,6 +60,17 @@ class CartItem extends Model
      */
     public function lineTotal(): float
     {
-        return (float) $this->unit_price * $this->quantity;
+        return (float)$this->unit_price * $this->quantity;
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    protected function casts(): array
+    {
+        return [
+            'quantity' => 'integer',
+            'unit_price' => 'decimal:2',
+        ];
     }
 }

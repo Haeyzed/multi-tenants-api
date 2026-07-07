@@ -31,7 +31,9 @@ class UnitController extends ApiController
 
     public function __construct(
         private readonly UnitService $unitService,
-    ) {}
+    )
+    {
+    }
 
     /**
      * Get a paginated list of units.
@@ -196,7 +198,7 @@ class UnitController extends ApiController
 
         try {
             $result = $this->unitService->convert(
-                (float) $validated['value'],
+                (float)$validated['value'],
                 $validated['from_code'],
                 $validated['to_code'],
             );

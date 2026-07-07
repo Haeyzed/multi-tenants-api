@@ -9,8 +9,7 @@ use Illuminate\Support\Facades\Schema;
 /**
  * Many-to-many product supplier sourcing with commercial terms.
  */
-return new class extends Migration
-{
+return new class extends Migration {
     public function up(): void
     {
         Schema::create('product_suppliers', function (Blueprint $table): void {

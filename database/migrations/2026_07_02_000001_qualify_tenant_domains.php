@@ -6,8 +6,7 @@ use App\Models\Central\Domain;
 use App\Support\Tenancy\TenantDomain;
 use Illuminate\Database\Migrations\Migration;
 
-return new class extends Migration
-{
+return new class extends Migration {
     public function up(): void
     {
         Domain::query()

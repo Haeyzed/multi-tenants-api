@@ -4,12 +4,14 @@ declare(strict_types=1);
 
 namespace App\Http\Resources\Tenant;
 
+use App\Models\Tenant\Customer;
+use App\Models\Tenant\TenantUser;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
 /**
- * @property \App\Models\Tenant\TenantUser $user
- * @property \App\Models\Tenant\Customer $customer
+ * @property TenantUser $user
+ * @property Customer $customer
  * @property string $token
  */
 class CustomerAuthResource extends JsonResource

@@ -31,7 +31,9 @@ class TaxZoneController extends ApiController
 
     public function __construct(
         private readonly TaxZoneService $taxZoneService,
-    ) {}
+    )
+    {
+    }
 
     /**
      * Get a paginated list of tax zones.
@@ -370,8 +372,8 @@ class TaxZoneController extends ApiController
         ]);
 
         $taxZone = $this->taxZoneService->findByCoordinates(
-            (float) $validated['latitude'],
-            (float) $validated['longitude'],
+            (float)$validated['latitude'],
+            (float)$validated['longitude'],
         );
 
         if ($taxZone === null) {

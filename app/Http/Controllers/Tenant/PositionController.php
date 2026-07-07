@@ -20,12 +20,14 @@ class PositionController extends ApiController
 {
     public function __construct(
         private readonly PositionService $positionService,
-    ) {}
+    )
+    {
+    }
 
     /**
      * Get a paginated list of positions.
      *
-     * @param  Request  $request
+     * @param Request $request
      * @return JsonResponse
      */
     public function index(Request $request): JsonResponse
@@ -33,7 +35,7 @@ class PositionController extends ApiController
         $this->authorize('viewAny', Position::class);
 
         $filters = $request->validate([
-            'search'        => ['nullable', 'string'],
+            'search' => ['nullable', 'string'],
             'department_id' => ['nullable', 'integer'],
             'is_active' => ['nullable', 'in:active,inactive'],
         ]);
@@ -49,7 +51,7 @@ class PositionController extends ApiController
     /**
      * Create a new position.
      *
-     * @param  StorePositionRequest  $request
+     * @param StorePositionRequest $request
      * @return JsonResponse
      */
     public function store(StorePositionRequest $request): JsonResponse
@@ -67,7 +69,7 @@ class PositionController extends ApiController
     /**
      * Get a single position.
      *
-     * @param  Position  $position
+     * @param Position $position
      * @return JsonResponse
      */
     public function show(Position $position): JsonResponse
@@ -83,8 +85,8 @@ class PositionController extends ApiController
     /**
      * Update an existing position.
      *
-     * @param  UpdatePositionRequest  $request
-     * @param  Position  $position
+     * @param UpdatePositionRequest $request
+     * @param Position $position
      * @return JsonResponse
      */
     public function update(UpdatePositionRequest $request, Position $position): JsonResponse
@@ -102,7 +104,7 @@ class PositionController extends ApiController
     /**
      * Delete a position.
      *
-     * @param  Position  $position
+     * @param Position $position
      * @return JsonResponse
      */
     public function destroy(Position $position): JsonResponse

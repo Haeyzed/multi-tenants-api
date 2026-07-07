@@ -9,8 +9,7 @@ use Illuminate\Support\Facades\Schema;
 /**
  * Customer back-in-stock notification subscriptions.
  */
-return new class extends Migration
-{
+return new class extends Migration {
     public function up(): void
     {
         Schema::create('product_stock_alerts', function (Blueprint $table): void {

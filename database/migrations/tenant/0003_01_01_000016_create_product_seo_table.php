@@ -9,8 +9,7 @@ use Illuminate\Support\Facades\Schema;
 /**
  * Extended SEO metadata per product.
  */
-return new class extends Migration
-{
+return new class extends Migration {
     public function up(): void
     {
         Schema::create('product_seo', function (Blueprint $table): void {

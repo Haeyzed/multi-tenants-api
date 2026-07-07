@@ -33,7 +33,9 @@ class BrandController extends ApiController
 
     public function __construct(
         private readonly BrandService $brandService,
-    ) {}
+    )
+    {
+    }
 
     /**
      * Get a paginated list of brands.

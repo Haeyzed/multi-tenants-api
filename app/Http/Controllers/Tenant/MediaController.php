@@ -32,12 +32,14 @@ class MediaController extends ApiController
 {
     public function __construct(
         private readonly MediaService $service,
-    ) {}
+    )
+    {
+    }
 
     /**
      * Get paginated media library items.
      *
-     * @param  Request  $request  Incoming HTTP request.
+     * @param Request $request Incoming HTTP request.
      */
     public function index(Request $request): JsonResponse
     {
@@ -47,7 +49,7 @@ class MediaController extends ApiController
             'mime_type' => ['nullable', 'string'],
         ]);
 
-        if ($request->boolean('root_only') && ! $request->filled('folder_id')) {
+        if ($request->boolean('root_only') && !$request->filled('folder_id')) {
             $filters['root_only'] = true;
         }
 
@@ -73,7 +75,7 @@ class MediaController extends ApiController
     /**
      * Upload a file to the media library.
      *
-     * @param  UploadMediaRequest  $request  Validated upload payload.
+     * @param UploadMediaRequest $request Validated upload payload.
      */
     public function store(UploadMediaRequest $request): JsonResponse
     {
@@ -99,7 +101,7 @@ class MediaController extends ApiController
                 'uploaded' => count($items),
                 'items' => MediaResource::collection(collect($items)),
             ],
-            count($items).' media file(s) uploaded successfully.',
+            count($items) . ' media file(s) uploaded successfully.',
         );
     }
 
@@ -173,7 +175,7 @@ class MediaController extends ApiController
                 'moved' => count($items),
                 'items' => MediaResource::collection(collect($items)),
             ],
-            count($items).' media file(s) moved successfully.',
+            count($items) . ' media file(s) moved successfully.',
         );
     }
 
@@ -196,7 +198,7 @@ class MediaController extends ApiController
                 'copied' => count($items),
                 'items' => MediaResource::collection(collect($items)),
             ],
-            count($items).' media file(s) copied successfully.',
+            count($items) . ' media file(s) copied successfully.',
         );
     }
 
@@ -215,14 +217,14 @@ class MediaController extends ApiController
                 'updated' => count($items),
                 'items' => MediaResource::collection(collect($items)),
             ],
-            count($items).' media file(s) updated successfully.',
+            count($items) . ' media file(s) updated successfully.',
         );
     }
 
     /**
      * Find media by route binding.
      *
-     * @param  Media  $media  Media instance.
+     * @param Media $media Media instance.
      */
     public function show(Media $media): JsonResponse
     {
@@ -234,8 +236,8 @@ class MediaController extends ApiController
     /**
      * Update media metadata.
      *
-     * @param  UpdateMediaRequest  $request  Validated request payload.
-     * @param  Media  $media  Media instance.
+     * @param UpdateMediaRequest $request Validated request payload.
+     * @param Media $media Media instance.
      */
     public function update(UpdateMediaRequest $request, Media $media): JsonResponse
     {
@@ -275,7 +277,7 @@ class MediaController extends ApiController
     /**
      * Delete media.
      *
-     * @param  Media  $media  Media instance.
+     * @param Media $media Media instance.
      */
     public function destroy(Media $media): JsonResponse
     {

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Requests\Tenant;
 
+use App\Models\Tenant\TenantUser;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -22,7 +23,7 @@ class UpdateTeamMemberRequest extends FormRequest
      */
     public function rules(): array
     {
-        /** @var \App\Models\Tenant\TenantUser|null $member */
+        /** @var TenantUser|null $member */
         $member = $this->route('team');
 
         return [

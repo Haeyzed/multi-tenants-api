@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Central;
 
+use App\Enums\Central\TenantStatus;
 use App\Exports\Central\TenantsExport;
 use App\Exports\Central\TenantsImportSample;
-use App\Enums\Central\TenantStatus;
 use App\Http\Controllers\ApiController;
 use App\Http\Controllers\Central\Concerns\ExportsSpreadsheets;
 use App\Http\Requests\Central\ExportResourceRequest;
@@ -38,12 +38,14 @@ class TenantController extends ApiController
     public function __construct(
         private readonly TenantService $tenantService,
         private readonly DomainService $domainService,
-    ) {}
+    )
+    {
+    }
 
     /**
      * Get a paginated list of tenants.
      *
-     * @param  Request  $request
+     * @param Request $request
      * @return JsonResponse
      */
     public function index(Request $request): JsonResponse
@@ -52,7 +54,7 @@ class TenantController extends ApiController
 
         $filters = $request->validate([
             'search' => ['nullable', 'string'],
-            'status'   => ['nullable', 'array'],
+            'status' => ['nullable', 'array'],
             'status.*' => [new Enum(TenantStatus::class)],
         ]);
 
@@ -89,7 +91,7 @@ class TenantController extends ApiController
     /**
      * Display a specific tenant.
      *
-     * @param  Tenant  $tenant
+     * @param Tenant $tenant
      * @return JsonResponse
      */
     public function show(Tenant $tenant): JsonResponse
@@ -100,28 +102,9 @@ class TenantController extends ApiController
     }
 
     /**
-     * Update an existing tenant.
-     *
-     * @param  UpdateTenantRequest  $request
-     * @param  Tenant  $tenant
-     * @return JsonResponse
-     */
-    public function update(UpdateTenantRequest $request, Tenant $tenant): JsonResponse
-    {
-        $this->authorize('update', $tenant);
-
-        $tenant = $this->tenantService->update($tenant, $request->validated());
-
-        return $this->updated(
-            new TenantResource($tenant),
-            'Tenant updated successfully.',
-        );
-    }
-
-    /**
      * Delete a tenant.
      *
-     * @param  Tenant  $tenant
+     * @param Tenant $tenant
      * @return JsonResponse
      */
     public function destroy(Tenant $tenant): JsonResponse
@@ -136,7 +119,7 @@ class TenantController extends ApiController
     /**
      * Activate a tenant.
      *
-     * @param  Tenant  $tenant
+     * @param Tenant $tenant
      * @return JsonResponse
      */
     public function activate(Tenant $tenant): JsonResponse
@@ -154,7 +137,7 @@ class TenantController extends ApiController
     /**
      * Suspend a tenant.
      *
-     * @param  Tenant  $tenant
+     * @param Tenant $tenant
      * @return JsonResponse
      */
     public function suspend(Tenant $tenant): JsonResponse
@@ -226,8 +209,8 @@ class TenantController extends ApiController
     /**
      * Verify a domain for a tenant.
      *
-     * @param  Tenant  $tenant
-     * @param  Domain  $domain
+     * @param Tenant $tenant
+     * @param Domain $domain
      * @return JsonResponse
      */
     public function verifyDomain(Tenant $tenant, Domain $domain): JsonResponse
@@ -255,6 +238,25 @@ class TenantController extends ApiController
         return $this->updated(
             new DomainResource($domain),
             'Domain updated successfully.',
+        );
+    }
+
+    /**
+     * Update an existing tenant.
+     *
+     * @param UpdateTenantRequest $request
+     * @param Tenant $tenant
+     * @return JsonResponse
+     */
+    public function update(UpdateTenantRequest $request, Tenant $tenant): JsonResponse
+    {
+        $this->authorize('update', $tenant);
+
+        $tenant = $this->tenantService->update($tenant, $request->validated());
+
+        return $this->updated(
+            new TenantResource($tenant),
+            'Tenant updated successfully.',
         );
     }
 

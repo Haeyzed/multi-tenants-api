@@ -52,20 +52,6 @@ class ProductDownload extends Model
     ];
 
     /**
-     * @return array<string, string>
-     */
-    protected function casts(): array
-    {
-        return [
-            'download_limit' => 'integer',
-            'download_expiry_days' => 'integer',
-            'download_count' => 'integer',
-            'sort_order' => 'integer',
-            'is_preview' => 'boolean',
-        ];
-    }
-
-    /**
      * Product this download belongs to.
      *
      * @return BelongsTo<Product, $this>
@@ -90,7 +76,7 @@ class ProductDownload extends Model
      */
     public function getIsExpiredAttribute(): bool
     {
-        if (! $this->download_expiry_days) {
+        if (!$this->download_expiry_days) {
             return false;
         }
 
@@ -102,10 +88,24 @@ class ProductDownload extends Model
      */
     public function getRemainingDownloadsAttribute(): ?int
     {
-        if (! $this->download_limit) {
+        if (!$this->download_limit) {
             return null;
         }
 
         return max(0, $this->download_limit - $this->download_count);
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    protected function casts(): array
+    {
+        return [
+            'download_limit' => 'integer',
+            'download_expiry_days' => 'integer',
+            'download_count' => 'integer',
+            'sort_order' => 'integer',
+            'is_preview' => 'boolean',
+        ];
     }
 }

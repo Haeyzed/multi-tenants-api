@@ -24,6 +24,16 @@ class LoginHistory extends Model
     ];
 
     /**
+     * Get the user who logged in.
+     *
+     * @return BelongsTo<TenantUser, $this>
+     */
+    public function user(): BelongsTo
+    {
+        return $this->belongsTo(TenantUser::class, 'user_id');
+    }
+
+    /**
      * @return array<string, string>
      */
     protected function casts(): array
@@ -32,15 +42,5 @@ class LoginHistory extends Model
             'logged_in_at' => 'datetime',
             'logged_out_at' => 'datetime',
         ];
-    }
-
-    /**
-     * Get the user who logged in.
-     *
-     * @return BelongsTo<TenantUser, $this>
-     */
-    public function user(): BelongsTo
-    {
-        return $this->belongsTo(TenantUser::class, 'user_id');
     }
 }

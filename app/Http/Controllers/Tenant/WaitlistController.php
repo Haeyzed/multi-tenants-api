@@ -23,12 +23,14 @@ class WaitlistController extends ApiController
 {
     public function __construct(
         private readonly WaitlistService $waitlistService,
-    ) {}
+    )
+    {
+    }
 
     /**
      * Get a paginated list of waitlists.
      *
-     * @param  Request  $request
+     * @param Request $request
      * @return JsonResponse
      */
     public function index(Request $request): JsonResponse
@@ -50,8 +52,8 @@ class WaitlistController extends ApiController
     /**
      * Join a waitlist for a product.
      *
-     * @param  JoinWaitlistRequest  $request
-     * @param  Product  $product
+     * @param JoinWaitlistRequest $request
+     * @param Product $product
      * @return JsonResponse
      */
     public function join(JoinWaitlistRequest $request, Product $product): JsonResponse
@@ -80,7 +82,7 @@ class WaitlistController extends ApiController
     /**
      * Leave a waitlist.
      *
-     * @param  WaitlistSubscriber  $subscriber
+     * @param WaitlistSubscriber $subscriber
      * @return JsonResponse
      */
     public function leave(WaitlistSubscriber $subscriber): JsonResponse

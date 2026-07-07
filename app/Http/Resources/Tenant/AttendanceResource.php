@@ -26,7 +26,7 @@ class AttendanceResource extends JsonResource
             'status' => $this->status?->value,
             'notes' => $this->notes,
             'worked_minutes' => $this->worked_minutes,
-            'staff' => $this->whenLoaded('staff', fn () => new StaffResource($this->staff)),
+            'staff' => $this->whenLoaded('staff', fn() => new StaffResource($this->staff)),
         ];
     }
 }

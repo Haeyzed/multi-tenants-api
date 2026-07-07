@@ -9,8 +9,7 @@ use Illuminate\Support\Facades\Schema;
 /**
  * Values for product options used to generate variants.
  */
-return new class extends Migration
-{
+return new class extends Migration {
     public function up(): void
     {
         Schema::create('product_option_values', function (Blueprint $table): void {

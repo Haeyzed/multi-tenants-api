@@ -14,7 +14,9 @@ class CreateTenantOwner
 {
     public function __construct(
         private readonly Tenant $tenant,
-    ) {}
+    )
+    {
+    }
 
     public function handle(TenantOwnerProvisioningService $ownerProvisioningService): void
     {

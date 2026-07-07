@@ -9,8 +9,7 @@ use Illuminate\Support\Facades\Schema;
 /**
  * Immutable audit trail of inventory quantity changes.
  */
-return new class extends Migration
-{
+return new class extends Migration {
     public function up(): void
     {
         Schema::create('inventory_movements', function (Blueprint $table): void {

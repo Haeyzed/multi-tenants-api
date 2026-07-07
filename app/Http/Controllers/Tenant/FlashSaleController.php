@@ -31,13 +31,15 @@ class FlashSaleController extends ApiController
 
     public function __construct(
         private readonly FlashSaleService $flashSaleService,
-        private readonly QueueService $queueService,
-    ) {}
+        private readonly QueueService     $queueService,
+    )
+    {
+    }
 
     /**
      * Get a paginated list of flash sales.
      *
-     * @param  Request  $request
+     * @param Request $request
      * @return JsonResponse
      */
     public function index(Request $request): JsonResponse
@@ -79,7 +81,7 @@ class FlashSaleController extends ApiController
     /**
      * Get a single flash sale.
      *
-     * @param  FlashSale  $flashSale
+     * @param FlashSale $flashSale
      * @return JsonResponse
      */
     public function show(FlashSale $flashSale): JsonResponse
@@ -95,8 +97,8 @@ class FlashSaleController extends ApiController
     /**
      * Update an existing flash sale.
      *
-     * @param  UpdateFlashSaleRequest  $request
-     * @param  FlashSale  $flashSale
+     * @param UpdateFlashSaleRequest $request
+     * @param FlashSale $flashSale
      * @return JsonResponse
      */
     public function update(UpdateFlashSaleRequest $request, FlashSale $flashSale): JsonResponse
@@ -114,7 +116,7 @@ class FlashSaleController extends ApiController
     /**
      * Delete a flash sale.
      *
-     * @param  FlashSale  $flashSale
+     * @param FlashSale $flashSale
      * @return JsonResponse
      */
     public function destroy(FlashSale $flashSale): JsonResponse
@@ -129,7 +131,7 @@ class FlashSaleController extends ApiController
     /**
      * Activate a flash sale.
      *
-     * @param  FlashSale  $flashSale
+     * @param FlashSale $flashSale
      * @return JsonResponse
      */
     public function activate(FlashSale $flashSale): JsonResponse
@@ -148,7 +150,7 @@ class FlashSaleController extends ApiController
     /**
      * End a flash sale.
      *
-     * @param  FlashSale  $flashSale
+     * @param FlashSale $flashSale
      * @return JsonResponse
      */
     public function end(FlashSale $flashSale): JsonResponse
@@ -166,8 +168,8 @@ class FlashSaleController extends ApiController
     /**
      * Attach a product to a flash sale.
      *
-     * @param  AttachFlashSaleProductRequest  $request
-     * @param  FlashSale  $flashSale
+     * @param AttachFlashSaleProductRequest $request
+     * @param FlashSale $flashSale
      * @return JsonResponse
      */
     public function attachProduct(AttachFlashSaleProductRequest $request, FlashSale $flashSale): JsonResponse
@@ -185,8 +187,8 @@ class FlashSaleController extends ApiController
     /**
      * Detach a product from a flash sale.
      *
-     * @param  FlashSale  $flashSale
-     * @param  FlashSaleProduct  $flashSaleProduct
+     * @param FlashSale $flashSale
+     * @param FlashSaleProduct $flashSaleProduct
      * @return JsonResponse
      */
     public function detachProduct(FlashSale $flashSale, FlashSaleProduct $flashSaleProduct): JsonResponse
@@ -225,7 +227,7 @@ class FlashSaleController extends ApiController
     /**
      * Get the status of a checkout queue session.
      *
-     * @param  Request  $request
+     * @param Request $request
      * @return JsonResponse
      */
     public function queueStatus(Request $request): JsonResponse

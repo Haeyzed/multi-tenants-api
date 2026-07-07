@@ -15,5 +15,7 @@ class WaitlistJoined
 {
     use Dispatchable, SerializesModels;
 
-    public function __construct(public WaitlistSubscriber $subscriber) {}
+    public function __construct(public WaitlistSubscriber $subscriber)
+    {
+    }
 }

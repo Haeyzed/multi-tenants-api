@@ -19,12 +19,13 @@ trait ExportsSpreadsheets
 {
     protected function spreadsheetExport(
         Request $request,
-        object $export,
-        string $basename,
-        string $emailSubject,
-        string $emailBody,
-    ): BinaryFileResponse|JsonResponse {
-        $type = (string) $request->input('type', 'xlsx');
+        object  $export,
+        string  $basename,
+        string  $emailSubject,
+        string  $emailBody,
+    ): BinaryFileResponse|JsonResponse
+    {
+        $type = (string)$request->input('type', 'xlsx');
         $format = app(ExcelExportService::class)->resolveFormat($type);
         $filename = "{$basename}.{$format['extension']}";
 
@@ -48,7 +49,7 @@ trait ExportsSpreadsheets
 
     protected function importSampleDownload(Request $request, object $sample, string $basename): BinaryFileResponse
     {
-        $type = (string) $request->validate([
+        $type = (string)$request->validate([
             'type' => ['sometimes', 'in:xlsx,csv'],
         ])['type'] ?? 'xlsx';
 

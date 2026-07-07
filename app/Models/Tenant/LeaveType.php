@@ -24,6 +24,16 @@ class LeaveType extends Model
     ];
 
     /**
+     * Get the leave requests associated with this type.
+     *
+     * @return HasMany<LeaveRequest, $this>
+     */
+    public function leaveRequests(): HasMany
+    {
+        return $this->hasMany(LeaveRequest::class);
+    }
+
+    /**
      * @return array<string, string>
      */
     protected function casts(): array
@@ -33,15 +43,5 @@ class LeaveType extends Model
             'is_paid' => 'boolean',
             'is_active' => 'boolean',
         ];
-    }
-
-    /**
-     * Get the leave requests associated with this type.
-     *
-     * @return HasMany<LeaveRequest, $this>
-     */
-    public function leaveRequests(): HasMany
-    {
-        return $this->hasMany(LeaveRequest::class);
     }
 }

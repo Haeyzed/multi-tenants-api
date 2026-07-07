@@ -25,17 +25,6 @@ class Shift extends Model
     ];
 
     /**
-     * @return array<string, string>
-     */
-    protected function casts(): array
-    {
-        return [
-            'break_minutes' => 'integer',
-            'is_active' => 'boolean',
-        ];
-    }
-
-    /**
      * Get the assignments for this shift.
      *
      * @return HasMany<ShiftAssignment, $this>
@@ -48,12 +37,23 @@ class Shift extends Model
     /**
      * Scope a query to search shifts by name.
      *
-     * @param  Builder<Shift>  $query
-     * @param  string  $search
+     * @param Builder<Shift> $query
+     * @param string $search
      * @return Builder<Shift>
      */
     public function scopeSearch(Builder $query, string $search): Builder
     {
         return $query->where('name', 'like', "%{$search}%");
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    protected function casts(): array
+    {
+        return [
+            'break_minutes' => 'integer',
+            'is_active' => 'boolean',
+        ];
     }
 }

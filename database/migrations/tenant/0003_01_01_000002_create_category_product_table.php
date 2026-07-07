@@ -9,8 +9,7 @@ use Illuminate\Support\Facades\Schema;
 /**
  * Many-to-many product categorization with primary category support.
  */
-return new class extends Migration
-{
+return new class extends Migration {
     public function up(): void
     {
         Schema::create('category_product', function (Blueprint $table): void {

@@ -24,12 +24,14 @@ class TeamInvitationController extends ApiController
 {
     public function __construct(
         private readonly InvitationService $invitationService,
-    ) {}
+    )
+    {
+    }
 
     /**
      * Get a paginated list of team invitations.
      *
-     * @param  Request  $request
+     * @param Request $request
      * @return JsonResponse
      */
     public function index(Request $request): JsonResponse
@@ -37,7 +39,7 @@ class TeamInvitationController extends ApiController
         $this->authorize('viewAny', TeamInvitation::class);
 
         $filters = $request->validate([
-            'email'  => ['nullable', 'string'],
+            'email' => ['nullable', 'string'],
             'status' => ['nullable', 'string'],
         ]);
 
@@ -74,7 +76,7 @@ class TeamInvitationController extends ApiController
     /**
      * Get a single team invitation.
      *
-     * @param  TeamInvitation  $invitation
+     * @param TeamInvitation $invitation
      * @return JsonResponse
      */
     public function show(TeamInvitation $invitation): JsonResponse
@@ -113,7 +115,7 @@ class TeamInvitationController extends ApiController
     /**
      * Cancel a team invitation.
      *
-     * @param  TeamInvitation  $invitation
+     * @param TeamInvitation $invitation
      * @return JsonResponse
      */
     public function destroy(TeamInvitation $invitation): JsonResponse

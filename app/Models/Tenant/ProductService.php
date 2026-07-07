@@ -56,21 +56,6 @@ class ProductService extends Model
     ];
 
     /**
-     * @return array<string, string>
-     */
-    protected function casts(): array
-    {
-        return [
-            'duration_minutes' => 'integer',
-            'buffer_minutes_before' => 'integer',
-            'buffer_minutes_after' => 'integer',
-            'max_participants' => 'integer',
-            'requires_confirmation' => 'boolean',
-            'cancellation_hours' => 'integer',
-        ];
-    }
-
-    /**
      * Product this service configuration belongs to.
      *
      * @return BelongsTo<Product, $this>
@@ -81,6 +66,14 @@ class ProductService extends Model
     }
 
     /**
+     * Primary provider for this service.
+     */
+    public function primaryProvider(): ?ProductProvider
+    {
+        return $this->providers()->where('is_primary', true)->first();
+    }
+
+    /**
      * Providers assigned to this service.
      *
      * @return HasMany<ProductProvider, $this>
@@ -88,14 +81,6 @@ class ProductService extends Model
     public function providers(): HasMany
     {
         return $this->hasMany(ProductProvider::class, 'product_id', 'product_id');
-    }
-
-    /**
-     * Primary provider for this service.
-     */
-    public function primaryProvider(): ?ProductProvider
-    {
-        return $this->providers()->where('is_primary', true)->first();
     }
 
     /**
@@ -122,5 +107,20 @@ class ProductService extends Model
     public function getIsVirtualAttribute(): bool
     {
         return $this->location_type === 'virtual';
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    protected function casts(): array
+    {
+        return [
+            'duration_minutes' => 'integer',
+            'buffer_minutes_before' => 'integer',
+            'buffer_minutes_after' => 'integer',
+            'max_participants' => 'integer',
+            'requires_confirmation' => 'boolean',
+            'cancellation_hours' => 'integer',
+        ];
     }
 }

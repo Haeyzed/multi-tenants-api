@@ -14,7 +14,6 @@ use App\Models\Tenant\Order;
 use App\Models\Tenant\Payment;
 use App\Services\Tenant\PaymentService;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Request;
 use RuntimeException;
 
 /**
@@ -26,13 +25,15 @@ class PaymentController extends ApiController
 
     public function __construct(
         private readonly PaymentService $paymentService,
-    ) {}
+    )
+    {
+    }
 
     /**
      * Initiate a payment for an order.
      *
-     * @param  InitiatePaymentRequest  $request
-     * @param  Order  $order
+     * @param InitiatePaymentRequest $request
+     * @param Order $order
      * @return JsonResponse
      */
     public function initiate(InitiatePaymentRequest $request, Order $order): JsonResponse
@@ -63,7 +64,7 @@ class PaymentController extends ApiController
     /**
      * Get a single payment.
      *
-     * @param  Payment  $payment
+     * @param Payment $payment
      * @return JsonResponse
      */
     public function show(Payment $payment): JsonResponse
@@ -78,8 +79,8 @@ class PaymentController extends ApiController
     /**
      * Handle payment provider webhooks.
      *
-     * @param  PaymentWebhookRequest  $request
-     * @param  string  $provider
+     * @param PaymentWebhookRequest $request
+     * @param string $provider
      * @return JsonResponse
      */
     public function webhook(PaymentWebhookRequest $request, string $provider): JsonResponse

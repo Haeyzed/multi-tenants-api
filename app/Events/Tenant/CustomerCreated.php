@@ -15,5 +15,7 @@ class CustomerCreated
 {
     use Dispatchable, SerializesModels;
 
-    public function __construct(public Customer $customer) {}
+    public function __construct(public Customer $customer)
+    {
+    }
 }

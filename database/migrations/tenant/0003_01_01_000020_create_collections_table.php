@@ -9,8 +9,7 @@ use Illuminate\Support\Facades\Schema;
 /**
  * Curated and smart product collections.
  */
-return new class extends Migration
-{
+return new class extends Migration {
     public function up(): void
     {
         Schema::create('collections', function (Blueprint $table): void {

@@ -26,6 +26,16 @@ class EmployeeProfile extends Model
     ];
 
     /**
+     * Get the staff member associated with the profile.
+     *
+     * @return BelongsTo<Staff, $this>
+     */
+    public function staff(): BelongsTo
+    {
+        return $this->belongsTo(Staff::class);
+    }
+
+    /**
      * @return array<string, string>
      */
     protected function casts(): array
@@ -34,15 +44,5 @@ class EmployeeProfile extends Model
             'date_of_birth' => 'date',
             'employment_history' => 'array',
         ];
-    }
-
-    /**
-     * Get the staff member associated with the profile.
-     *
-     * @return BelongsTo<Staff, $this>
-     */
-    public function staff(): BelongsTo
-    {
-        return $this->belongsTo(Staff::class);
     }
 }

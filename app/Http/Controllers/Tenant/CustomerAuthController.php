@@ -25,7 +25,9 @@ class CustomerAuthController extends ApiController
 {
     public function __construct(
         private readonly CustomerAuthService $customerAuthService,
-    ) {}
+    )
+    {
+    }
 
     /**
      * Register a new customer.
@@ -47,7 +49,7 @@ class CustomerAuthController extends ApiController
     /**
      * Log in a customer.
      *
-     * @param  CustomerLoginRequest  $request
+     * @param CustomerLoginRequest $request
      * @return JsonResponse
      */
     public function login(CustomerLoginRequest $request): JsonResponse
@@ -67,7 +69,7 @@ class CustomerAuthController extends ApiController
     /**
      * Log out the authenticated customer.
      *
-     * @param  Request  $request
+     * @param Request $request
      * @return JsonResponse
      */
     public function logout(Request $request): JsonResponse
@@ -83,7 +85,7 @@ class CustomerAuthController extends ApiController
     /**
      * Get the authenticated customer's profile.
      *
-     * @param  Request  $request
+     * @param Request $request
      * @return JsonResponse
      */
     public function me(Request $request): JsonResponse
@@ -100,7 +102,7 @@ class CustomerAuthController extends ApiController
     /**
      * Send a password reset OTP.
      *
-     * @param  Request  $request
+     * @param Request $request
      * @return JsonResponse
      */
     public function forgotPassword(Request $request): JsonResponse
@@ -115,7 +117,7 @@ class CustomerAuthController extends ApiController
     /**
      * Reset the user's password.
      *
-     * @param  Request  $request
+     * @param Request $request
      * @return JsonResponse
      */
     public function resetPassword(Request $request): JsonResponse
@@ -138,7 +140,7 @@ class CustomerAuthController extends ApiController
     /**
      * Update the authenticated user's profile.
      *
-     * @param  Request  $request
+     * @param Request $request
      * @return JsonResponse
      */
     public function updateProfile(Request $request): JsonResponse
@@ -163,7 +165,7 @@ class CustomerAuthController extends ApiController
     /**
      * Change the authenticated user's password.
      *
-     * @param  Request  $request
+     * @param Request $request
      * @return JsonResponse
      */
     public function changePassword(Request $request): JsonResponse

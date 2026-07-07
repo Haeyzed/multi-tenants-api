@@ -32,8 +32,8 @@ class BrandResource extends JsonResource
             'country_of_origin' => $this->country_of_origin,
             'sort_order' => $this->sort_order,
             'products_count' => $this->products_count,
-            'logo' => $this->whenLoaded('logoMedia', fn () => $this->logoMedia ? new MediaResource($this->logoMedia) : null),
-            'banner' => $this->whenLoaded('bannerMedia', fn () => $this->bannerMedia ? new MediaResource($this->bannerMedia) : null),
+            'logo' => $this->whenLoaded('logoMedia', fn() => $this->logoMedia ? new MediaResource($this->logoMedia) : null),
+            'banner' => $this->whenLoaded('bannerMedia', fn() => $this->bannerMedia ? new MediaResource($this->bannerMedia) : null),
             'created_at' => $this->created_at?->toIso8601String(),
             'updated_at' => $this->updated_at?->toIso8601String(),
         ];

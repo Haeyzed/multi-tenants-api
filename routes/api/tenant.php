@@ -121,7 +121,7 @@ Route::prefix('v1/tenant')->group(function (): void {
         Route::apiResource('team/invitations', TeamInvitationController::class)->except(['update']);
         Route::post('team/invitations/{invitation}/resend', [TeamInvitationController::class, 'resend']);
 
-        Route::bind('team', fn (string $value) => TenantUser::query()->findOrFail($value));
+        Route::bind('team', fn(string $value) => TenantUser::query()->findOrFail($value));
 
         Route::apiResource('team', TeamController::class);
         Route::post('team/{team}/suspend', [TeamController::class, 'suspend']);

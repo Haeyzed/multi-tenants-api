@@ -15,5 +15,7 @@ class FlashSaleActivated
 {
     use Dispatchable, SerializesModels;
 
-    public function __construct(public FlashSale $flashSale) {}
+    public function __construct(public FlashSale $flashSale)
+    {
+    }
 }

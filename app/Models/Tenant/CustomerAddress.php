@@ -32,16 +32,6 @@ class CustomerAddress extends Model
     ];
 
     /**
-     * @return array<string, string>
-     */
-    protected function casts(): array
-    {
-        return [
-            'is_default' => 'boolean',
-        ];
-    }
-
-    /**
      * Get the customer that owns the address.
      *
      * @return BelongsTo<Customer, $this>
@@ -49,5 +39,15 @@ class CustomerAddress extends Model
     public function customer(): BelongsTo
     {
         return $this->belongsTo(Customer::class);
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    protected function casts(): array
+    {
+        return [
+            'is_default' => 'boolean',
+        ];
     }
 }

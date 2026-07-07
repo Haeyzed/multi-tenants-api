@@ -9,8 +9,7 @@ use Illuminate\Support\Facades\Schema;
 /**
  * Reusable product labels (New, Sale, Trending, etc.).
  */
-return new class extends Migration
-{
+return new class extends Migration {
     public function up(): void
     {
         Schema::create('product_labels', function (Blueprint $table): void {

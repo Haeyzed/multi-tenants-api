@@ -35,12 +35,14 @@ class SettingsController extends ApiController
 {
     public function __construct(
         private readonly StoreSetupService $storeSetupService,
-    ) {}
+    )
+    {
+    }
 
     /**
      * Get all store settings.
      *
-     * @param  Request  $request
+     * @param Request $request
      * @return JsonResponse
      */
     public function index(Request $request): JsonResponse
@@ -123,7 +125,7 @@ class SettingsController extends ApiController
     /**
      * Update store settings.
      *
-     * @param  UpdateStoreSettingsRequest  $request
+     * @param UpdateStoreSettingsRequest $request
      * @return JsonResponse
      */
     public function updateStore(UpdateStoreSettingsRequest $request): JsonResponse
@@ -141,7 +143,7 @@ class SettingsController extends ApiController
     /**
      * Update branding settings.
      *
-     * @param  UpdateBrandingSettingsRequest  $request
+     * @param UpdateBrandingSettingsRequest $request
      * @return JsonResponse
      */
     public function updateBranding(UpdateBrandingSettingsRequest $request): JsonResponse
@@ -166,7 +168,7 @@ class SettingsController extends ApiController
     /**
      * Update email settings.
      *
-     * @param  UpdateEmailSettingsRequest  $request
+     * @param UpdateEmailSettingsRequest $request
      * @return JsonResponse
      */
     public function updateEmail(UpdateEmailSettingsRequest $request): JsonResponse
@@ -184,7 +186,7 @@ class SettingsController extends ApiController
     /**
      * Update notification settings.
      *
-     * @param  UpdateNotificationSettingsRequest  $request
+     * @param UpdateNotificationSettingsRequest $request
      * @return JsonResponse
      */
     public function updateNotifications(UpdateNotificationSettingsRequest $request): JsonResponse
@@ -202,7 +204,7 @@ class SettingsController extends ApiController
     /**
      * Update invoice settings.
      *
-     * @param  UpdateInvoiceSettingsRequest  $request
+     * @param UpdateInvoiceSettingsRequest $request
      * @return JsonResponse
      */
     public function updateInvoice(UpdateInvoiceSettingsRequest $request): JsonResponse

@@ -29,7 +29,7 @@ class WarehouseLocationResource extends JsonResource
             'max_volume' => $this->max_volume,
             'is_active' => $this->is_active,
             'is_picking_location' => $this->is_picking_location,
-            'zone' => $this->whenLoaded('zone', fn () => $this->zone ? [
+            'zone' => $this->whenLoaded('zone', fn() => $this->zone ? [
                 'id' => $this->zone->id,
                 'name' => $this->zone->name,
                 'code' => $this->zone->code,

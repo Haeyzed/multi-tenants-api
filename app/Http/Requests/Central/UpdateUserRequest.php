@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Requests\Central;
 
+use App\Models\Central\CentralUser;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -22,7 +23,7 @@ class UpdateUserRequest extends FormRequest
      */
     public function rules(): array
     {
-        /** @var \App\Models\Central\CentralUser|null $user */
+        /** @var CentralUser|null $user */
         $user = $this->route('user');
 
         return [

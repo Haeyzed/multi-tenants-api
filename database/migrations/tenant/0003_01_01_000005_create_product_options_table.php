@@ -11,8 +11,7 @@ use Illuminate\Support\Facades\Schema;
  *
  * Distinct from catalog attributes used for specifications and filtering.
  */
-return new class extends Migration
-{
+return new class extends Migration {
     public function up(): void
     {
         Schema::create('product_options', function (Blueprint $table): void {

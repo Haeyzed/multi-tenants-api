@@ -58,17 +58,6 @@ class CustomerGroup extends Model
     }
 
     /**
-     * @return array<string, string>
-     */
-    protected function casts(): array
-    {
-        return [
-            'discount_percent' => 'decimal:2',
-            'is_active' => 'boolean',
-        ];
-    }
-
-    /**
      * Get the options for generating the slug.
      *
      * @return SlugOptions
@@ -93,8 +82,8 @@ class CustomerGroup extends Model
     /**
      * Scope a query to filter customer groups.
      *
-     * @param  Builder<CustomerGroup>  $query
-     * @param  array<string, mixed>  $filters
+     * @param Builder<CustomerGroup> $query
+     * @param array<string, mixed> $filters
      * @return Builder<CustomerGroup>
      */
     public function scopeFilter(Builder $query, array $filters): Builder
@@ -106,7 +95,7 @@ class CustomerGroup extends Model
             ->when(!empty($filters['is_active']), function (Builder $q) use ($filters): void {
                 $statuses = is_array($filters['is_active'])
                     ? $filters['is_active']
-                    : explode(',', (string) $filters['is_active']);
+                    : explode(',', (string)$filters['is_active']);
 
                 $booleans = [];
                 if (in_array('active', $statuses, true)) $booleans[] = true;
@@ -116,5 +105,16 @@ class CustomerGroup extends Model
                     $q->whereIn('is_active', $booleans);
                 }
             });
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    protected function casts(): array
+    {
+        return [
+            'discount_percent' => 'decimal:2',
+            'is_active' => 'boolean',
+        ];
     }
 }

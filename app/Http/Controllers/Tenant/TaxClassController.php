@@ -31,7 +31,9 @@ class TaxClassController extends ApiController
 
     public function __construct(
         private readonly TaxClassService $taxClassService,
-    ) {}
+    )
+    {
+    }
 
     /**
      * Get a paginated list of tax classes.

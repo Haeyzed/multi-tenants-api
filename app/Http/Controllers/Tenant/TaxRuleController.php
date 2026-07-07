@@ -25,7 +25,9 @@ class TaxRuleController extends ApiController
 
     public function __construct(
         private readonly TaxRuleService $taxRuleService,
-    ) {}
+    )
+    {
+    }
 
     public function index(Request $request): JsonResponse
     {

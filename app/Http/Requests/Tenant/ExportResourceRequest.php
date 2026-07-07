@@ -10,8 +10,8 @@ use Illuminate\Validation\Rule;
 class ExportResourceRequest extends FormRequest
 {
     /**
-     * @param  list<string>  $allowedColumns
-     * @param  list<string>  $idItemRules
+     * @param list<string> $allowedColumns
+     * @param list<string> $idItemRules
      * @return array<string, mixed>
      */
     public static function rules(array $allowedColumns, array $idItemRules = ['integer']): array

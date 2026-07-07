@@ -24,6 +24,16 @@ class ConversionMetric extends Model
     ];
 
     /**
+     * Get the flash sale associated with these metrics.
+     *
+     * @return BelongsTo<FlashSale, $this>
+     */
+    public function flashSale(): BelongsTo
+    {
+        return $this->belongsTo(FlashSale::class);
+    }
+
+    /**
      * @return array<string, string>
      */
     protected function casts(): array
@@ -34,15 +44,5 @@ class ConversionMetric extends Model
             'conversions' => 'integer',
             'conversion_rate' => 'decimal:4',
         ];
-    }
-
-    /**
-     * Get the flash sale associated with these metrics.
-     *
-     * @return BelongsTo<FlashSale, $this>
-     */
-    public function flashSale(): BelongsTo
-    {
-        return $this->belongsTo(FlashSale::class);
     }
 }

@@ -40,16 +40,6 @@ class SupplierContact extends Model
     ];
 
     /**
-     * @return array<string, string>
-     */
-    protected function casts(): array
-    {
-        return [
-            'is_primary' => 'boolean',
-        ];
-    }
-
-    /**
      * Supplier that owns this contact.
      *
      * @return BelongsTo<Supplier, $this>
@@ -57,5 +47,15 @@ class SupplierContact extends Model
     public function supplier(): BelongsTo
     {
         return $this->belongsTo(Supplier::class);
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    protected function casts(): array
+    {
+        return [
+            'is_primary' => 'boolean',
+        ];
     }
 }

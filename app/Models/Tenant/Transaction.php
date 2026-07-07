@@ -26,6 +26,14 @@ class Transaction extends Model
     ];
 
     /**
+     * @return BelongsTo<Payment, $this>
+     */
+    public function payment(): BelongsTo
+    {
+        return $this->belongsTo(Payment::class);
+    }
+
+    /**
      * @return array<string, string>
      */
     protected function casts(): array
@@ -35,13 +43,5 @@ class Transaction extends Model
             'amount' => 'decimal:2',
             'payload' => 'array',
         ];
-    }
-
-    /**
-     * @return BelongsTo<Payment, $this>
-     */
-    public function payment(): BelongsTo
-    {
-        return $this->belongsTo(Payment::class);
     }
 }

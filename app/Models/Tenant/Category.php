@@ -94,20 +94,6 @@ class Category extends Model
     }
 
     /**
-     * @return array<string, string>
-     */
-    protected function casts(): array
-    {
-        return [
-            'depth' => 'integer',
-            'is_visible' => 'boolean',
-            'is_featured' => 'boolean',
-            'sort_order' => 'integer',
-            'products_count' => 'integer',
-        ];
-    }
-
-    /**
      * Get the options for generating the slug.
      */
     public function getSlugOptions(): SlugOptions
@@ -138,6 +124,16 @@ class Category extends Model
     }
 
     /**
+     * Get products for which this is the primary category.
+     *
+     * @return BelongsToMany<Product, $this>
+     */
+    public function primaryProducts(): BelongsToMany
+    {
+        return $this->products()->wherePivot('is_primary', true);
+    }
+
+    /**
      * Get the products in this category via pivot.
      *
      * @return BelongsToMany<Product, $this>
@@ -150,16 +146,6 @@ class Category extends Model
     }
 
     /**
-     * Get products for which this is the primary category.
-     *
-     * @return BelongsToMany<Product, $this>
-     */
-    public function primaryProducts(): BelongsToMany
-    {
-        return $this->products()->wherePivot('is_primary', true);
-    }
-
-    /**
      * Get attribute sets linked to this category.
      *
      * @return BelongsToMany<AttributeSet, $this>
@@ -168,6 +154,14 @@ class Category extends Model
     {
         return $this->belongsToMany(AttributeSet::class, 'category_attribute_sets')
             ->withTimestamps();
+    }
+
+    /**
+     * @return BelongsTo<Media, $this>
+     */
+    public function image(): BelongsTo
+    {
+        return $this->imageMedia();
     }
 
     /**
@@ -183,9 +177,9 @@ class Category extends Model
     /**
      * @return BelongsTo<Media, $this>
      */
-    public function image(): BelongsTo
+    public function banner(): BelongsTo
     {
-        return $this->imageMedia();
+        return $this->bannerMedia();
     }
 
     /**
@@ -201,9 +195,9 @@ class Category extends Model
     /**
      * @return BelongsTo<Media, $this>
      */
-    public function banner(): BelongsTo
+    public function icon(): BelongsTo
     {
-        return $this->bannerMedia();
+        return $this->iconMedia();
     }
 
     /**
@@ -217,30 +211,22 @@ class Category extends Model
     }
 
     /**
-     * @return BelongsTo<Media, $this>
-     */
-    public function icon(): BelongsTo
-    {
-        return $this->iconMedia();
-    }
-
-    /**
      * Scope a query to filter categories.
      *
-     * @param  Builder<Category>  $query
-     * @param  array<string, mixed>  $filters
+     * @param Builder<Category> $query
+     * @param array<string, mixed> $filters
      * @return Builder<Category>
      */
     public function scopeFilter(Builder $query, array $filters): Builder
     {
         return $query
-            ->when(! empty($filters['search']), function (Builder $q) use ($filters): void {
-                $q->where('name', 'like', '%'.$filters['search'].'%');
+            ->when(!empty($filters['search']), function (Builder $q) use ($filters): void {
+                $q->where('name', 'like', '%' . $filters['search'] . '%');
             })
-            ->when(! empty($filters['is_visible']), function (Builder $q) use ($filters): void {
+            ->when(!empty($filters['is_visible']), function (Builder $q) use ($filters): void {
                 $statuses = is_array($filters['is_visible'])
                     ? $filters['is_visible']
-                    : explode(',', (string) $filters['is_visible']);
+                    : explode(',', (string)$filters['is_visible']);
 
                 $booleans = [];
 
@@ -252,11 +238,11 @@ class Category extends Model
                     $booleans[] = false;
                 }
 
-                if (! empty($booleans)) {
+                if (!empty($booleans)) {
                     $q->whereIn('is_visible', $booleans);
                 }
             })
-            ->when(! empty($filters['parent_id']), function (Builder $q) use ($filters): void {
+            ->when(!empty($filters['parent_id']), function (Builder $q) use ($filters): void {
                 $q->where('parent_id', $filters['parent_id']);
             })
             ->when(isset($filters['is_featured']), function (Builder $q) use ($filters): void {
@@ -265,6 +251,22 @@ class Category extends Model
             ->when(isset($filters['has_products']), function (Builder $q): void {
                 $q->has('products');
             });
+    }
+
+    /**
+     * Get full breadcrumb path as array.
+     *
+     * @return list<array{id: int, name: string, slug: string}>
+     */
+    public function breadcrumbPath(): array
+    {
+        $path = [];
+        foreach ($this->ancestors() as $ancestor) {
+            $path[] = ['id' => $ancestor->id, 'name' => $ancestor->name, 'slug' => $ancestor->slug];
+        }
+        $path[] = ['id' => $this->id, 'name' => $this->name, 'slug' => $this->slug];
+
+        return $path;
     }
 
     /**
@@ -286,18 +288,16 @@ class Category extends Model
     }
 
     /**
-     * Get full breadcrumb path as array.
-     *
-     * @return list<array{id: int, name: string, slug: string}>
+     * @return array<string, string>
      */
-    public function breadcrumbPath(): array
+    protected function casts(): array
     {
-        $path = [];
-        foreach ($this->ancestors() as $ancestor) {
-            $path[] = ['id' => $ancestor->id, 'name' => $ancestor->name, 'slug' => $ancestor->slug];
-        }
-        $path[] = ['id' => $this->id, 'name' => $this->name, 'slug' => $this->slug];
-
-        return $path;
+        return [
+            'depth' => 'integer',
+            'is_visible' => 'boolean',
+            'is_featured' => 'boolean',
+            'sort_order' => 'integer',
+            'products_count' => 'integer',
+        ];
     }
 }

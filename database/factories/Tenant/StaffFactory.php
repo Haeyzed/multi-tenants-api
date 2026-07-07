@@ -23,7 +23,7 @@ class StaffFactory extends Factory
     public function definition(): array
     {
         return [
-            'staff_id' => 'STF-'.strtoupper(Str::random(8)),
+            'staff_id' => 'STF-' . strtoupper(Str::random(8)),
             'first_name' => fake()->firstName(),
             'last_name' => fake()->lastName(),
             'email' => fake()->unique()->safeEmail(),

@@ -54,7 +54,7 @@ class ProductFactory extends Factory
      */
     public function active(): static
     {
-        return $this->state(fn (array $attributes): array => [
+        return $this->state(fn(array $attributes): array => [
             'status' => ProductStatus::Active,
             'visibility' => ProductVisibility::Visible,
             'published_at' => now(),
@@ -66,7 +66,7 @@ class ProductFactory extends Factory
      */
     public function featured(): static
     {
-        return $this->state(fn (array $attributes): array => [
+        return $this->state(fn(array $attributes): array => [
             'is_featured' => true,
         ]);
     }
@@ -76,7 +76,7 @@ class ProductFactory extends Factory
      */
     public function variable(): static
     {
-        return $this->state(fn (array $attributes): array => [
+        return $this->state(fn(array $attributes): array => [
             'type' => ProductType::Variable,
         ]);
     }

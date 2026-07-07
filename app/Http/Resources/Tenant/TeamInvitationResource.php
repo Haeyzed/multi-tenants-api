@@ -23,7 +23,7 @@ class TeamInvitationResource extends JsonResource
             'email' => $this->email,
             'role' => $this->role,
             'permissions' => $this->permissions,
-            'invited_by' => $this->whenLoaded('inviter', fn () => new TenantUserResource($this->inviter)),
+            'invited_by' => $this->whenLoaded('inviter', fn() => new TenantUserResource($this->inviter)),
             'expires_at' => $this->expires_at?->toIso8601String(),
             'accepted_at' => $this->accepted_at?->toIso8601String(),
             'cancelled_at' => $this->cancelled_at?->toIso8601String(),

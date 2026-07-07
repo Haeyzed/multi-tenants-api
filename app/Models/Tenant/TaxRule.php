@@ -45,19 +45,6 @@ class TaxRule extends Model
     ];
 
     /**
-     * @return array<string, string>
-     */
-    protected function casts(): array
-    {
-        return [
-            'adjustment_rate' => 'decimal:4',
-            'is_active' => 'boolean',
-            'effective_from' => 'date',
-            'effective_to' => 'date',
-        ];
-    }
-
-    /**
      * @return BelongsTo<TaxRate, $this>
      */
     public function taxRate(): BelongsTo
@@ -74,35 +61,35 @@ class TaxRule extends Model
     }
 
     /**
-     * @param  Builder<TaxRule>  $query
-     * @param  array<string, mixed>  $filters
+     * @param Builder<TaxRule> $query
+     * @param array<string, mixed> $filters
      * @return Builder<TaxRule>
      */
     public function scopeFilter(Builder $query, array $filters): Builder
     {
         return $query
-            ->when(! empty($filters['search']), function (Builder $q) use ($filters): void {
-                $search = (string) $filters['search'];
+            ->when(!empty($filters['search']), function (Builder $q) use ($filters): void {
+                $search = (string)$filters['search'];
                 $q->where('rule_type', 'like', "%{$search}%");
             })
-            ->when(! empty($filters['tax_rate_id']), function (Builder $q) use ($filters): void {
+            ->when(!empty($filters['tax_rate_id']), function (Builder $q) use ($filters): void {
                 $q->where('tax_rate_id', $filters['tax_rate_id']);
             })
-            ->when(! empty($filters['applicable_type']), function (Builder $q) use ($filters): void {
-                $type = match ((string) $filters['applicable_type']) {
+            ->when(!empty($filters['applicable_type']), function (Builder $q) use ($filters): void {
+                $type = match ((string)$filters['applicable_type']) {
                     'product' => Product::class,
                     'customer_group' => CustomerGroup::class,
-                    default => (string) $filters['applicable_type'],
+                    default => (string)$filters['applicable_type'],
                 };
                 $q->where('applicable_type', $type);
             })
-            ->when(! empty($filters['rule_type']), function (Builder $q) use ($filters): void {
+            ->when(!empty($filters['rule_type']), function (Builder $q) use ($filters): void {
                 $q->where('rule_type', $filters['rule_type']);
             })
-            ->when(! empty($filters['is_active']), function (Builder $q) use ($filters): void {
+            ->when(!empty($filters['is_active']), function (Builder $q) use ($filters): void {
                 $statuses = is_array($filters['is_active'])
                     ? $filters['is_active']
-                    : explode(',', (string) $filters['is_active']);
+                    : explode(',', (string)$filters['is_active']);
 
                 $booleans = [];
 
@@ -114,9 +101,22 @@ class TaxRule extends Model
                     $booleans[] = false;
                 }
 
-                if (! empty($booleans)) {
+                if (!empty($booleans)) {
                     $q->whereIn('is_active', $booleans);
                 }
             });
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    protected function casts(): array
+    {
+        return [
+            'adjustment_rate' => 'decimal:4',
+            'is_active' => 'boolean',
+            'effective_from' => 'date',
+            'effective_to' => 'date',
+        ];
     }
 }

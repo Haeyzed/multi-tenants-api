@@ -158,32 +158,6 @@ class Product extends Model
     }
 
     /**
-     * @return array<string, string>
-     */
-    protected function casts(): array
-    {
-        return [
-            'type' => ProductType::class,
-            'condition' => ProductCondition::class,
-            'status' => ProductStatus::class,
-            'visibility' => ProductVisibility::class,
-            'is_featured' => 'boolean',
-            'is_returnable' => 'boolean',
-            'return_period_days' => 'integer',
-            'warranty_period_months' => 'integer',
-            'min_order_quantity' => 'integer',
-            'max_order_quantity' => 'integer',
-            'track_inventory' => 'boolean',
-            'allow_backorders' => 'boolean',
-            'requires_shipping' => 'boolean',
-            'is_taxable' => 'boolean',
-            'published_at' => 'datetime',
-            'discontinued_at' => 'datetime',
-            'approved_at' => 'datetime',
-        ];
-    }
-
-    /**
      * Get the options for activity logging.
      */
     public function getActivitylogOptions(): LogOptions
@@ -245,6 +219,14 @@ class Product extends Model
     }
 
     /**
+     * Get the primary category from the pivot table.
+     */
+    public function primaryCategory(): ?Category
+    {
+        return $this->categories()->wherePivot('is_primary', true)->first();
+    }
+
+    /**
      * Get all categories assigned to the product.
      *
      * @return BelongsToMany<Category, $this>
@@ -255,14 +237,6 @@ class Product extends Model
             ->withPivot(['is_primary', 'sort_order'])
             ->withTimestamps()
             ->orderByPivot('sort_order');
-    }
-
-    /**
-     * Get the primary category from the pivot table.
-     */
-    public function primaryCategory(): ?Category
-    {
-        return $this->categories()->wherePivot('is_primary', true)->first();
     }
 
     /**
@@ -297,6 +271,14 @@ class Product extends Model
     }
 
     /**
+     * Get the primary supplier for procurement.
+     */
+    public function primarySupplier(): ?Supplier
+    {
+        return $this->suppliers()->wherePivot('is_primary', true)->first();
+    }
+
+    /**
      * Get suppliers linked to the product with commercial terms.
      *
      * @return BelongsToMany<Supplier, $this>
@@ -315,14 +297,6 @@ class Product extends Model
     }
 
     /**
-     * Get the primary supplier for procurement.
-     */
-    public function primarySupplier(): ?Supplier
-    {
-        return $this->suppliers()->wherePivot('is_primary', true)->first();
-    }
-
-    /**
      * Get variant-generating options for the product.
      *
      * @return HasMany<ProductOption, $this>
@@ -330,16 +304,6 @@ class Product extends Model
     public function options(): HasMany
     {
         return $this->hasMany(ProductOption::class)->orderBy('position');
-    }
-
-    /**
-     * Get all variants for the product.
-     *
-     * @return HasMany<ProductVariant, $this>
-     */
-    public function variants(): HasMany
-    {
-        return $this->hasMany(ProductVariant::class)->orderBy('position');
     }
 
     /**
@@ -353,6 +317,16 @@ class Product extends Model
     }
 
     /**
+     * Get all variants for the product.
+     *
+     * @return HasMany<ProductVariant, $this>
+     */
+    public function variants(): HasMany
+    {
+        return $this->hasMany(ProductVariant::class)->orderBy('position');
+    }
+
+    /**
      * Get the default variant for the product.
      *
      * @return HasOne<ProductVariant, $this>
@@ -363,16 +337,6 @@ class Product extends Model
     }
 
     /**
-     * Get ordered gallery images for the product.
-     *
-     * @return HasMany<ProductImage, $this>
-     */
-    public function productImages(): HasMany
-    {
-        return $this->hasMany(ProductImage::class)->orderBy('sort_order');
-    }
-
-    /**
      * Alias for product gallery images.
      *
      * @return HasMany<ProductImage, $this>
@@ -380,6 +344,16 @@ class Product extends Model
     public function images(): HasMany
     {
         return $this->productImages();
+    }
+
+    /**
+     * Get ordered gallery images for the product.
+     *
+     * @return HasMany<ProductImage, $this>
+     */
+    public function productImages(): HasMany
+    {
+        return $this->hasMany(ProductImage::class)->orderBy('sort_order');
     }
 
     /**
@@ -586,7 +560,7 @@ class Product extends Model
      */
     public function requiresShipping(): bool
     {
-        if (! $this->requires_shipping) {
+        if (!$this->requires_shipping) {
             return false;
         }
 
@@ -598,7 +572,7 @@ class Product extends Model
      */
     public function tracksInventory(): bool
     {
-        if (! $this->track_inventory) {
+        if (!$this->track_inventory) {
             return false;
         }
 
@@ -614,7 +588,7 @@ class Product extends Model
             return false;
         }
 
-        if (! $this->visibility->isPubliclyVisible()) {
+        if (!$this->visibility->isPubliclyVisible()) {
             return false;
         }
 
@@ -632,7 +606,7 @@ class Product extends Model
     /**
      * Scope a query to search products by catalog fields.
      *
-     * @param  Builder<Product>  $query
+     * @param Builder<Product> $query
      * @return Builder<Product>
      */
     public function scopeSearch(Builder $query, string $search): Builder
@@ -655,41 +629,41 @@ class Product extends Model
     /**
      * Scope a query to filter products.
      *
-     * @param  Builder<Product>  $query
-     * @param  array<string, mixed>  $filters
+     * @param Builder<Product> $query
+     * @param array<string, mixed> $filters
      * @return Builder<Product>
      */
     public function scopeFilter(Builder $query, array $filters): Builder
     {
         return $query
-            ->when(! empty($filters['search']), function (Builder $q) use ($filters): void {
-                $q->search((string) $filters['search']);
+            ->when(!empty($filters['search']), function (Builder $q) use ($filters): void {
+                $q->search((string)$filters['search']);
             })
-            ->when(! empty($filters['brand_id']), function (Builder $q) use ($filters): void {
+            ->when(!empty($filters['brand_id']), function (Builder $q) use ($filters): void {
                 $brandIds = is_array($filters['brand_id'])
                     ? $filters['brand_id']
-                    : explode(',', (string) $filters['brand_id']);
+                    : explode(',', (string)$filters['brand_id']);
 
                 $q->whereIn('brand_id', $brandIds);
             })
-            ->when(! empty($filters['status']), function (Builder $q) use ($filters): void {
+            ->when(!empty($filters['status']), function (Builder $q) use ($filters): void {
                 $statuses = is_array($filters['status'])
                     ? $filters['status']
-                    : explode(',', (string) $filters['status']);
+                    : explode(',', (string)$filters['status']);
 
                 $q->whereIn('status', $statuses);
             })
-            ->when(! empty($filters['visibility']), function (Builder $q) use ($filters): void {
+            ->when(!empty($filters['visibility']), function (Builder $q) use ($filters): void {
                 $values = is_array($filters['visibility'])
                     ? $filters['visibility']
-                    : explode(',', (string) $filters['visibility']);
+                    : explode(',', (string)$filters['visibility']);
 
                 $q->whereIn('visibility', $values);
             })
-            ->when(! empty($filters['is_featured']), function (Builder $q) use ($filters): void {
+            ->when(!empty($filters['is_featured']), function (Builder $q) use ($filters): void {
                 $values = is_array($filters['is_featured'])
                     ? $filters['is_featured']
-                    : explode(',', (string) $filters['is_featured']);
+                    : explode(',', (string)$filters['is_featured']);
 
                 $booleans = [];
 
@@ -705,16 +679,16 @@ class Product extends Model
                     $q->whereIn('is_featured', $booleans);
                 }
             })
-            ->when(! empty($filters['category_id']) || ! empty($filters['category_ids']), function (Builder $q) use ($filters): void {
-                $categoryIds = ! empty($filters['category_ids'])
-                    ? (is_array($filters['category_ids']) ? $filters['category_ids'] : explode(',', (string) $filters['category_ids']))
+            ->when(!empty($filters['category_id']) || !empty($filters['category_ids']), function (Builder $q) use ($filters): void {
+                $categoryIds = !empty($filters['category_ids'])
+                    ? (is_array($filters['category_ids']) ? $filters['category_ids'] : explode(',', (string)$filters['category_ids']))
                     : (is_array($filters['category_id']) ? $filters['category_id'] : [$filters['category_id']]);
 
                 $q->whereHas('categories', function (Builder $categoryQuery) use ($categoryIds): void {
                     $categoryQuery->whereIn('categories.id', $categoryIds);
                 });
             })
-            ->when(! empty($filters['primary_category_id']), function (Builder $q) use ($filters): void {
+            ->when(!empty($filters['primary_category_id']), function (Builder $q) use ($filters): void {
                 $categoryId = $filters['primary_category_id'];
 
                 $q->whereHas('categories', function (Builder $categoryQuery) use ($categoryId): void {
@@ -722,56 +696,56 @@ class Product extends Model
                         ->where('category_product.is_primary', true);
                 });
             })
-            ->when(! empty($filters['type']), function (Builder $q) use ($filters): void {
-                $types = is_array($filters['type']) ? $filters['type'] : explode(',', (string) $filters['type']);
+            ->when(!empty($filters['type']), function (Builder $q) use ($filters): void {
+                $types = is_array($filters['type']) ? $filters['type'] : explode(',', (string)$filters['type']);
                 $q->whereIn('type', $types);
             })
-            ->when(! empty($filters['condition']), function (Builder $q) use ($filters): void {
+            ->when(!empty($filters['condition']), function (Builder $q) use ($filters): void {
                 $conditions = is_array($filters['condition'])
                     ? $filters['condition']
-                    : explode(',', (string) $filters['condition']);
+                    : explode(',', (string)$filters['condition']);
 
                 $q->whereIn('condition', $conditions);
             })
-            ->when(! empty($filters['tag_ids']), function (Builder $q) use ($filters): void {
+            ->when(!empty($filters['tag_ids']), function (Builder $q) use ($filters): void {
                 $tagIds = is_array($filters['tag_ids'])
                     ? $filters['tag_ids']
-                    : explode(',', (string) $filters['tag_ids']);
+                    : explode(',', (string)$filters['tag_ids']);
 
                 $q->whereHas('tags', function (Builder $tagQuery) use ($tagIds): void {
                     $tagQuery->whereIn('tags.id', $tagIds);
                 });
             })
-            ->when(! empty($filters['supplier_id']), function (Builder $q) use ($filters): void {
+            ->when(!empty($filters['supplier_id']), function (Builder $q) use ($filters): void {
                 $supplierIds = is_array($filters['supplier_id'])
                     ? $filters['supplier_id']
-                    : explode(',', (string) $filters['supplier_id']);
+                    : explode(',', (string)$filters['supplier_id']);
 
                 $q->whereHas('suppliers', function (Builder $supplierQuery) use ($supplierIds): void {
                     $supplierQuery->whereIn('suppliers.id', $supplierIds);
                 });
             })
-            ->when(! empty($filters['min_price']) || ! empty($filters['max_price']), function (Builder $q) use ($filters): void {
+            ->when(!empty($filters['min_price']) || !empty($filters['max_price']), function (Builder $q) use ($filters): void {
                 $q->whereHas('variants', function (Builder $variantQuery) use ($filters): void {
-                    if (! empty($filters['min_price'])) {
-                        $variantQuery->where('price', '>=', (float) $filters['min_price']);
+                    if (!empty($filters['min_price'])) {
+                        $variantQuery->where('price', '>=', (float)$filters['min_price']);
                     }
 
-                    if (! empty($filters['max_price'])) {
-                        $variantQuery->where('price', '<=', (float) $filters['max_price']);
+                    if (!empty($filters['max_price'])) {
+                        $variantQuery->where('price', '<=', (float)$filters['max_price']);
                     }
                 });
             })
-            ->when(! empty($filters['has_variants']), function (Builder $q): void {
+            ->when(!empty($filters['has_variants']), function (Builder $q): void {
                 $q->has('variants', '>', 1);
             })
             ->when(isset($filters['track_inventory']), function (Builder $q) use ($filters): void {
                 $q->where('track_inventory', filter_var($filters['track_inventory'], FILTER_VALIDATE_BOOLEAN));
             })
-            ->when(! empty($filters['created_from']), function (Builder $q) use ($filters): void {
+            ->when(!empty($filters['created_from']), function (Builder $q) use ($filters): void {
                 $q->whereDate('created_at', '>=', $filters['created_from']);
             })
-            ->when(! empty($filters['created_to']), function (Builder $q) use ($filters): void {
+            ->when(!empty($filters['created_to']), function (Builder $q) use ($filters): void {
                 $q->whereDate('created_at', '<=', $filters['created_to']);
             })
             ->when(isset($filters['in_stock']), function (Builder $q) use ($filters): void {
@@ -790,7 +764,7 @@ class Product extends Model
     /**
      * Scope a query to only include publicly visible products.
      *
-     * @param  Builder<Product>  $query
+     * @param Builder<Product> $query
      * @return Builder<Product>
      */
     public function scopeVisible(Builder $query): Builder
@@ -815,7 +789,7 @@ class Product extends Model
     /**
      * Scope a query to filter by product status.
      *
-     * @param  Builder<Product>  $query
+     * @param Builder<Product> $query
      * @return Builder<Product>
      */
     public function scopeStatus(Builder $query, ProductStatus|string $status): Builder
@@ -828,7 +802,7 @@ class Product extends Model
     /**
      * Scope a query to only include featured products.
      *
-     * @param  Builder<Product>  $query
+     * @param Builder<Product> $query
      * @return Builder<Product>
      */
     public function scopeFeatured(Builder $query): Builder
@@ -839,7 +813,7 @@ class Product extends Model
     /**
      * Scope a query to only include products of a specific type.
      *
-     * @param  Builder<Product>  $query
+     * @param Builder<Product> $query
      * @return Builder<Product>
      */
     public function scopeOfType(Builder $query, ProductType|string $type): Builder
@@ -847,5 +821,31 @@ class Product extends Model
         $value = $type instanceof ProductType ? $type->value : $type;
 
         return $query->where('type', $value);
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    protected function casts(): array
+    {
+        return [
+            'type' => ProductType::class,
+            'condition' => ProductCondition::class,
+            'status' => ProductStatus::class,
+            'visibility' => ProductVisibility::class,
+            'is_featured' => 'boolean',
+            'is_returnable' => 'boolean',
+            'return_period_days' => 'integer',
+            'warranty_period_months' => 'integer',
+            'min_order_quantity' => 'integer',
+            'max_order_quantity' => 'integer',
+            'track_inventory' => 'boolean',
+            'allow_backorders' => 'boolean',
+            'requires_shipping' => 'boolean',
+            'is_taxable' => 'boolean',
+            'published_at' => 'datetime',
+            'discontinued_at' => 'datetime',
+            'approved_at' => 'datetime',
+        ];
     }
 }

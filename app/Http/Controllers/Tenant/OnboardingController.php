@@ -20,12 +20,14 @@ class OnboardingController extends ApiController
 {
     public function __construct(
         private readonly OnboardingService $onboardingService,
-    ) {}
+    )
+    {
+    }
 
     /**
      * Show the current onboarding progress.
      *
-     * @param  Request  $request
+     * @param Request $request
      * @return JsonResponse
      */
     public function show(Request $request): JsonResponse
@@ -43,8 +45,8 @@ class OnboardingController extends ApiController
     /**
      * Complete a specific onboarding step.
      *
-     * @param  Request  $request
-     * @param  string  $step
+     * @param Request $request
+     * @param string $step
      * @return JsonResponse
      */
     public function completeStep(Request $request, string $step): JsonResponse
@@ -64,7 +66,7 @@ class OnboardingController extends ApiController
     /**
      * Finish the onboarding process.
      *
-     * @param  Request  $request
+     * @param Request $request
      * @return JsonResponse
      * @throws Throwable
      */

@@ -34,12 +34,14 @@ use Throwable;
 class HrController extends ApiController
 {
     public function __construct(
-        private readonly EmployeeService $employeeService,
-        private readonly AttendanceService $attendanceService,
-        private readonly LeaveService $leaveService,
-        private readonly ShiftService $shiftService,
+        private readonly EmployeeService       $employeeService,
+        private readonly AttendanceService     $attendanceService,
+        private readonly LeaveService          $leaveService,
+        private readonly ShiftService          $shiftService,
         private readonly PayrollProfileService $payrollProfileService,
-    ) {}
+    )
+    {
+    }
 
     /**
      * Upsert an employee profile.
@@ -61,7 +63,7 @@ class HrController extends ApiController
     /**
      * Get a paginated list of attendances.
      *
-     * @param  Request  $request
+     * @param Request $request
      * @return JsonResponse
      */
     public function attendances(Request $request): JsonResponse
@@ -69,9 +71,9 @@ class HrController extends ApiController
         Gate::authorize('hr.view');
 
         $filters = $request->validate([
-            'staff_id'  => ['nullable', 'integer'],
+            'staff_id' => ['nullable', 'integer'],
             'date_from' => ['nullable', 'date'],
-            'date_to'   => ['nullable', 'date', 'after_or_equal:date_from'],
+            'date_to' => ['nullable', 'date', 'after_or_equal:date_from'],
         ]);
 
         $attendances = $this->attendanceService->paginate(
@@ -133,7 +135,7 @@ class HrController extends ApiController
     /**
      * Get a paginated list of leave requests.
      *
-     * @param  Request  $request
+     * @param Request $request
      * @return JsonResponse
      */
     public function leaveRequests(Request $request): JsonResponse
@@ -142,7 +144,7 @@ class HrController extends ApiController
 
         $filters = $request->validate([
             'staff_id' => ['nullable', 'integer'],
-            'status'   => ['nullable', new Enum(LeaveRequestStatus::class)],
+            'status' => ['nullable', new Enum(LeaveRequestStatus::class)],
         ]);
 
         $requests = $this->leaveService->paginateRequests(
@@ -176,8 +178,8 @@ class HrController extends ApiController
     /**
      * Approve a leave request.
      *
-     * @param  Request  $request
-     * @param  LeaveRequest  $leaveRequest
+     * @param Request $request
+     * @param LeaveRequest $leaveRequest
      * @return JsonResponse
      */
     public function approveLeave(Request $request, LeaveRequest $leaveRequest): JsonResponse
@@ -202,8 +204,8 @@ class HrController extends ApiController
     /**
      * Reject a leave request.
      *
-     * @param  Request  $request
-     * @param  LeaveRequest  $leaveRequest
+     * @param Request $request
+     * @param LeaveRequest $leaveRequest
      * @return JsonResponse
      */
     public function rejectLeave(Request $request, LeaveRequest $leaveRequest): JsonResponse
@@ -228,7 +230,7 @@ class HrController extends ApiController
     /**
      * Store a new leave type.
      *
-     * @param  StoreLeaveTypeRequest  $request
+     * @param StoreLeaveTypeRequest $request
      * @return JsonResponse
      */
     public function storeLeaveType(StoreLeaveTypeRequest $request): JsonResponse

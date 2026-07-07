@@ -11,8 +11,7 @@ use Illuminate\Support\Facades\Schema;
  *
  * Replaces direct variant-to-attribute coupling.
  */
-return new class extends Migration
-{
+return new class extends Migration {
     public function up(): void
     {
         Schema::create('variant_option_values', function (Blueprint $table): void {

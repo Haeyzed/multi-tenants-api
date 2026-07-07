@@ -28,12 +28,14 @@ class SettingsController extends ApiController
 {
     public function __construct(
         private readonly CentralSetupService $centralSetupService,
-    ) {}
+    )
+    {
+    }
 
     /**
      * Get all store settings.
      *
-     * @param  Request  $request
+     * @param Request $request
      * @return JsonResponse
      */
     public function index(Request $request): JsonResponse
@@ -54,7 +56,7 @@ class SettingsController extends ApiController
     /**
      * Update business settings.
      *
-     * @param  UpdateBusinessSettingsRequest  $request
+     * @param UpdateBusinessSettingsRequest $request
      * @return JsonResponse
      */
     public function updateBusiness(UpdateBusinessSettingsRequest $request): JsonResponse
@@ -117,7 +119,7 @@ class SettingsController extends ApiController
     /**
      * Update notification settings.
      *
-     * @param  UpdateNotificationSettingsRequest  $request
+     * @param UpdateNotificationSettingsRequest $request
      * @return JsonResponse
      */
     public function updateNotifications(UpdateNotificationSettingsRequest $request): JsonResponse

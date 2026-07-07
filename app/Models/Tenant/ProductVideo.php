@@ -41,17 +41,6 @@ class ProductVideo extends Model
     ];
 
     /**
-     * @return array<string, string>
-     */
-    protected function casts(): array
-    {
-        return [
-            'sort_order' => 'integer',
-            'is_primary' => 'boolean',
-        ];
-    }
-
-    /**
      * Get the product this video belongs to.
      *
      * @return BelongsTo<Product, $this>
@@ -94,5 +83,16 @@ class ProductVideo extends Model
             'youtube' => "https://www.youtube.com/watch?v={$this->video_id}",
             default => $this->video_url,
         };
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    protected function casts(): array
+    {
+        return [
+            'sort_order' => 'integer',
+            'is_primary' => 'boolean',
+        ];
     }
 }

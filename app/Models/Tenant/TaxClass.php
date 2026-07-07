@@ -49,18 +49,6 @@ class TaxClass extends Model
     }
 
     /**
-     * @return array<string, string>
-     */
-    protected function casts(): array
-    {
-        return [
-            'is_default' => 'boolean',
-            'is_active' => 'boolean',
-            'sort_order' => 'integer',
-        ];
-    }
-
-    /**
      * @return HasMany<TaxRate, $this>
      */
     public function rates(): HasMany
@@ -77,24 +65,24 @@ class TaxClass extends Model
     }
 
     /**
-     * @param  Builder<TaxClass>  $query
-     * @param  array<string, mixed>  $filters
+     * @param Builder<TaxClass> $query
+     * @param array<string, mixed> $filters
      * @return Builder<TaxClass>
      */
     public function scopeFilter(Builder $query, array $filters): Builder
     {
         return $query
-            ->when(! empty($filters['search']), function (Builder $q) use ($filters): void {
-                $search = (string) $filters['search'];
+            ->when(!empty($filters['search']), function (Builder $q) use ($filters): void {
+                $search = (string)$filters['search'];
                 $q->where(function (Builder $builder) use ($search): void {
                     $builder->where('name', 'like', "%{$search}%")
                         ->orWhere('code', 'like', "%{$search}%");
                 });
             })
-            ->when(! empty($filters['is_active']), function (Builder $q) use ($filters): void {
+            ->when(!empty($filters['is_active']), function (Builder $q) use ($filters): void {
                 $statuses = is_array($filters['is_active'])
                     ? $filters['is_active']
-                    : explode(',', (string) $filters['is_active']);
+                    : explode(',', (string)$filters['is_active']);
 
                 $booleans = [];
 
@@ -106,12 +94,24 @@ class TaxClass extends Model
                     $booleans[] = false;
                 }
 
-                if (! empty($booleans)) {
+                if (!empty($booleans)) {
                     $q->whereIn('is_active', $booleans);
                 }
             })
             ->when(isset($filters['is_default']), function (Builder $q) use ($filters): void {
                 $q->where('is_default', filter_var($filters['is_default'], FILTER_VALIDATE_BOOLEAN));
             });
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    protected function casts(): array
+    {
+        return [
+            'is_default' => 'boolean',
+            'is_active' => 'boolean',
+            'sort_order' => 'integer',
+        ];
     }
 }

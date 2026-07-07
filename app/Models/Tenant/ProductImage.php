@@ -41,17 +41,6 @@ class ProductImage extends Model
     ];
 
     /**
-     * @return array<string, string>
-     */
-    protected function casts(): array
-    {
-        return [
-            'sort_order' => 'integer',
-            'is_primary' => 'boolean',
-        ];
-    }
-
-    /**
      * Get the product this image belongs to.
      *
      * @return BelongsTo<Product, $this>
@@ -79,5 +68,16 @@ class ProductImage extends Model
     public function media(): BelongsTo
     {
         return $this->belongsTo(Media::class);
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    protected function casts(): array
+    {
+        return [
+            'sort_order' => 'integer',
+            'is_primary' => 'boolean',
+        ];
     }
 }

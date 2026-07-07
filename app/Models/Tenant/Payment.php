@@ -30,19 +30,6 @@ class Payment extends Model
     ];
 
     /**
-     * @return array<string, string>
-     */
-    protected function casts(): array
-    {
-        return [
-            'provider' => PaymentProvider::class,
-            'status' => PaymentStatus::class,
-            'amount' => 'decimal:2',
-            'metadata' => 'array',
-        ];
-    }
-
-    /**
      * Get the order associated with the payment.
      *
      * @return BelongsTo<Order, $this>
@@ -65,12 +52,25 @@ class Payment extends Model
     /**
      * Scope a query to filter payments by status.
      *
-     * @param  Builder<Payment>  $query
-     * @param  string|PaymentStatus  $status
+     * @param Builder<Payment> $query
+     * @param string|PaymentStatus $status
      * @return Builder<Payment>
      */
     public function scopeSearch(Builder $query, string|PaymentStatus $status): Builder
     {
         return $query->where('status', $status);
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    protected function casts(): array
+    {
+        return [
+            'provider' => PaymentProvider::class,
+            'status' => PaymentStatus::class,
+            'amount' => 'decimal:2',
+            'metadata' => 'array',
+        ];
     }
 }

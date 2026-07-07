@@ -27,7 +27,7 @@ class WarehouseZoneResource extends JsonResource
             'zone_type' => $this->zone_type,
             'is_active' => $this->is_active,
             'sort_order' => $this->sort_order,
-            'locations_count' => $this->when(isset($this->locations_count), fn () => $this->locations_count),
+            'locations_count' => $this->when(isset($this->locations_count), fn() => $this->locations_count),
             'locations' => WarehouseLocationResource::collection($this->whenLoaded('locations')),
             'created_at' => $this->created_at?->toIso8601String(),
             'updated_at' => $this->updated_at?->toIso8601String(),

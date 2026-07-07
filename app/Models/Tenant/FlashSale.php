@@ -49,19 +49,6 @@ class FlashSale extends Model
     }
 
     /**
-     * @return array<string, string>
-     */
-    protected function casts(): array
-    {
-        return [
-            'starts_at' => 'datetime',
-            'ends_at' => 'datetime',
-            'status' => FlashSaleStatus::class,
-            'is_active' => 'boolean',
-        ];
-    }
-
-    /**
      * Get the options for activity logging.
      *
      * @return LogOptions
@@ -130,12 +117,25 @@ class FlashSale extends Model
     /**
      * Scope a query to search flash sales by name.
      *
-     * @param  Builder<FlashSale>  $query
-     * @param  string  $search
+     * @param Builder<FlashSale> $query
+     * @param string $search
      * @return Builder<FlashSale>
      */
     public function scopeSearch(Builder $query, string $search): Builder
     {
         return $query->where('name', 'like', "%{$search}%");
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    protected function casts(): array
+    {
+        return [
+            'starts_at' => 'datetime',
+            'ends_at' => 'datetime',
+            'status' => FlashSaleStatus::class,
+            'is_active' => 'boolean',
+        ];
     }
 }

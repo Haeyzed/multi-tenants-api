@@ -22,6 +22,18 @@ enum OnboardingStep: string
         return array_column(self::cases(), 'value');
     }
 
+    public function next(): ?self
+    {
+        $ordered = self::ordered();
+        $index = array_search($this, $ordered, true);
+
+        if ($index === false || $index === count($ordered) - 1) {
+            return null;
+        }
+
+        return $ordered[$index + 1];
+    }
+
     /**
      * @return list<self>
      */
@@ -36,17 +48,5 @@ enum OnboardingStep: string
             self::Invoice,
             self::Complete,
         ];
-    }
-
-    public function next(): ?self
-    {
-        $ordered = self::ordered();
-        $index = array_search($this, $ordered, true);
-
-        if ($index === false || $index === count($ordered) - 1) {
-            return null;
-        }
-
-        return $ordered[$index + 1];
     }
 }

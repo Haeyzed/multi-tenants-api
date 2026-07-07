@@ -15,10 +15,12 @@ class SettingsUpdated
     use Dispatchable, SerializesModels;
 
     /**
-     * @param  array<string, mixed>  $settings
+     * @param array<string, mixed> $settings
      */
     public function __construct(
         public string $section,
-        public array $settings,
-    ) {}
+        public array  $settings,
+    )
+    {
+    }
 }

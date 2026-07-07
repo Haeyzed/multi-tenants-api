@@ -26,16 +26,6 @@ class Position extends Model
     ];
 
     /**
-     * @return array<string, string>
-     */
-    protected function casts(): array
-    {
-        return [
-            'is_active' => 'boolean',
-        ];
-    }
-
-    /**
      * Get the department that the position belongs to.
      *
      * @return BelongsTo<Department, $this>
@@ -58,15 +48,25 @@ class Position extends Model
     /**
      * Scope a query to search positions by title or code.
      *
-     * @param  Builder<Position>  $query
-     * @param  string  $search
+     * @param Builder<Position> $query
+     * @param string $search
      * @return Builder<Position>
      */
     public function scopeSearch(Builder $query, string $search): Builder
     {
         return $query->where(function (Builder $q) use ($search) {
             $q->where('title', 'like', "%{$search}%")
-              ->orWhere('code', 'like', "%{$search}%");
+                ->orWhere('code', 'like', "%{$search}%");
         });
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    protected function casts(): array
+    {
+        return [
+            'is_active' => 'boolean',
+        ];
     }
 }

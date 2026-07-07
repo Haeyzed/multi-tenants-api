@@ -12,8 +12,7 @@ use Illuminate\Support\Facades\Schema;
  * Products are catalog records only. SKU, pricing, barcode, and inventory
  * live exclusively on product_variants.
  */
-return new class extends Migration
-{
+return new class extends Migration {
     public function up(): void
     {
         Schema::create('products', function (Blueprint $table): void {

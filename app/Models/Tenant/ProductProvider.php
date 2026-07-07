@@ -37,17 +37,6 @@ class ProductProvider extends Model
     ];
 
     /**
-     * @return array<string, string>
-     */
-    protected function casts(): array
-    {
-        return [
-            'is_primary' => 'boolean',
-            'commission_rate' => 'decimal:2',
-        ];
-    }
-
-    /**
      * Product this provider is assigned to.
      *
      * @return BelongsTo<Product, $this>
@@ -65,5 +54,16 @@ class ProductProvider extends Model
     public function provider(): BelongsTo
     {
         return $this->belongsTo(TenantUser::class, 'provider_id');
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    protected function casts(): array
+    {
+        return [
+            'is_primary' => 'boolean',
+            'commission_rate' => 'decimal:2',
+        ];
     }
 }

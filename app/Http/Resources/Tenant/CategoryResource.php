@@ -38,9 +38,9 @@ class CategoryResource extends JsonResource
             'products_count' => $this->products_count,
             'parent' => new CategoryResource($this->whenLoaded('parent')),
             'children' => CategoryResource::collection($this->whenLoaded('children')),
-            'image' => $this->whenLoaded('imageMedia', fn () => $this->imageMedia ? new MediaResource($this->imageMedia) : null),
-            'banner' => $this->whenLoaded('bannerMedia', fn () => $this->bannerMedia ? new MediaResource($this->bannerMedia) : null),
-            'icon' => $this->whenLoaded('iconMedia', fn () => $this->iconMedia ? new MediaResource($this->iconMedia) : null),
+            'image' => $this->whenLoaded('imageMedia', fn() => $this->imageMedia ? new MediaResource($this->imageMedia) : null),
+            'banner' => $this->whenLoaded('bannerMedia', fn() => $this->bannerMedia ? new MediaResource($this->bannerMedia) : null),
+            'icon' => $this->whenLoaded('iconMedia', fn() => $this->iconMedia ? new MediaResource($this->iconMedia) : null),
             'created_at' => $this->created_at?->toIso8601String(),
             'updated_at' => $this->updated_at?->toIso8601String(),
         ];

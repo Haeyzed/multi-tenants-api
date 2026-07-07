@@ -33,7 +33,7 @@ class SupplierResource extends JsonResource
             'is_active' => $this->is_active,
             'products_count' => $this->when(
                 isset($this->products_count),
-                fn () => $this->products_count,
+                fn() => $this->products_count,
             ),
             'addresses' => SupplierAddressResource::collection($this->whenLoaded('addresses')),
             'bank_accounts' => SupplierBankAccountResource::collection($this->whenLoaded('bankAccounts')),

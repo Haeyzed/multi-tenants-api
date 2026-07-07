@@ -7,5 +7,5 @@ Route::get('/', function () {
     return view('welcome');
 });
 
-Route::post(config('cashier.paddle_path', 'paddle').'/webhook', [PaddleWebhookController::class, 'handleWebhook'])
+Route::post(config('cashier.paddle_path', 'paddle') . '/webhook', [PaddleWebhookController::class, 'handleWebhook'])
     ->name('cashier.webhook');

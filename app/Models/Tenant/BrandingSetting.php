@@ -26,16 +26,6 @@ class BrandingSetting extends Model implements HasMedia
     ];
 
     /**
-     * @return array<string, string>
-     */
-    protected function casts(): array
-    {
-        return [
-            'theme' => 'array',
-        ];
-    }
-
-    /**
      * Get the options for activity logging.
      *
      * @return LogOptions
@@ -57,5 +47,15 @@ class BrandingSetting extends Model implements HasMedia
         $this->addMediaCollection('store_logo')->singleFile();
         $this->addMediaCollection('store_banner')->singleFile();
         $this->addMediaCollection('favicon')->singleFile();
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    protected function casts(): array
+    {
+        return [
+            'theme' => 'array',
+        ];
     }
 }

@@ -30,19 +30,6 @@ class LeaveRequest extends Model
     ];
 
     /**
-     * @return array<string, string>
-     */
-    protected function casts(): array
-    {
-        return [
-            'start_date' => 'date',
-            'end_date' => 'date',
-            'status' => LeaveRequestStatus::class,
-            'reviewed_at' => 'datetime',
-        ];
-    }
-
-    /**
      * Get the staff member who submitted the request.
      *
      * @return BelongsTo<Staff, $this>
@@ -75,12 +62,25 @@ class LeaveRequest extends Model
     /**
      * Scope a query to filter leave requests by status.
      *
-     * @param  Builder<LeaveRequest>  $query
-     * @param  string|LeaveRequestStatus  $status
+     * @param Builder<LeaveRequest> $query
+     * @param string|LeaveRequestStatus $status
      * @return Builder<LeaveRequest>
      */
     public function scopeSearch(Builder $query, string|LeaveRequestStatus $status): Builder
     {
         return $query->where('status', $status);
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    protected function casts(): array
+    {
+        return [
+            'start_date' => 'date',
+            'end_date' => 'date',
+            'status' => LeaveRequestStatus::class,
+            'reviewed_at' => 'datetime',
+        ];
     }
 }

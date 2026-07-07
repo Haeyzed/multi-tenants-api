@@ -49,17 +49,6 @@ class AttributeValue extends Model
     ];
 
     /**
-     * @return array<string, string>
-     */
-    protected function casts(): array
-    {
-        return [
-            'is_default' => 'boolean',
-            'sort_order' => 'integer',
-        ];
-    }
-
-    /**
      * Parent attribute definition.
      *
      * @return BelongsTo<Attribute, $this>
@@ -101,5 +90,16 @@ class AttributeValue extends Model
         return $this->belongsToMany(ProductVariant::class, 'variant_attribute_values')
             ->withPivot(['attribute_id'])
             ->withTimestamps();
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    protected function casts(): array
+    {
+        return [
+            'is_default' => 'boolean',
+            'sort_order' => 'integer',
+        ];
     }
 }

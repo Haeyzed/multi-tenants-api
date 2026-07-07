@@ -15,5 +15,7 @@ class StaffCreated
 {
     use Dispatchable, SerializesModels;
 
-    public function __construct(public Staff $staff) {}
+    public function __construct(public Staff $staff)
+    {
+    }
 }

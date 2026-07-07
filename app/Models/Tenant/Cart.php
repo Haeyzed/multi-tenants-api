@@ -24,16 +24,6 @@ class Cart extends Model
     ];
 
     /**
-     * @return array<string, string>
-     */
-    protected function casts(): array
-    {
-        return [
-            'status' => CartStatus::class,
-        ];
-    }
-
-    /**
      * Get the customer that owns the cart.
      *
      * @return BelongsTo<Customer, $this>
@@ -60,6 +50,16 @@ class Cart extends Model
      */
     public function subtotal(): float
     {
-        return (float) $this->items->sum(fn (CartItem $item): float => $item->unit_price * $item->quantity);
+        return (float)$this->items->sum(fn(CartItem $item): float => $item->unit_price * $item->quantity);
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    protected function casts(): array
+    {
+        return [
+            'status' => CartStatus::class,
+        ];
     }
 }

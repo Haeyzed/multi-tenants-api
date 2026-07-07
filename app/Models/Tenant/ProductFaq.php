@@ -42,6 +42,16 @@ class ProductFaq extends Model
     ];
 
     /**
+     * Product this FAQ belongs to.
+     *
+     * @return BelongsTo<Product, $this>
+     */
+    public function product(): BelongsTo
+    {
+        return $this->belongsTo(Product::class);
+    }
+
+    /**
      * @return array<string, string>
      */
     protected function casts(): array
@@ -51,15 +61,5 @@ class ProductFaq extends Model
             'sort_order' => 'integer',
             'helpful_count' => 'integer',
         ];
-    }
-
-    /**
-     * Product this FAQ belongs to.
-     *
-     * @return BelongsTo<Product, $this>
-     */
-    public function product(): BelongsTo
-    {
-        return $this->belongsTo(Product::class);
     }
 }

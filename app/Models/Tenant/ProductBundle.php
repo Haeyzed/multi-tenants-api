@@ -47,20 +47,6 @@ class ProductBundle extends Model
     ];
 
     /**
-     * @return array<string, string>
-     */
-    protected function casts(): array
-    {
-        return [
-            'quantity' => 'integer',
-            'is_optional' => 'boolean',
-            'discount_percentage' => 'decimal:2',
-            'fixed_price' => 'decimal:2',
-            'sort_order' => 'integer',
-        ];
-    }
-
-    /**
      * Bundle product that owns this item.
      *
      * @return BelongsTo<Product, $this>
@@ -100,13 +86,27 @@ class ProductBundle extends Model
             : ($this->includedProduct?->price ?? 0);
 
         if ($this->fixed_price !== null) {
-            return (float) $this->fixed_price;
+            return (float)$this->fixed_price;
         }
 
         if ($this->discount_percentage) {
-            return (float) $basePrice * (1 - ((float) $this->discount_percentage / 100));
+            return (float)$basePrice * (1 - ((float)$this->discount_percentage / 100));
         }
 
-        return (float) $basePrice;
+        return (float)$basePrice;
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    protected function casts(): array
+    {
+        return [
+            'quantity' => 'integer',
+            'is_optional' => 'boolean',
+            'discount_percentage' => 'decimal:2',
+            'fixed_price' => 'decimal:2',
+            'sort_order' => 'integer',
+        ];
     }
 }

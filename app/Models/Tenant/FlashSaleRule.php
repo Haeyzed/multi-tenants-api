@@ -22,16 +22,6 @@ class FlashSaleRule extends Model
     ];
 
     /**
-     * @return array<string, string>
-     */
-    protected function casts(): array
-    {
-        return [
-            'rule_value' => 'array',
-        ];
-    }
-
-    /**
      * Get the flash sale this rule belongs to.
      *
      * @return BelongsTo<FlashSale, $this>
@@ -39,5 +29,15 @@ class FlashSaleRule extends Model
     public function flashSale(): BelongsTo
     {
         return $this->belongsTo(FlashSale::class);
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    protected function casts(): array
+    {
+        return [
+            'rule_value' => 'array',
+        ];
     }
 }

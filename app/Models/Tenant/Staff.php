@@ -58,20 +58,6 @@ class Staff extends Model
     }
 
     /**
-     * @return array<string, string>
-     */
-    protected function casts(): array
-    {
-        return [
-            'employment_type' => EmploymentType::class,
-            'employment_status' => EmploymentStatus::class,
-            'hire_date' => 'date',
-            'termination_date' => 'date',
-            'allow_login' => 'boolean',
-        ];
-    }
-
-    /**
      * Get the options for activity logging.
      *
      * @return LogOptions
@@ -199,17 +185,31 @@ class Staff extends Model
     /**
      * Scope a query to search staff members.
      *
-     * @param  Builder<Staff>  $query
-     * @param  string  $search
+     * @param Builder<Staff> $query
+     * @param string $search
      * @return Builder<Staff>
      */
     public function scopeSearch(Builder $query, string $search): Builder
     {
         return $query->where(function (Builder $q) use ($search) {
             $q->where('first_name', 'like', "%{$search}%")
-              ->orWhere('last_name', 'like', "%{$search}%")
-              ->orWhere('email', 'like', "%{$search}%")
-              ->orWhere('staff_id', 'like', "%{$search}%");
+                ->orWhere('last_name', 'like', "%{$search}%")
+                ->orWhere('email', 'like', "%{$search}%")
+                ->orWhere('staff_id', 'like', "%{$search}%");
         });
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    protected function casts(): array
+    {
+        return [
+            'employment_type' => EmploymentType::class,
+            'employment_status' => EmploymentStatus::class,
+            'hire_date' => 'date',
+            'termination_date' => 'date',
+            'allow_login' => 'boolean',
+        ];
     }
 }

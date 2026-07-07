@@ -52,7 +52,7 @@ class ProductVariantFactory extends Factory
      */
     public function default(): static
     {
-        return $this->state(fn (array $attributes): array => [
+        return $this->state(fn(array $attributes): array => [
             'is_default' => true,
             'position' => 0,
         ]);
@@ -63,7 +63,7 @@ class ProductVariantFactory extends Factory
      */
     public function sellable(): static
     {
-        return $this->state(fn (array $attributes): array => [
+        return $this->state(fn(array $attributes): array => [
             'status' => VariantStatus::Active,
             'visibility' => ProductVisibility::Visible,
         ]);

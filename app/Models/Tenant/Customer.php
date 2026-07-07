@@ -82,20 +82,6 @@ class Customer extends Model
     }
 
     /**
-     * @return array<string, string>
-     */
-    protected function casts(): array
-    {
-        return [
-            'date_of_birth' => 'date',
-            'loyalty_points' => 'integer',
-            'total_spent' => 'decimal:2',
-            'orders_count' => 'integer',
-            'is_active' => 'boolean',
-        ];
-    }
-
-    /**
      * Get the options for activity logging.
      *
      * @return LogOptions
@@ -190,15 +176,15 @@ class Customer extends Model
     /**
      * Scope a query to filter customers.
      *
-     * @param  Builder<Customer>  $query
-     * @param  array<string, mixed>  $filters
+     * @param Builder<Customer> $query
+     * @param array<string, mixed> $filters
      * @return Builder<Customer>
      */
     public function scopeFilter(Builder $query, array $filters): Builder
     {
         return $query
             ->when(!empty($filters['search']), function (Builder $q) use ($filters): void {
-                $search = (string) $filters['search'];
+                $search = (string)$filters['search'];
                 $q->where(function (Builder $builder) use ($search): void {
                     $builder->where('first_name', 'like', "%{$search}%")
                         ->orWhere('last_name', 'like', "%{$search}%")
@@ -209,14 +195,14 @@ class Customer extends Model
             ->when(!empty($filters['customer_group_id']), function (Builder $q) use ($filters): void {
                 $groupIds = is_array($filters['customer_group_id'])
                     ? $filters['customer_group_id']
-                    : explode(',', (string) $filters['customer_group_id']);
+                    : explode(',', (string)$filters['customer_group_id']);
 
                 $q->whereIn('customer_group_id', $groupIds);
             })
             ->when(!empty($filters['is_active']), function (Builder $q) use ($filters): void {
                 $statuses = is_array($filters['is_active'])
                     ? $filters['is_active']
-                    : explode(',', (string) $filters['is_active']);
+                    : explode(',', (string)$filters['is_active']);
 
                 $booleans = [];
                 if (in_array('active', $statuses, true)) {
@@ -230,5 +216,19 @@ class Customer extends Model
                     $q->whereIn('is_active', $booleans);
                 }
             });
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    protected function casts(): array
+    {
+        return [
+            'date_of_birth' => 'date',
+            'loyalty_points' => 'integer',
+            'total_spent' => 'decimal:2',
+            'orders_count' => 'integer',
+            'is_active' => 'boolean',
+        ];
     }
 }

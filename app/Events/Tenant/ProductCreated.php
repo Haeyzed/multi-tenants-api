@@ -15,5 +15,7 @@ class ProductCreated
 {
     use Dispatchable, SerializesModels;
 
-    public function __construct(public Product $product) {}
+    public function __construct(public Product $product)
+    {
+    }
 }

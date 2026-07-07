@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Models\Tenant;
 
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 /**
@@ -25,6 +24,14 @@ class TaxRegion extends Model
     ];
 
     /**
+     * @return HasMany<TaxRule, $this>
+     */
+    public function rules(): HasMany
+    {
+        return $this->hasMany(TaxRule::class);
+    }
+
+    /**
      * @return array<string, string>
      */
     protected function casts(): array
@@ -32,13 +39,5 @@ class TaxRegion extends Model
         return [
             'is_active' => 'boolean',
         ];
-    }
-
-    /**
-     * @return HasMany<TaxRule, $this>
-     */
-    public function rules(): HasMany
-    {
-        return $this->hasMany(TaxRule::class);
     }
 }

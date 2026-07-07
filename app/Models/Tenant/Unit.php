@@ -50,6 +50,34 @@ class Unit extends Model
     }
 
     /**
+     * @param Builder<Unit> $query
+     * @param array<string, mixed> $filters
+     * @return Builder<Unit>
+     */
+    public function scopeFilter(Builder $query, array $filters): Builder
+    {
+        return $query
+            ->when(!empty($filters['search']), function (Builder $q) use ($filters): void {
+                $search = (string)$filters['search'];
+                $q->where(function (Builder $builder) use ($search): void {
+                    $builder->where('name', 'like', "%{$search}%")
+                        ->orWhere('code', 'like', "%{$search}%")
+                        ->orWhere('symbol', 'like', "%{$search}%");
+                });
+            })
+            ->when(!empty($filters['type']), function (Builder $q) use ($filters): void {
+                $types = is_array($filters['type'])
+                    ? $filters['type']
+                    : explode(',', (string)$filters['type']);
+
+                $q->whereIn('type', $types);
+            })
+            ->when(isset($filters['is_base']), function (Builder $q) use ($filters): void {
+                $q->where('is_base', filter_var($filters['is_base'], FILTER_VALIDATE_BOOLEAN));
+            });
+    }
+
+    /**
      * @return array<string, string>
      */
     protected function casts(): array
@@ -59,33 +87,5 @@ class Unit extends Model
             'is_base' => 'boolean',
             'sort_order' => 'integer',
         ];
-    }
-
-    /**
-     * @param  Builder<Unit>  $query
-     * @param  array<string, mixed>  $filters
-     * @return Builder<Unit>
-     */
-    public function scopeFilter(Builder $query, array $filters): Builder
-    {
-        return $query
-            ->when(! empty($filters['search']), function (Builder $q) use ($filters): void {
-                $search = (string) $filters['search'];
-                $q->where(function (Builder $builder) use ($search): void {
-                    $builder->where('name', 'like', "%{$search}%")
-                        ->orWhere('code', 'like', "%{$search}%")
-                        ->orWhere('symbol', 'like', "%{$search}%");
-                });
-            })
-            ->when(! empty($filters['type']), function (Builder $q) use ($filters): void {
-                $types = is_array($filters['type'])
-                    ? $filters['type']
-                    : explode(',', (string) $filters['type']);
-
-                $q->whereIn('type', $types);
-            })
-            ->when(isset($filters['is_base']), function (Builder $q) use ($filters): void {
-                $q->where('is_base', filter_var($filters['is_base'], FILTER_VALIDATE_BOOLEAN));
-            });
     }
 }

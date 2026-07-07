@@ -15,5 +15,7 @@ class CheckoutSessionAdmitted
 {
     use Dispatchable, SerializesModels;
 
-    public function __construct(public CheckoutSession $session) {}
+    public function __construct(public CheckoutSession $session)
+    {
+    }
 }

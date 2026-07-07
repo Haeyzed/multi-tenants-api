@@ -9,8 +9,7 @@ use Illuminate\Support\Facades\Schema;
 /**
  * Variant-level inventory — single source of truth for stock quantities.
  */
-return new class extends Migration
-{
+return new class extends Migration {
     public function up(): void
     {
         Schema::create('inventories', function (Blueprint $table): void {

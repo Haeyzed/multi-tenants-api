@@ -26,18 +26,6 @@ class CheckoutQueue extends Model
     ];
 
     /**
-     * @return array<string, string>
-     */
-    protected function casts(): array
-    {
-        return [
-            'max_concurrent_sessions' => 'integer',
-            'session_ttl_seconds' => 'integer',
-            'is_active' => 'boolean',
-        ];
-    }
-
-    /**
      * Get the flash sale associated with the queue.
      *
      * @return BelongsTo<FlashSale, $this>
@@ -45,16 +33,6 @@ class CheckoutQueue extends Model
     public function flashSale(): BelongsTo
     {
         return $this->belongsTo(FlashSale::class);
-    }
-
-    /**
-     * Get the checkout sessions in the queue.
-     *
-     * @return HasMany<CheckoutSession, $this>
-     */
-    public function sessions(): HasMany
-    {
-        return $this->hasMany(CheckoutSession::class);
     }
 
     /**
@@ -68,5 +46,27 @@ class CheckoutQueue extends Model
             ->where('status', CheckoutSessionStatus::Admitted)
             ->where('expires_at', '>', now())
             ->count();
+    }
+
+    /**
+     * Get the checkout sessions in the queue.
+     *
+     * @return HasMany<CheckoutSession, $this>
+     */
+    public function sessions(): HasMany
+    {
+        return $this->hasMany(CheckoutSession::class);
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    protected function casts(): array
+    {
+        return [
+            'max_concurrent_sessions' => 'integer',
+            'session_ttl_seconds' => 'integer',
+            'is_active' => 'boolean',
+        ];
     }
 }

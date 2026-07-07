@@ -27,19 +27,6 @@ class Attendance extends Model
     ];
 
     /**
-     * @return array<string, string>
-     */
-    protected function casts(): array
-    {
-        return [
-            'clock_in_at' => 'datetime',
-            'clock_out_at' => 'datetime',
-            'worked_minutes' => 'integer',
-            'status' => AttendanceStatus::class,
-        ];
-    }
-
-    /**
      * Get the staff member associated with the attendance record.
      *
      * @return BelongsTo<Staff, $this>
@@ -52,12 +39,25 @@ class Attendance extends Model
     /**
      * Scope a query to filter attendances by status.
      *
-     * @param  Builder<Attendance>  $query
-     * @param  string|AttendanceStatus  $status
+     * @param Builder<Attendance> $query
+     * @param string|AttendanceStatus $status
      * @return Builder<Attendance>
      */
     public function scopeSearch(Builder $query, string|AttendanceStatus $status): Builder
     {
         return $query->where('status', $status);
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    protected function casts(): array
+    {
+        return [
+            'clock_in_at' => 'datetime',
+            'clock_out_at' => 'datetime',
+            'worked_minutes' => 'integer',
+            'status' => AttendanceStatus::class,
+        ];
     }
 }

@@ -17,13 +17,15 @@ class BillingWebhookController extends ApiController
 {
     public function __construct(
         private readonly PlatformSubscriptionService $platformSubscriptionService,
-    ) {}
+    )
+    {
+    }
 
     public function handle(Request $request, string $provider): JsonResponse
     {
         $billingProvider = BillingProvider::tryFrom($provider);
 
-        if ($billingProvider === null || ! $billingProvider->isGateway()) {
+        if ($billingProvider === null || !$billingProvider->isGateway()) {
             return $this->notFound('Unsupported billing provider.');
         }
 

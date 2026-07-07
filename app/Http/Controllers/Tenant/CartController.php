@@ -24,12 +24,14 @@ class CartController extends ApiController
 
     public function __construct(
         private readonly CartService $cartService,
-    ) {}
+    )
+    {
+    }
 
     /**
      * Show the customer's cart.
      *
-     * @param  Request  $request
+     * @param Request $request
      * @return JsonResponse
      */
     public function show(Request $request): JsonResponse
@@ -48,7 +50,7 @@ class CartController extends ApiController
     /**
      * Add an item to the cart.
      *
-     * @param  AddCartItemRequest  $request
+     * @param AddCartItemRequest $request
      * @return JsonResponse
      */
     public function addItem(AddCartItemRequest $request): JsonResponse
@@ -70,15 +72,15 @@ class CartController extends ApiController
     /**
      * Update an item's quantity in the cart.
      *
-     * @param  UpdateCartItemRequest  $request
-     * @param  CartItem  $item
+     * @param UpdateCartItemRequest $request
+     * @param CartItem $item
      * @return JsonResponse
      */
     public function updateItem(UpdateCartItemRequest $request, CartItem $item): JsonResponse
     {
         $this->authorize('updateItem', $item);
 
-        $cart = $this->cartService->updateItemQuantity($item, (int) $request->validated('quantity'));
+        $cart = $this->cartService->updateItemQuantity($item, (int)$request->validated('quantity'));
 
         return $this->successResponse(
             new CartResource($cart),
@@ -89,7 +91,7 @@ class CartController extends ApiController
     /**
      * Remove an item from the cart.
      *
-     * @param  CartItem  $item
+     * @param CartItem $item
      * @return JsonResponse
      */
     public function removeItem(CartItem $item): JsonResponse
@@ -107,7 +109,7 @@ class CartController extends ApiController
     /**
      * Clear the cart.
      *
-     * @param  Request  $request
+     * @param Request $request
      * @return JsonResponse
      */
     public function clear(Request $request): JsonResponse

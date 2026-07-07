@@ -28,16 +28,6 @@ class StaffDocument extends Model implements HasMedia
     ];
 
     /**
-     * @return array<string, string>
-     */
-    protected function casts(): array
-    {
-        return [
-            'expires_at' => 'date',
-        ];
-    }
-
-    /**
      * Get the staff member this document belongs to.
      *
      * @return BelongsTo<Staff, $this>
@@ -65,5 +55,15 @@ class StaffDocument extends Model implements HasMedia
     public function registerMediaCollections(): void
     {
         $this->addMediaCollection('staff_documents')->singleFile();
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    protected function casts(): array
+    {
+        return [
+            'expires_at' => 'date',
+        ];
     }
 }

@@ -24,6 +24,16 @@ class DropAnalytic extends Model
     ];
 
     /**
+     * Get the flash sale associated with these metrics.
+     *
+     * @return BelongsTo<FlashSale, $this>
+     */
+    public function flashSale(): BelongsTo
+    {
+        return $this->belongsTo(FlashSale::class);
+    }
+
+    /**
      * @return array<string, string>
      */
     protected function casts(): array
@@ -34,15 +44,5 @@ class DropAnalytic extends Model
             'revenue' => 'decimal:2',
             'units_sold' => 'integer',
         ];
-    }
-
-    /**
-     * Get the flash sale associated with these metrics.
-     *
-     * @return BelongsTo<FlashSale, $this>
-     */
-    public function flashSale(): BelongsTo
-    {
-        return $this->belongsTo(FlashSale::class);
     }
 }

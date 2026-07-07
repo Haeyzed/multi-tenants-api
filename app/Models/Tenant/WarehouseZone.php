@@ -45,17 +45,6 @@ class WarehouseZone extends Model
     ];
 
     /**
-     * @return array<string, string>
-     */
-    protected function casts(): array
-    {
-        return [
-            'is_active' => 'boolean',
-            'sort_order' => 'integer',
-        ];
-    }
-
-    /**
      * Warehouse that owns this zone.
      *
      * @return BelongsTo<Warehouse, $this>
@@ -73,5 +62,16 @@ class WarehouseZone extends Model
     public function locations(): HasMany
     {
         return $this->hasMany(WarehouseLocation::class, 'zone_id');
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    protected function casts(): array
+    {
+        return [
+            'is_active' => 'boolean',
+            'sort_order' => 'integer',
+        ];
     }
 }

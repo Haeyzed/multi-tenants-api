@@ -30,12 +30,14 @@ class PlanController extends ApiController
 
     public function __construct(
         private readonly PlanService $planService,
-    ) {}
+    )
+    {
+    }
 
     /**
      * Get a paginated list of plans.
      *
-     * @param  Request  $request
+     * @param Request $request
      * @return JsonResponse
      */
     public function index(Request $request): JsonResponse
@@ -43,9 +45,9 @@ class PlanController extends ApiController
         $this->authorize('viewAny', Plan::class);
 
         $filters = $request->validate([
-            'search'    => ['nullable', 'string'],
-            'is_active'    => ['nullable', 'array'],
-            'is_active.*'  => ['string', 'in:active,inactive'],
+            'search' => ['nullable', 'string'],
+            'is_active' => ['nullable', 'array'],
+            'is_active.*' => ['string', 'in:active,inactive'],
         ]);
 
         $plans = $this->planService->paginate(
@@ -59,7 +61,7 @@ class PlanController extends ApiController
     /**
      * Store a newly created plan in storage.
      *
-     * @param  StorePlanRequest  $request
+     * @param StorePlanRequest $request
      * @return JsonResponse
      */
     public function store(StorePlanRequest $request): JsonResponse
@@ -77,7 +79,7 @@ class PlanController extends ApiController
     /**
      * Display the specified plan.
      *
-     * @param  Plan  $plan
+     * @param Plan $plan
      * @return JsonResponse
      */
     public function show(Plan $plan): JsonResponse
@@ -90,8 +92,8 @@ class PlanController extends ApiController
     /**
      * Update the specified plan in storage.
      *
-     * @param  UpdatePlanRequest  $request
-     * @param  Plan  $plan
+     * @param UpdatePlanRequest $request
+     * @param Plan $plan
      * @return JsonResponse
      */
     public function update(UpdatePlanRequest $request, Plan $plan): JsonResponse
@@ -109,7 +111,7 @@ class PlanController extends ApiController
     /**
      * Remove the specified plan from storage.
      *
-     * @param  Plan  $plan
+     * @param Plan $plan
      * @return JsonResponse
      */
     public function destroy(Plan $plan): JsonResponse

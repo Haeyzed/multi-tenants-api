@@ -19,12 +19,14 @@ class AnalyticsController extends ApiController
 {
     public function __construct(
         private readonly AnalyticsService $analyticsService,
-    ) {}
+    )
+    {
+    }
 
     /**
      * Get the analytics dashboard data.
      *
-     * @param  Request  $request
+     * @param Request $request
      * @return JsonResponse
      */
     public function dashboard(Request $request): JsonResponse
@@ -42,7 +44,7 @@ class AnalyticsController extends ApiController
     /**
      * Get analytics for a specific flash sale drop.
      *
-     * @param  FlashSale  $flashSale
+     * @param FlashSale $flashSale
      * @return JsonResponse
      */
     public function drop(FlashSale $flashSale): JsonResponse
@@ -57,7 +59,7 @@ class AnalyticsController extends ApiController
     /**
      * Record a page view.
      *
-     * @param  Request  $request
+     * @param Request $request
      * @return JsonResponse
      */
     public function recordPageView(Request $request): JsonResponse

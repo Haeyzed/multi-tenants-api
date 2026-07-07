@@ -37,7 +37,7 @@ class CentralRolePermissionSeeder extends Seeder
         ];
 
         $permissionModels = collect($permissions)
-            ->mapWithKeys(fn (string $name): array => [
+            ->mapWithKeys(fn(string $name): array => [
                 $name => Permission::findOrCreate($name, 'web'),
             ]);
 
@@ -54,7 +54,7 @@ class CentralRolePermissionSeeder extends Seeder
         foreach ($rolePermissions as $roleName => $rolePerms) {
             $role = Role::findOrCreate($roleName, 'web');
             $role->syncPermissions(
-                collect($rolePerms)->map(fn (string $name) => $permissionModels[$name])->all()
+                collect($rolePerms)->map(fn(string $name) => $permissionModels[$name])->all()
             );
         }
 

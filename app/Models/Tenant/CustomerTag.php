@@ -51,8 +51,8 @@ class CustomerTag extends Model
     /**
      * Scope a query to search tags by name.
      *
-     * @param  Builder<CustomerTag>  $query
-     * @param  string  $search
+     * @param Builder<CustomerTag> $query
+     * @param string $search
      * @return Builder<CustomerTag>
      */
     public function scopeSearch(Builder $query, string $search): Builder

@@ -27,7 +27,7 @@ class LeaveRequestResource extends JsonResource
             'reason' => $this->reason,
             'status' => $this->status?->value,
             'reviewer_notes' => $this->reviewer_notes,
-            'staff' => $this->whenLoaded('staff', fn () => new StaffResource($this->staff)),
+            'staff' => $this->whenLoaded('staff', fn() => new StaffResource($this->staff)),
             'created_at' => $this->created_at?->toIso8601String(),
         ];
     }

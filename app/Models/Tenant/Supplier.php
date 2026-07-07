@@ -65,17 +65,6 @@ class Supplier extends Model
     ];
 
     /**
-     * @return array<string, string>
-     */
-    protected function casts(): array
-    {
-        return [
-            'is_active' => 'boolean',
-            'products_count' => 'integer',
-        ];
-    }
-
-    /**
      * Get the options for generating the slug.
      */
     public function getSlugOptions(): SlugOptions
@@ -88,25 +77,25 @@ class Supplier extends Model
     /**
      * Scope a query to filter suppliers.
      *
-     * @param  Builder<Supplier>  $query
-     * @param  array<string, mixed>  $filters
+     * @param Builder<Supplier> $query
+     * @param array<string, mixed> $filters
      * @return Builder<Supplier>
      */
     public function scopeFilter(Builder $query, array $filters): Builder
     {
         return $query
-            ->when(! empty($filters['search']), function (Builder $q) use ($filters): void {
+            ->when(!empty($filters['search']), function (Builder $q) use ($filters): void {
                 $search = $filters['search'];
                 $q->where(function (Builder $inner) use ($search): void {
-                    $inner->where('name', 'like', '%'.$search.'%')
-                        ->orWhere('code', 'like', '%'.$search.'%')
-                        ->orWhere('contact_email', 'like', '%'.$search.'%');
+                    $inner->where('name', 'like', '%' . $search . '%')
+                        ->orWhere('code', 'like', '%' . $search . '%')
+                        ->orWhere('contact_email', 'like', '%' . $search . '%');
                 });
             })
-            ->when(! empty($filters['is_active']), function (Builder $q) use ($filters): void {
+            ->when(!empty($filters['is_active']), function (Builder $q) use ($filters): void {
                 $statuses = is_array($filters['is_active'])
                     ? $filters['is_active']
-                    : explode(',', (string) $filters['is_active']);
+                    : explode(',', (string)$filters['is_active']);
 
                 $booleans = [];
 
@@ -118,10 +107,18 @@ class Supplier extends Model
                     $booleans[] = false;
                 }
 
-                if (! empty($booleans)) {
+                if (!empty($booleans)) {
                     $q->whereIn('is_active', $booleans);
                 }
             });
+    }
+
+    /**
+     * Default address for this supplier.
+     */
+    public function primaryAddress(): ?SupplierAddress
+    {
+        return $this->addresses()->where('is_default', true)->first();
     }
 
     /**
@@ -135,11 +132,11 @@ class Supplier extends Model
     }
 
     /**
-     * Default address for this supplier.
+     * Default bank account for this supplier.
      */
-    public function primaryAddress(): ?SupplierAddress
+    public function primaryBankAccount(): ?SupplierBankAccount
     {
-        return $this->addresses()->where('is_default', true)->first();
+        return $this->bankAccounts()->where('is_default', true)->first();
     }
 
     /**
@@ -153,11 +150,11 @@ class Supplier extends Model
     }
 
     /**
-     * Default bank account for this supplier.
+     * Primary contact for this supplier.
      */
-    public function primaryBankAccount(): ?SupplierBankAccount
+    public function primaryContact(): ?SupplierContact
     {
-        return $this->bankAccounts()->where('is_default', true)->first();
+        return $this->contacts()->where('is_primary', true)->first();
     }
 
     /**
@@ -168,14 +165,6 @@ class Supplier extends Model
     public function contacts(): HasMany
     {
         return $this->hasMany(SupplierContact::class);
-    }
-
-    /**
-     * Primary contact for this supplier.
-     */
-    public function primaryContact(): ?SupplierContact
-    {
-        return $this->contacts()->where('is_primary', true)->first();
     }
 
     /**
@@ -204,5 +193,16 @@ class Supplier extends Model
                 'is_primary',
             ])
             ->withTimestamps();
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    protected function casts(): array
+    {
+        return [
+            'is_active' => 'boolean',
+            'products_count' => 'integer',
+        ];
     }
 }

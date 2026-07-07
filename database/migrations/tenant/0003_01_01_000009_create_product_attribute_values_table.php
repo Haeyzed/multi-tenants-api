@@ -11,8 +11,7 @@ use Illuminate\Support\Facades\Schema;
  *
  * Distinct from variant options used for SKU generation.
  */
-return new class extends Migration
-{
+return new class extends Migration {
     public function up(): void
     {
         Schema::create('product_attribute_values', function (Blueprint $table): void {

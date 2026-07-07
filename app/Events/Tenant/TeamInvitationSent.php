@@ -15,5 +15,7 @@ class TeamInvitationSent
 {
     use Dispatchable, SerializesModels;
 
-    public function __construct(public TeamInvitation $invitation) {}
+    public function __construct(public TeamInvitation $invitation)
+    {
+    }
 }

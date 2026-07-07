@@ -9,8 +9,7 @@ use Illuminate\Support\Facades\Schema;
 /**
  * Historical slug records for automatic 301 redirects.
  */
-return new class extends Migration
-{
+return new class extends Migration {
     public function up(): void
     {
         Schema::create('product_slug_histories', function (Blueprint $table): void {

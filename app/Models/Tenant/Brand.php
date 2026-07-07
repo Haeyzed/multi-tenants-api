@@ -78,19 +78,6 @@ class Brand extends Model
     }
 
     /**
-     * @return array<string, string>
-     */
-    protected function casts(): array
-    {
-        return [
-            'is_visible' => 'boolean',
-            'is_featured' => 'boolean',
-            'sort_order' => 'integer',
-            'products_count' => 'integer',
-        ];
-    }
-
-    /**
      * Get the options for generating the slug.
      */
     public function getSlugOptions(): SlugOptions
@@ -111,6 +98,14 @@ class Brand extends Model
     }
 
     /**
+     * @return BelongsTo<Media, $this>
+     */
+    public function logo(): BelongsTo
+    {
+        return $this->logoMedia();
+    }
+
+    /**
      * Logo media file for this brand.
      *
      * @return BelongsTo<Media, $this>
@@ -123,9 +118,9 @@ class Brand extends Model
     /**
      * @return BelongsTo<Media, $this>
      */
-    public function logo(): BelongsTo
+    public function banner(): BelongsTo
     {
-        return $this->logoMedia();
+        return $this->bannerMedia();
     }
 
     /**
@@ -139,30 +134,22 @@ class Brand extends Model
     }
 
     /**
-     * @return BelongsTo<Media, $this>
-     */
-    public function banner(): BelongsTo
-    {
-        return $this->bannerMedia();
-    }
-
-    /**
      * Scope a query to filter brands.
      *
-     * @param  Builder<Brand>  $query
-     * @param  array<string, mixed>  $filters
+     * @param Builder<Brand> $query
+     * @param array<string, mixed> $filters
      * @return Builder<Brand>
      */
     public function scopeFilter(Builder $query, array $filters): Builder
     {
         return $query
-            ->when(! empty($filters['search']), function (Builder $q) use ($filters): void {
-                $q->where('name', 'like', '%'.$filters['search'].'%');
+            ->when(!empty($filters['search']), function (Builder $q) use ($filters): void {
+                $q->where('name', 'like', '%' . $filters['search'] . '%');
             })
-            ->when(! empty($filters['is_visible']), function (Builder $q) use ($filters): void {
+            ->when(!empty($filters['is_visible']), function (Builder $q) use ($filters): void {
                 $statuses = is_array($filters['is_visible'])
                     ? $filters['is_visible']
-                    : explode(',', (string) $filters['is_visible']);
+                    : explode(',', (string)$filters['is_visible']);
 
                 $booleans = [];
 
@@ -174,12 +161,25 @@ class Brand extends Model
                     $booleans[] = false;
                 }
 
-                if (! empty($booleans)) {
+                if (!empty($booleans)) {
                     $q->whereIn('is_visible', $booleans);
                 }
             })
             ->when(isset($filters['is_featured']), function (Builder $q) use ($filters): void {
                 $q->where('is_featured', filter_var($filters['is_featured'], FILTER_VALIDATE_BOOLEAN));
             });
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    protected function casts(): array
+    {
+        return [
+            'is_visible' => 'boolean',
+            'is_featured' => 'boolean',
+            'sort_order' => 'integer',
+            'products_count' => 'integer',
+        ];
     }
 }

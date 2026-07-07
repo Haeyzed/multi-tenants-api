@@ -35,7 +35,9 @@ class CategoryController extends ApiController
 
     public function __construct(
         private readonly CategoryService $categoryService,
-    ) {}
+    )
+    {
+    }
 
     /**
      * Get a paginated list of categories.
@@ -345,7 +347,7 @@ class CategoryController extends ApiController
         $this->authorize('update', $category);
 
         $validated = $request->validate([
-            'parent_id' => ['nullable', 'integer', 'exists:categories,id', 'not_in:'.$category->id],
+            'parent_id' => ['nullable', 'integer', 'exists:categories,id', 'not_in:' . $category->id],
         ]);
 
         $category = $this->categoryService->move($category, $validated['parent_id'] ?? null);

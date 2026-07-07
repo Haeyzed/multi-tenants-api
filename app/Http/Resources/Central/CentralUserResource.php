@@ -24,8 +24,8 @@ class CentralUserResource extends JsonResource
             'email' => $this->email,
             'phone' => $this->phone,
             'is_active' => $this->is_active,
-            'roles' => $this->whenLoaded('roles', fn () => $this->roles->pluck('name')),
-            'permissions' => $this->whenLoaded('permissions', fn () => $this->getAllPermissions()->pluck('name')),
+            'roles' => $this->whenLoaded('roles', fn() => $this->roles->pluck('name')),
+            'permissions' => $this->whenLoaded('permissions', fn() => $this->getAllPermissions()->pluck('name')),
             'created_at' => $this->created_at?->toIso8601String(),
             'updated_at' => $this->updated_at?->toIso8601String(),
         ];

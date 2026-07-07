@@ -72,22 +72,6 @@ class ProductReview extends Model
     ];
 
     /**
-     * @return array<string, string>
-     */
-    protected function casts(): array
-    {
-        return [
-            'rating' => 'integer',
-            'images' => 'array',
-            'is_verified_purchase' => 'boolean',
-            'is_approved' => 'boolean',
-            'helpful_count' => 'integer',
-            'unhelpful_count' => 'integer',
-            'replied_at' => 'datetime',
-        ];
-    }
-
-    /**
      * Get the product this review belongs to.
      *
      * @return BelongsTo<Product, $this>
@@ -150,7 +134,7 @@ class ProductReview extends Model
     /**
      * Scope a query to only include approved reviews.
      *
-     * @param  Builder<ProductReview>  $query
+     * @param Builder<ProductReview> $query
      * @return Builder<ProductReview>
      */
     public function scopeApproved(Builder $query): Builder
@@ -161,7 +145,7 @@ class ProductReview extends Model
     /**
      * Scope a query to only include verified purchase reviews.
      *
-     * @param  Builder<ProductReview>  $query
+     * @param Builder<ProductReview> $query
      * @return Builder<ProductReview>
      */
     public function scopeVerified(Builder $query): Builder
@@ -174,6 +158,22 @@ class ProductReview extends Model
      */
     public function getHasReplyAttribute(): bool
     {
-        return ! empty($this->admin_reply);
+        return !empty($this->admin_reply);
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    protected function casts(): array
+    {
+        return [
+            'rating' => 'integer',
+            'images' => 'array',
+            'is_verified_purchase' => 'boolean',
+            'is_approved' => 'boolean',
+            'helpful_count' => 'integer',
+            'unhelpful_count' => 'integer',
+            'replied_at' => 'datetime',
+        ];
     }
 }

@@ -21,12 +21,14 @@ class TeamController extends ApiController
 {
     public function __construct(
         private readonly TeamService $teamService,
-    ) {}
+    )
+    {
+    }
 
     /**
      * Get a paginated list of team members.
      *
-     * @param  Request  $request
+     * @param Request $request
      * @return JsonResponse
      */
     public function index(Request $request): JsonResponse
@@ -34,7 +36,7 @@ class TeamController extends ApiController
         $this->authorize('viewAny', TenantUser::class);
 
         $filters = $request->validate([
-            'search'    => ['nullable', 'string'],
+            'search' => ['nullable', 'string'],
             'is_active' => ['nullable', 'in:active,inactive'],
         ]);
 
@@ -68,7 +70,7 @@ class TeamController extends ApiController
     /**
      * Get a single team member.
      *
-     * @param  TenantUser  $team
+     * @param TenantUser $team
      * @return JsonResponse
      */
     public function show(TenantUser $team): JsonResponse
@@ -104,7 +106,7 @@ class TeamController extends ApiController
     /**
      * Delete a team member.
      *
-     * @param  TenantUser  $team
+     * @param TenantUser $team
      * @return JsonResponse
      */
     public function destroy(TenantUser $team): JsonResponse
@@ -119,7 +121,7 @@ class TeamController extends ApiController
     /**
      * Suspend a team member.
      *
-     * @param  TenantUser  $team
+     * @param TenantUser $team
      * @return JsonResponse
      */
     public function suspend(TenantUser $team): JsonResponse
@@ -137,7 +139,7 @@ class TeamController extends ApiController
     /**
      * Unsuspend a team member.
      *
-     * @param  TenantUser  $team
+     * @param TenantUser $team
      * @return JsonResponse
      */
     public function unsuspend(TenantUser $team): JsonResponse

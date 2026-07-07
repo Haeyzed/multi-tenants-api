@@ -18,6 +18,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rules\Enum;
 use RuntimeException;
+use Throwable;
 
 /**
  * Manages customer orders within a tenant store.
@@ -27,14 +28,16 @@ class OrderController extends ApiController
     use ResolvesAuthenticatedCustomer;
 
     public function __construct(
-        private readonly OrderService $orderService,
+        private readonly OrderService  $orderService,
         private readonly RefundService $refundService,
-    ) {}
+    )
+    {
+    }
 
     /**
      * Get a paginated list of orders.
      *
-     * @param  Request  $request
+     * @param Request $request
      * @return JsonResponse
      */
     public function index(Request $request): JsonResponse
@@ -48,7 +51,7 @@ class OrderController extends ApiController
             'status' => ['nullable', new Enum(OrderStatus::class)],
         ]);
 
-        if (! $user->can('orders.view')) {
+        if (!$user->can('orders.view')) {
             $filters['customer_id'] = $user->customer?->id;
         }
 
@@ -65,7 +68,7 @@ class OrderController extends ApiController
      *
      * @param PlaceOrderRequest $request
      * @return JsonResponse
-     * @throws \Throwable
+     * @throws Throwable
      */
     public function store(PlaceOrderRequest $request): JsonResponse
     {
@@ -89,7 +92,7 @@ class OrderController extends ApiController
     /**
      * Get a single order.
      *
-     * @param  Order  $order
+     * @param Order $order
      * @return JsonResponse
      */
     public function show(Order $order): JsonResponse
@@ -105,8 +108,8 @@ class OrderController extends ApiController
     /**
      * Update the status of an order.
      *
-     * @param  UpdateOrderStatusRequest  $request
-     * @param  Order  $order
+     * @param UpdateOrderStatusRequest $request
+     * @param Order $order
      * @return JsonResponse
      */
     public function updateStatus(UpdateOrderStatusRequest $request, Order $order): JsonResponse
@@ -131,7 +134,7 @@ class OrderController extends ApiController
     /**
      * Refund an order.
      *
-     * @param  Order  $order
+     * @param Order $order
      * @return JsonResponse
      */
     public function refund(Order $order): JsonResponse

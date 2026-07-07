@@ -29,7 +29,9 @@ class UserController extends ApiController
 
     public function __construct(
         private readonly UserService $userService,
-    ) {}
+    )
+    {
+    }
 
     /**
      * Get a paginated list of users.
@@ -136,7 +138,7 @@ class UserController extends ApiController
             'ids.*' => ['integer', 'exists:users,id'],
         ]);
 
-        $count = $this->userService->deleteMany($validated['ids'], (int) $request->user()?->id);
+        $count = $this->userService->deleteMany($validated['ids'], (int)$request->user()?->id);
 
         return $this->success(null, "{$count} users deleted successfully.");
     }

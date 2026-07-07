@@ -20,12 +20,14 @@ class AuthController extends ApiController
 {
     public function __construct(
         private readonly AuthService $authService,
-    ) {}
+    )
+    {
+    }
 
     /**
      * Authenticate a tenant user and generate a token.
      *
-     * @param  Request  $request
+     * @param Request $request
      * @return JsonResponse
      * @throws ValidationException
      */
@@ -55,7 +57,7 @@ class AuthController extends ApiController
     /**
      * Log out the authenticated tenant user.
      *
-     * @param  Request  $request
+     * @param Request $request
      * @return JsonResponse
      */
     public function logout(Request $request): JsonResponse
@@ -71,7 +73,7 @@ class AuthController extends ApiController
     /**
      * Get the authenticated tenant user's profile.
      *
-     * @param  Request  $request
+     * @param Request $request
      * @return JsonResponse
      */
     public function me(Request $request): JsonResponse
@@ -85,7 +87,7 @@ class AuthController extends ApiController
     /**
      * Send a password reset OTP.
      *
-     * @param  Request  $request
+     * @param Request $request
      * @return JsonResponse
      */
     public function forgotPassword(Request $request): JsonResponse
@@ -100,7 +102,7 @@ class AuthController extends ApiController
     /**
      * Reset the user's password.
      *
-     * @param  Request  $request
+     * @param Request $request
      * @return JsonResponse
      */
     public function resetPassword(Request $request): JsonResponse
@@ -123,7 +125,7 @@ class AuthController extends ApiController
     /**
      * Update the authenticated user's profile.
      *
-     * @param  Request  $request
+     * @param Request $request
      * @return JsonResponse
      */
     public function updateProfile(Request $request): JsonResponse
@@ -143,7 +145,7 @@ class AuthController extends ApiController
     /**
      * Change the authenticated user's password.
      *
-     * @param  Request  $request
+     * @param Request $request
      * @return JsonResponse
      */
     public function changePassword(Request $request): JsonResponse

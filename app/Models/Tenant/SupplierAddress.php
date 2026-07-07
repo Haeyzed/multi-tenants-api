@@ -46,16 +46,6 @@ class SupplierAddress extends Model
     ];
 
     /**
-     * @return array<string, string>
-     */
-    protected function casts(): array
-    {
-        return [
-            'is_default' => 'boolean',
-        ];
-    }
-
-    /**
      * Supplier that owns this address.
      *
      * @return BelongsTo<Supplier, $this>
@@ -63,5 +53,15 @@ class SupplierAddress extends Model
     public function supplier(): BelongsTo
     {
         return $this->belongsTo(Supplier::class);
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    protected function casts(): array
+    {
+        return [
+            'is_default' => 'boolean',
+        ];
     }
 }

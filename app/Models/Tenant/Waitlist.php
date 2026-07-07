@@ -25,17 +25,6 @@ class Waitlist extends Model
     ];
 
     /**
-     * @return array<string, string>
-     */
-    protected function casts(): array
-    {
-        return [
-            'type' => WaitlistType::class,
-            'is_active' => 'boolean',
-        ];
-    }
-
-    /**
      * @return BelongsTo<Product, $this>
      */
     public function product(): BelongsTo
@@ -57,5 +46,16 @@ class Waitlist extends Model
     public function subscribers(): HasMany
     {
         return $this->hasMany(WaitlistSubscriber::class);
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    protected function casts(): array
+    {
+        return [
+            'type' => WaitlistType::class,
+            'is_active' => 'boolean',
+        ];
     }
 }

@@ -21,7 +21,9 @@ class BillingController extends ApiController
 {
     public function __construct(
         private readonly BillingService $billingService,
-    ) {}
+    )
+    {
+    }
 
     /**
      * Get a list of available active subscription plans.
@@ -38,7 +40,7 @@ class BillingController extends ApiController
     /**
      * Get the subscription summary for a given tenant.
      *
-     * @param  Tenant  $tenant
+     * @param Tenant $tenant
      * @return JsonResponse
      */
     public function subscription(Tenant $tenant): JsonResponse
@@ -51,8 +53,8 @@ class BillingController extends ApiController
     /**
      * Subscribe a tenant to a specific plan.
      *
-     * @param  SubscribeTenantRequest  $request
-     * @param  Tenant  $tenant
+     * @param SubscribeTenantRequest $request
+     * @param Tenant $tenant
      * @return JsonResponse
      */
     public function subscribe(SubscribeTenantRequest $request, Tenant $tenant): JsonResponse
@@ -77,8 +79,8 @@ class BillingController extends ApiController
     /**
      * Cancel a tenant's active subscription.
      *
-     * @param  Request  $request
-     * @param  Tenant  $tenant
+     * @param Request $request
+     * @param Tenant $tenant
      * @return JsonResponse
      */
     public function cancel(Request $request, Tenant $tenant): JsonResponse
@@ -100,7 +102,7 @@ class BillingController extends ApiController
     /**
      * Generate a billing portal URL for the tenant.
      *
-     * @param  Tenant  $tenant
+     * @param Tenant $tenant
      * @return JsonResponse
      */
     public function portal(Tenant $tenant): JsonResponse
@@ -113,8 +115,8 @@ class BillingController extends ApiController
     /**
      * Swap the tenant's current plan for a new one.
      *
-     * @param  SubscribeTenantRequest  $request
-     * @param  Tenant  $tenant
+     * @param SubscribeTenantRequest $request
+     * @param Tenant $tenant
      * @return JsonResponse
      */
     public function swap(SubscribeTenantRequest $request, Tenant $tenant): JsonResponse

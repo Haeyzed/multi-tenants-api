@@ -15,5 +15,7 @@ class PaymentCompleted
 {
     use Dispatchable, SerializesModels;
 
-    public function __construct(public Payment $payment) {}
+    public function __construct(public Payment $payment)
+    {
+    }
 }

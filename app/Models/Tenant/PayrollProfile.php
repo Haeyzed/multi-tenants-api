@@ -26,16 +26,6 @@ class PayrollProfile extends Model
     ];
 
     /**
-     * @return array<string, string>
-     */
-    protected function casts(): array
-    {
-        return [
-            'metadata' => 'array',
-        ];
-    }
-
-    /**
      * Get the staff member that the profile belongs to.
      *
      * @return BelongsTo<Staff, $this>
@@ -43,5 +33,15 @@ class PayrollProfile extends Model
     public function staff(): BelongsTo
     {
         return $this->belongsTo(Staff::class);
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    protected function casts(): array
+    {
+        return [
+            'metadata' => 'array',
+        ];
     }
 }

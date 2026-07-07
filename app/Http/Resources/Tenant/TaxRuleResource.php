@@ -30,7 +30,7 @@ class TaxRuleResource extends JsonResource
             'effective_from' => $this->effective_from?->toDateString(),
             'effective_to' => $this->effective_to?->toDateString(),
             'is_active' => $this->is_active,
-            'tax_rate' => $this->whenLoaded('taxRate', fn () => new TaxRateResource($this->taxRate)),
+            'tax_rate' => $this->whenLoaded('taxRate', fn() => new TaxRateResource($this->taxRate)),
             'created_at' => $this->created_at?->toIso8601String(),
             'updated_at' => $this->updated_at?->toIso8601String(),
         ];

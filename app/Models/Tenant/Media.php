@@ -103,7 +103,7 @@ class Media extends SpatieMedia
     /**
      * Scope a query to search by name, title, or file name.
      *
-     * @param  Builder<Media>  $query
+     * @param Builder<Media> $query
      */
     public function scopeSearch(Builder $query, ?string $search): void
     {
@@ -119,26 +119,26 @@ class Media extends SpatieMedia
     /**
      * Scope a query to filter library media items.
      *
-     * @param  Builder<Media>  $query
-     * @param  array<string, mixed>  $filters
+     * @param Builder<Media> $query
+     * @param array<string, mixed> $filters
      * @return Builder<Media>
      */
     public function scopeFilter(Builder $query, array $filters): Builder
     {
         return $query
             ->where('collection_name', 'library')
-            ->when(! empty($filters['search']), function (Builder $q) use ($filters): void {
-                $q->search((string) $filters['search']);
+            ->when(!empty($filters['search']), function (Builder $q) use ($filters): void {
+                $q->search((string)$filters['search']);
             })
             ->when(array_key_exists('folder_id', $filters), function (Builder $q) use ($filters): void {
                 $q->where('folder_id', $filters['folder_id']);
             })
             ->when(
-                ! array_key_exists('folder_id', $filters) && ! empty($filters['root_only']),
-                fn (Builder $q) => $q->whereNull('folder_id'),
+                !array_key_exists('folder_id', $filters) && !empty($filters['root_only']),
+                fn(Builder $q) => $q->whereNull('folder_id'),
             )
-            ->when(! empty($filters['mime_type']), function (Builder $q) use ($filters): void {
-                $q->where('mime_type', 'like', $filters['mime_type'].'%');
+            ->when(!empty($filters['mime_type']), function (Builder $q) use ($filters): void {
+                $q->where('mime_type', 'like', $filters['mime_type'] . '%');
             });
     }
 
@@ -158,20 +158,6 @@ class Media extends SpatieMedia
     }
 
     /**
-     * Resolve URL via the tenant asset route (used by Spatie helpers/resources).
-     */
-    public function getUrl(string $conversionName = ''): string
-    {
-        $path = $this->getPathRelativeToRoot($conversionName);
-
-        if (tenancy()->initialized) {
-            return TenantMediaUrl::forPath($path, $this->disk);
-        }
-
-        return parent::getUrl($conversionName);
-    }
-
-    /**
      * Resolve the storage path for library files (folder-based layout).
      */
     public function getPathRelativeToRoot(string $conversionName = ''): string
@@ -183,6 +169,20 @@ class Media extends SpatieMedia
         }
 
         return parent::getPathRelativeToRoot($conversionName);
+    }
+
+    /**
+     * Resolve URL via the tenant asset route (used by Spatie helpers/resources).
+     */
+    public function getUrl(string $conversionName = ''): string
+    {
+        $path = $this->getPathRelativeToRoot($conversionName);
+
+        if (tenancy()->initialized) {
+            return TenantMediaUrl::forPath($path, $this->disk);
+        }
+
+        return parent::getUrl($conversionName);
     }
 
     /**

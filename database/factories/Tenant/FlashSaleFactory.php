@@ -23,7 +23,7 @@ class FlashSaleFactory extends Factory
         $startsAt = now()->addDay();
 
         return [
-            'name' => fake()->words(3, true).' Drop',
+            'name' => fake()->words(3, true) . ' Drop',
             'description' => fake()->sentence(),
             'starts_at' => $startsAt,
             'ends_at' => $startsAt->copy()->addHours(2),
@@ -34,7 +34,7 @@ class FlashSaleFactory extends Factory
 
     public function active(): static
     {
-        return $this->state(fn (): array => [
+        return $this->state(fn(): array => [
             'status' => FlashSaleStatus::Active,
             'is_active' => true,
             'starts_at' => now()->subHour(),

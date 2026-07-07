@@ -13,10 +13,12 @@ class RaiseProvisioningTimeLimit
 {
     public function __construct(
         private readonly Tenant $tenant,
-    ) {}
+    )
+    {
+    }
 
     public function handle(): void
     {
-        set_time_limit((int) config('tenancy.provision_timeout', 300));
+        set_time_limit((int)config('tenancy.provision_timeout', 300));
     }
 }

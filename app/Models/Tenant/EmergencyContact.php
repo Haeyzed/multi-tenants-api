@@ -26,16 +26,6 @@ class EmergencyContact extends Model
     ];
 
     /**
-     * @return array<string, string>
-     */
-    protected function casts(): array
-    {
-        return [
-            'is_primary' => 'boolean',
-        ];
-    }
-
-    /**
      * Get the staff member associated with the emergency contact.
      *
      * @return BelongsTo<Staff, $this>
@@ -43,5 +33,15 @@ class EmergencyContact extends Model
     public function staff(): BelongsTo
     {
         return $this->belongsTo(Staff::class);
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    protected function casts(): array
+    {
+        return [
+            'is_primary' => 'boolean',
+        ];
     }
 }

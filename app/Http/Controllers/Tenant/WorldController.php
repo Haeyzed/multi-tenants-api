@@ -16,12 +16,14 @@ class WorldController extends ApiController
 {
     public function __construct(
         private readonly WorldService $worldService,
-    ) {}
+    )
+    {
+    }
 
     /**
      * Get a list of countries.
      *
-     * @param  Request  $request
+     * @param Request $request
      * @return JsonResponse
      */
     public function countries(Request $request): JsonResponse
@@ -34,7 +36,7 @@ class WorldController extends ApiController
     /**
      * Get a list of states for a given country.
      *
-     * @param  Request  $request
+     * @param Request $request
      * @return JsonResponse
      */
     public function states(Request $request): JsonResponse
@@ -50,7 +52,7 @@ class WorldController extends ApiController
     /**
      * Get a list of cities for a given country and state.
      *
-     * @param  Request  $request
+     * @param Request $request
      * @return JsonResponse
      */
     public function cities(Request $request): JsonResponse
@@ -67,7 +69,7 @@ class WorldController extends ApiController
     /**
      * Get a list of currencies.
      *
-     * @param  Request  $request
+     * @param Request $request
      * @return JsonResponse
      */
     public function currencies(Request $request): JsonResponse
@@ -80,7 +82,7 @@ class WorldController extends ApiController
     /**
      * Get a list of languages.
      *
-     * @param  Request  $request
+     * @param Request $request
      * @return JsonResponse
      */
     public function languages(Request $request): JsonResponse
@@ -93,7 +95,7 @@ class WorldController extends ApiController
     /**
      * Get a list of timezones.
      *
-     * @param  Request  $request
+     * @param Request $request
      * @return JsonResponse
      */
     public function timezones(Request $request): JsonResponse
@@ -109,7 +111,7 @@ class WorldController extends ApiController
     /**
      * Geolocate the request's IP address.
      *
-     * @param  Request  $request
+     * @param Request $request
      * @return JsonResponse
      */
     public function geolocate(Request $request): JsonResponse

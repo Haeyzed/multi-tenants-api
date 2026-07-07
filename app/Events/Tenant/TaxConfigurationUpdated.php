@@ -14,5 +14,7 @@ class TaxConfigurationUpdated
 {
     use Dispatchable, SerializesModels;
 
-    public function __construct(public string $section) {}
+    public function __construct(public string $section)
+    {
+    }
 }

@@ -17,7 +17,7 @@ class NotificationController extends ApiController
     /**
      * Get a paginated list of notifications.
      *
-     * @param  Request  $request
+     * @param Request $request
      * @return JsonResponse
      */
     public function index(Request $request): JsonResponse
@@ -31,7 +31,7 @@ class NotificationController extends ApiController
 
         return $this->paginated(
             $notifications,
-            $notifications->map(fn (DatabaseNotification $notification): array => [
+            $notifications->map(fn(DatabaseNotification $notification): array => [
                 'id' => $notification->id,
                 'type' => $notification->data['type'] ?? class_basename($notification->type),
                 'data' => $notification->data,
@@ -43,10 +43,25 @@ class NotificationController extends ApiController
     }
 
     /**
+     * Mark all notifications as read.
+     *
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function markAllAsRead(Request $request): JsonResponse
+    {
+        abort_unless($request->user()->can('notifications.view'), 403);
+
+        $request->user()->unreadNotifications->markAsRead();
+
+        return $this->success(null, 'All notifications marked as read successfully.');
+    }
+
+    /**
      * Mark a notification as read.
      *
-     * @param  Request  $request
-     * @param  string  $notificationId
+     * @param Request $request
+     * @param string $notificationId
      * @return JsonResponse
      */
     public function markAsRead(Request $request, string $notificationId): JsonResponse
@@ -57,20 +72,5 @@ class NotificationController extends ApiController
         $notification->markAsRead();
 
         return $this->success(null, 'Notification marked as read successfully.');
-    }
-
-    /**
-     * Mark all notifications as read.
-     *
-     * @param  Request  $request
-     * @return JsonResponse
-     */
-    public function markAllAsRead(Request $request): JsonResponse
-    {
-        abort_unless($request->user()->can('notifications.view'), 403);
-
-        $request->user()->unreadNotifications->markAsRead();
-
-        return $this->success(null, 'All notifications marked as read successfully.');
     }
 }

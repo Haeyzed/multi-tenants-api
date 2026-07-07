@@ -21,12 +21,14 @@ class MediaFolderController extends ApiController
 {
     public function __construct(
         private readonly MediaFolderService $service,
-    ) {}
+    )
+    {
+    }
 
     /**
      * List all media library folders.
      *
-     * @param  Request  $request  Incoming HTTP request.
+     * @param Request $request Incoming HTTP request.
      */
     public function index(Request $request): JsonResponse
     {
@@ -61,7 +63,7 @@ class MediaFolderController extends ApiController
     /**
      * Create a media library folder.
      *
-     * @param  StoreMediaFolderRequest  $request  Validated request payload.
+     * @param StoreMediaFolderRequest $request Validated request payload.
      */
     public function store(StoreMediaFolderRequest $request): JsonResponse
     {
@@ -73,7 +75,7 @@ class MediaFolderController extends ApiController
     /**
      * Find folder by route binding.
      *
-     * @param  MediaFolder  $folder  Folder instance.
+     * @param MediaFolder $folder Folder instance.
      */
     public function show(MediaFolder $folder): JsonResponse
     {
@@ -85,8 +87,8 @@ class MediaFolderController extends ApiController
     /**
      * Update media library folder.
      *
-     * @param  UpdateMediaFolderRequest  $request  Validated request payload.
-     * @param  MediaFolder  $folder  Folder instance.
+     * @param UpdateMediaFolderRequest $request Validated request payload.
+     * @param MediaFolder $folder Folder instance.
      */
     public function update(UpdateMediaFolderRequest $request, MediaFolder $folder): JsonResponse
     {
@@ -98,7 +100,7 @@ class MediaFolderController extends ApiController
     /**
      * Delete media library folder.
      *
-     * @param  MediaFolder  $folder  Folder instance.
+     * @param MediaFolder $folder Folder instance.
      */
     public function destroy(MediaFolder $folder): JsonResponse
     {

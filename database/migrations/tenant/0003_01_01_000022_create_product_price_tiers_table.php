@@ -9,8 +9,7 @@ use Illuminate\Support\Facades\Schema;
 /**
  * Tiered and scheduled pricing per variant.
  */
-return new class extends Migration
-{
+return new class extends Migration {
     public function up(): void
     {
         Schema::create('product_price_tiers', function (Blueprint $table): void {

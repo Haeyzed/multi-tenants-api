@@ -15,5 +15,7 @@ class LeaveRequestSubmitted
 {
     use Dispatchable, SerializesModels;
 
-    public function __construct(public LeaveRequest $leaveRequest) {}
+    public function __construct(public LeaveRequest $leaveRequest)
+    {
+    }
 }

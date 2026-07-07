@@ -25,6 +25,16 @@ class Otp extends Model
     ];
 
     /**
+     * Get the user that the OTP belongs to.
+     *
+     * @return MorphTo
+     */
+    public function user(): MorphTo
+    {
+        return $this->morphTo();
+    }
+
+    /**
      * @return array<string, string>
      */
     protected function casts(): array
@@ -33,15 +43,5 @@ class Otp extends Model
             'expires_at' => 'datetime',
             'used_at' => 'datetime',
         ];
-    }
-
-    /**
-     * Get the user that the OTP belongs to.
-     *
-     * @return MorphTo
-     */
-    public function user(): MorphTo
-    {
-        return $this->morphTo();
     }
 }

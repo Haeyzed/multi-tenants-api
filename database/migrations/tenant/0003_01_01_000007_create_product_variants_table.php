@@ -9,8 +9,7 @@ use Illuminate\Support\Facades\Schema;
 /**
  * Sellable SKU entity — single source of truth for price, barcode, and inventory.
  */
-return new class extends Migration
-{
+return new class extends Migration {
     public function up(): void
     {
         Schema::create('product_variants', function (Blueprint $table): void {

@@ -21,9 +21,11 @@ use Throwable;
 class TaxController extends ApiController
 {
     public function __construct(
-        private readonly TaxService $taxService,
+        private readonly TaxService     $taxService,
         private readonly TaxRuleService $taxRuleService,
-    ) {}
+    )
+    {
+    }
 
     /**
      * Create a new tax region.
@@ -50,7 +52,7 @@ class TaxController extends ApiController
         Gate::authorize('tax.calculate');
 
         $result = $this->taxService->calculate(
-            (float) $request->validated('amount'),
+            (float)$request->validated('amount'),
             $request->safe()->only(['country_code', 'state_code', 'postal_code']),
             $request->integer('tax_class_id') ?: null,
         );

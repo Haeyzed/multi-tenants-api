@@ -23,16 +23,6 @@ class CustomerNote extends Model
     ];
 
     /**
-     * @return array<string, string>
-     */
-    protected function casts(): array
-    {
-        return [
-            'is_pinned' => 'boolean',
-        ];
-    }
-
-    /**
      * Get the customer that the note belongs to.
      *
      * @return BelongsTo<Customer, $this>
@@ -50,5 +40,15 @@ class CustomerNote extends Model
     public function author(): BelongsTo
     {
         return $this->belongsTo(TenantUser::class, 'created_by');
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    protected function casts(): array
+    {
+        return [
+            'is_pinned' => 'boolean',
+        ];
     }
 }
