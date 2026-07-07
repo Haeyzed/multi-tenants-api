@@ -7,6 +7,7 @@ namespace App\Models\Tenant;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Carbon;
@@ -35,6 +36,7 @@ use Spatie\Sluggable\SlugOptions;
  * @property-read EloquentCollection<int, SupplierAddress> $addresses
  * @property-read EloquentCollection<int, SupplierBankAccount> $bankAccounts
  * @property-read EloquentCollection<int, SupplierContact> $contacts
+ * @property-read EloquentCollection<int, ProductSupplier> $productSuppliers
  * @property-read EloquentCollection<int, Product> $products
  *
  * @method static Builder<Supplier>|Supplier query()
@@ -177,12 +179,30 @@ class Supplier extends Model
     }
 
     /**
+     * Product sourcing records for this supplier.
+     *
+     * @return HasMany<ProductSupplier, $this>
+     */
+    public function productSuppliers(): HasMany
+    {
+        return $this->hasMany(ProductSupplier::class);
+    }
+
+    /**
      * Products sourced from this supplier.
      *
-     * @return HasMany<Product, $this>
+     * @return BelongsToMany<Product, $this>
      */
-    public function products(): HasMany
+    public function products(): BelongsToMany
     {
-        return $this->hasMany(Product::class);
+        return $this->belongsToMany(Product::class, 'product_suppliers')
+            ->withPivot([
+                'supplier_sku',
+                'supplier_cost',
+                'lead_time_days',
+                'minimum_quantity',
+                'is_primary',
+            ])
+            ->withTimestamps();
     }
 }

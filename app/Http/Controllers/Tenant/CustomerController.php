@@ -8,6 +8,7 @@ use App\Exports\Tenant\CustomersExport;
 use App\Exports\Tenant\CustomersImportSample;
 use App\Http\Controllers\ApiController;
 use App\Http\Controllers\Tenant\Concerns\ExportsSpreadsheets;
+use App\Http\Controllers\Tenant\Concerns\ImportsSpreadsheets;
 use App\Http\Requests\Tenant\ExportResourceRequest;
 use App\Http\Requests\Tenant\StoreCustomerRequest;
 use App\Http\Requests\Tenant\UpdateCustomerRequest;
@@ -17,7 +18,6 @@ use App\Models\Tenant\Customer;
 use App\Services\Tenant\CustomerService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Maatwebsite\Excel\Facades\Excel;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 use Throwable;
 
@@ -26,7 +26,7 @@ use Throwable;
  */
 class CustomerController extends ApiController
 {
-    use ExportsSpreadsheets;
+    use ExportsSpreadsheets, ImportsSpreadsheets;
 
     public function __construct(
         private readonly CustomerService $customerService,
@@ -182,9 +182,11 @@ class CustomerController extends ApiController
             'file' => ['required', 'file', 'mimes:xlsx,xls,csv'],
         ]);
 
-        Excel::import(new CustomersImport, $request->file('file'));
-
-        return $this->success(null, 'Customers imported successfully.');
+        return $this->runSpreadsheetImport(
+            new CustomersImport,
+            $request->file('file'),
+            'Customers imported successfully.',
+        );
     }
 
     /**

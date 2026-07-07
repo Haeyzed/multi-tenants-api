@@ -8,6 +8,7 @@ use App\Exports\Tenant\CustomerGroupsExport;
 use App\Exports\Tenant\CustomerGroupsImportSample;
 use App\Http\Controllers\ApiController;
 use App\Http\Controllers\Tenant\Concerns\ExportsSpreadsheets;
+use App\Http\Controllers\Tenant\Concerns\ImportsSpreadsheets;
 use App\Http\Requests\Tenant\ExportResourceRequest;
 use App\Http\Requests\Tenant\StoreCustomerGroupRequest;
 use App\Http\Requests\Tenant\UpdateCustomerGroupRequest;
@@ -17,7 +18,6 @@ use App\Models\Tenant\CustomerGroup;
 use App\Services\Tenant\CustomerGroupService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Maatwebsite\Excel\Facades\Excel;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 /**
@@ -25,7 +25,7 @@ use Symfony\Component\HttpFoundation\BinaryFileResponse;
  */
 class CustomerGroupController extends ApiController
 {
-    use ExportsSpreadsheets;
+    use ExportsSpreadsheets, ImportsSpreadsheets;
 
     public function __construct(
         private readonly CustomerGroupService $customerGroupService,
@@ -179,9 +179,11 @@ class CustomerGroupController extends ApiController
             'file' => ['required', 'file', 'mimes:xlsx,xls,csv'],
         ]);
 
-        Excel::import(new CustomerGroupsImport, $request->file('file'));
-
-        return $this->success(null, 'Customer groups imported successfully.');
+        return $this->runSpreadsheetImport(
+            new CustomerGroupsImport,
+            $request->file('file'),
+            'Customer groups imported successfully.',
+        );
     }
 
     /**

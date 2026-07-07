@@ -28,7 +28,7 @@ class SuppliersImport implements SkipsOnFailure, ToCollection, WithHeadingRow, W
                 'description' => filled($row['description'] ?? null) ? (string) $row['description'] : null,
                 'contact_name' => filled($row['contact_name'] ?? null) ? (string) $row['contact_name'] : null,
                 'contact_email' => filled($row['contact_email'] ?? null) ? (string) $row['contact_email'] : null,
-                'contact_phone' => filled($row['contact_phone'] ?? null) ? (string) $row['contact_phone'] : null,
+                'contact_phone' => $this->stringify($row['contact_phone'] ?? null),
                 'website_url' => filled($row['website_url'] ?? null) ? (string) $row['website_url'] : null,
                 'tax_id' => filled($row['tax_id'] ?? null) ? (string) $row['tax_id'] : null,
                 'registration_number' => filled($row['registration_number'] ?? null)
@@ -55,6 +55,13 @@ class SuppliersImport implements SkipsOnFailure, ToCollection, WithHeadingRow, W
      */
     public function prepareForValidation($data, $index): array
     {
+        $data = $this->stringifyFields($data, [
+            'code',
+            'contact_phone',
+            'tax_id',
+            'registration_number',
+        ]);
+
         return $this->nullifyEmpty($data, [
             'description',
             'contact_name',

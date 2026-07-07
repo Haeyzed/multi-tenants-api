@@ -35,9 +35,9 @@ class WarehousesImport implements SkipsOnFailure, ToCollection, WithHeadingRow, 
                 'address_line_2' => filled($row['address_line_2'] ?? null) ? (string) $row['address_line_2'] : null,
                 'city' => filled($row['city'] ?? null) ? (string) $row['city'] : null,
                 'state' => filled($row['state'] ?? null) ? (string) $row['state'] : null,
-                'postal_code' => filled($row['postal_code'] ?? null) ? (string) $row['postal_code'] : null,
+                'postal_code' => $this->stringify($row['postal_code'] ?? null),
                 'country' => filled($row['country'] ?? null) ? strtoupper((string) $row['country']) : null,
-                'phone' => filled($row['phone'] ?? null) ? (string) $row['phone'] : null,
+                'phone' => $this->stringify($row['phone'] ?? null),
                 'email' => filled($row['email'] ?? null) ? (string) $row['email'] : null,
                 'manager_name' => filled($row['manager_name'] ?? null) ? (string) $row['manager_name'] : null,
                 'latitude' => filled($row['latitude'] ?? null) ? (float) $row['latitude'] : null,
@@ -65,6 +65,13 @@ class WarehousesImport implements SkipsOnFailure, ToCollection, WithHeadingRow, 
      */
     public function prepareForValidation($data, $index): array
     {
+        $data = $this->stringifyFields($data, [
+            'code',
+            'postal_code',
+            'phone',
+            'country',
+        ]);
+
         return $this->nullifyEmpty($data, [
             'description',
             'address_line_1',

@@ -4,27 +4,51 @@ declare(strict_types=1);
 
 namespace App\Imports\Tenant;
 
+use App\Imports\Concerns\NormalizesImportRows;
+use App\Imports\Concerns\TracksImportResults;
 use App\Models\Tenant\CustomerGroup;
+use Illuminate\Support\Collection;
 use Maatwebsite\Excel\Concerns\SkipsFailures;
 use Maatwebsite\Excel\Concerns\SkipsOnFailure;
-use Maatwebsite\Excel\Concerns\ToModel;
+use Maatwebsite\Excel\Concerns\ToCollection;
 use Maatwebsite\Excel\Concerns\WithHeadingRow;
 use Maatwebsite\Excel\Concerns\WithValidation;
 
-class CustomerGroupsImport implements SkipsOnFailure, ToModel, WithHeadingRow, WithValidation
+class CustomerGroupsImport implements SkipsOnFailure, ToCollection, WithHeadingRow, WithValidation
 {
-    use SkipsFailures;
+    use NormalizesImportRows, SkipsFailures, TracksImportResults;
+
+    public function collection(Collection $rows): void
+    {
+        foreach ($rows as $row) {
+            $name = (string) $row['name'];
+
+            $attributes = [
+                'description' => filled($row['description'] ?? null) ? (string) $row['description'] : null,
+                'discount_percent' => $this->parseDecimal($row['discount_percent'] ?? null),
+                'is_active' => $this->parseBoolean($row['is_active'] ?? true),
+            ];
+
+            $existing = CustomerGroup::withTrashed()->where('name', $name)->first();
+
+            if ($existing?->trashed()) {
+                $existing->restore();
+            }
+
+            CustomerGroup::query()->updateOrCreate(['name' => $name], $attributes);
+
+            $this->incrementImported();
+        }
+    }
 
     /**
-     * @param  array<string, mixed>  $row
+     * @param  array<string, mixed>  $data
+     * @return array<string, mixed>
      */
-    public function model(array $row): CustomerGroup
+    public function prepareForValidation($data, $index): array
     {
-        return new CustomerGroup([
-            'name' => (string) $row['name'],
-            'description' => $row['description'] ?? null,
-            'discount_percent' => filled($row['discount_percent'] ?? null) ? (float) $row['discount_percent'] : null,
-            'is_active' => filter_var($row['is_active'] ?? true, FILTER_VALIDATE_BOOLEAN),
+        return $this->nullifyEmpty($data, [
+            'description',
         ]);
     }
 
