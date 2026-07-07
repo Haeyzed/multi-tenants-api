@@ -13,14 +13,20 @@ use App\Events\Tenant\ProductUpdated;
 use App\Models\Tenant\Media;
 use App\Models\Tenant\Product;
 use App\Models\Tenant\ProductBundle;
+use App\Models\Tenant\ProductCostHistory;
+use App\Models\Tenant\ProductDocument;
 use App\Models\Tenant\ProductDownload;
+use App\Models\Tenant\ProductFaq;
 use App\Models\Tenant\ProductImage;
 use App\Models\Tenant\ProductOption;
 use App\Models\Tenant\ProductOptionValue;
 use App\Models\Tenant\ProductPriceTier;
 use App\Models\Tenant\ProductProvider;
+use App\Models\Tenant\ProductQuestion;
 use App\Models\Tenant\ProductRelatedProduct;
+use App\Models\Tenant\ProductReview;
 use App\Models\Tenant\ProductService as ProductServiceConfig;
+use App\Models\Tenant\ProductServiceSchedule;
 use App\Models\Tenant\ProductSubscription;
 use App\Models\Tenant\ProductVariant;
 use App\Models\Tenant\ProductVideo;
@@ -28,7 +34,9 @@ use App\Models\Tenant\VariantOptionValue;
 use App\Models\Tenant\Warehouse;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use RuntimeException;
@@ -89,7 +97,7 @@ class ProductService
                 'images.media',
                 'videos',
                 'downloads.media',
-                'service',
+                'service.schedules',
                 'subscription',
                 'bundleItems.includedProduct.images' => fn ($query) => $query->where('is_primary', true)->with('media'),
                 'bundleItems.includedVariant.imageMedia',
@@ -135,7 +143,7 @@ class ProductService
                 'images.media',
                 'videos',
                 'downloads.media',
-                'service',
+                'service.schedules',
                 'subscription',
                 'bundleItems.includedProduct.images' => fn ($query) => $query->where('is_primary', true)->with('media'),
                 'bundleItems.includedVariant.imageMedia',
@@ -178,7 +186,7 @@ class ProductService
             $this->syncCollections($product, $nested['collection_ids']);
             $this->syncProductSuppliers($product, $nested['suppliers']);
             $this->syncGallery($product, $nested['gallery']);
-            $this->syncVideos($product, $nested['videos']);
+            $this->replaceProductVideos($product, $nested['videos']);
             $this->syncAttributeValues($product, $nested['attribute_values']);
             $this->syncRelatedProducts($product, $nested['related_product_ids'], 'related');
             $this->syncRelatedProducts($product, $nested['cross_sell_product_ids'], 'cross_sell');
@@ -261,7 +269,7 @@ class ProductService
             }
 
             if ($nested['videos'] !== null) {
-                $this->syncVideos($product, $nested['videos']);
+                $this->replaceProductVideos($product, $nested['videos']);
             }
 
             if ($nested['attribute_values'] !== null) {
@@ -458,8 +466,18 @@ class ProductService
             unset($data['inventory'], $data['price_tiers'], $data['pricing_tiers'], $data['option_value_ids']);
 
             $data = $this->normalizeVariantFields($data);
+            $oldCostPrice = $variant->cost_price;
 
             $variant->update($data);
+
+            if (array_key_exists('cost_price', $data) && (string) $oldCostPrice !== (string) $variant->cost_price) {
+                ProductCostHistory::query()->create([
+                    'product_variant_id' => $variant->id,
+                    'old_cost' => $oldCostPrice ?? 0,
+                    'new_cost' => $variant->cost_price ?? 0,
+                    'changed_by' => Auth::id(),
+                ]);
+            }
 
             if ($optionValueIds !== null) {
                 $this->syncVariantOptionValues($variant, $optionValueIds);
@@ -636,14 +654,327 @@ class ProductService
     public function syncProductService(Product $product, array $data): Product
     {
         return DB::transaction(function () use ($product, $data): Product {
-            $this->syncService($product, $data['service']);
+            $this->syncService($product, $data['service'], $data['schedules'] ?? null);
 
             if (array_key_exists('providers', $data)) {
                 $this->syncProviders($product, $data['providers']);
             }
 
-            return $product->load(['service', 'providers.provider']);
+            return $product->load(['service.schedules', 'providers.provider']);
         });
+    }
+
+    /**
+     * Sync product videos.
+     *
+     * @param  list<array<string, mixed>>  $videos
+     *
+     * @throws Throwable
+     */
+    public function syncVideos(Product $product, array $videos): Product
+    {
+        return DB::transaction(function () use ($product, $videos): Product {
+            $this->replaceProductVideos($product, $videos);
+
+            return $product->load('videos');
+        });
+    }
+
+    /**
+     * Duplicate a product as a draft copy.
+     *
+     * @throws Throwable
+     */
+    public function duplicate(Product $product): Product
+    {
+        return DB::transaction(function () use ($product): Product {
+            $product->load([
+                'categories',
+                'tags',
+                'labels',
+                'collections',
+                'attributeValues',
+                'images',
+                'videos',
+                'faqs',
+                'documents',
+                'defaultVariant',
+            ]);
+
+            $copyData = collect($product->getFillable())
+                ->mapWithKeys(fn (string $field): array => [$field => $product->{$field}])
+                ->except(['slug', 'published_at', 'approved_at', 'approved_by'])
+                ->all();
+
+            $copyData['name'] = $product->name.' (Copy)';
+            $copyData['status'] = ProductStatus::Draft->value;
+            $copyData['visibility'] = ProductVisibility::Hidden->value;
+
+            /** @var Product $copy */
+            $copy = Product::query()->create($copyData);
+
+            $copy->categories()->sync(
+                $product->categories->mapWithKeys(fn ($category): array => [
+                    $category->id => [
+                        'is_primary' => (bool) $category->pivot->is_primary,
+                        'sort_order' => (int) $category->pivot->sort_order,
+                    ],
+                ])->all(),
+            );
+
+            $copy->tags()->sync($product->tags->pluck('id')->all());
+
+            $copy->labels()->sync(
+                $product->labels->mapWithKeys(fn ($label): array => [
+                    $label->id => ['sort_order' => (int) $label->pivot->sort_order],
+                ])->all(),
+            );
+
+            $copy->collections()->sync(
+                $product->collections->mapWithKeys(fn ($collection): array => [
+                    $collection->id => ['sort_order' => (int) $collection->pivot->sort_order],
+                ])->all(),
+            );
+
+            foreach ($product->attributeValues as $attributeValue) {
+                $copy->attributeValues()->create([
+                    'attribute_id' => $attributeValue->attribute_id,
+                    'attribute_value_id' => $attributeValue->attribute_value_id,
+                    'custom_value' => $attributeValue->custom_value,
+                    'sort_order' => $attributeValue->sort_order,
+                ]);
+            }
+
+            foreach ($product->images as $image) {
+                ProductImage::query()->create([
+                    'product_id' => $copy->id,
+                    'product_variant_id' => null,
+                    'media_id' => $image->media_id,
+                    'sort_order' => $image->sort_order,
+                    'alt_text' => $image->alt_text,
+                    'caption' => $image->caption,
+                    'is_primary' => $image->is_primary,
+                ]);
+            }
+
+            foreach ($product->videos as $video) {
+                ProductVideo::query()->create([
+                    'product_id' => $copy->id,
+                    'provider' => $video->provider,
+                    'video_url' => $video->video_url,
+                    'video_id' => $video->video_id,
+                    'title' => $video->title,
+                    'description' => $video->description,
+                    'sort_order' => $video->sort_order,
+                    'is_primary' => $video->is_primary,
+                ]);
+            }
+
+            foreach ($product->faqs as $faq) {
+                ProductFaq::query()->create([
+                    'product_id' => $copy->id,
+                    'question' => $faq->question,
+                    'answer' => $faq->answer,
+                    'is_visible' => $faq->is_visible,
+                    'sort_order' => $faq->sort_order,
+                    'helpful_count' => 0,
+                ]);
+            }
+
+            foreach ($product->documents as $document) {
+                ProductDocument::query()->create([
+                    'product_id' => $copy->id,
+                    'media_id' => $document->media_id,
+                    'title' => $document->title,
+                    'description' => $document->description,
+                    'document_type' => $document->document_type,
+                    'language' => $document->language,
+                    'sort_order' => $document->sort_order,
+                    'is_public' => $document->is_public,
+                ]);
+            }
+
+            $defaultVariant = $product->defaultVariant;
+
+            if ($defaultVariant instanceof ProductVariant) {
+                $variantData = $defaultVariant->only([
+                    'title',
+                    'barcode',
+                    'gtin',
+                    'mpn',
+                    'price',
+                    'compare_at_price',
+                    'cost_price',
+                    'weight',
+                    'length',
+                    'width',
+                    'height',
+                    'weight_unit_id',
+                    'dimension_unit_id',
+                    'image_media_id',
+                    'status',
+                    'visibility',
+                    'hs_code',
+                    'country_of_origin',
+                ]);
+
+                $variantData['sku'] = $this->generateUniqueSku($defaultVariant->sku);
+                $variantData['is_default'] = true;
+                $variantData['position'] = 0;
+
+                $copy->variants()->create($variantData);
+            }
+
+            return $this->find($copy->id);
+        });
+    }
+
+    // ── FAQs ──
+
+    /**
+     * @return EloquentCollection<int, ProductFaq>
+     */
+    public function getFaqs(Product $product): EloquentCollection
+    {
+        return $product->faqs()->orderBy('sort_order')->get();
+    }
+
+    /**
+     * @param  array<string, mixed>  $data
+     */
+    public function addFaq(int $productId, array $data): ProductFaq
+    {
+        $data['product_id'] = $productId;
+
+        return ProductFaq::query()->create($data);
+    }
+
+    /**
+     * @param  array<string, mixed>  $data
+     */
+    public function updateFaq(ProductFaq $faq, array $data): ProductFaq
+    {
+        $faq->update($data);
+
+        return $faq->fresh();
+    }
+
+    public function deleteFaq(ProductFaq $faq): void
+    {
+        $faq->delete();
+    }
+
+    // ── Documents ──
+
+    /**
+     * @return EloquentCollection<int, ProductDocument>
+     */
+    public function getDocuments(Product $product): EloquentCollection
+    {
+        return $product->documents()->with('media')->orderBy('sort_order')->get();
+    }
+
+    /**
+     * @param  array<string, mixed>  $data
+     */
+    public function addDocument(int $productId, array $data): ProductDocument
+    {
+        $data['product_id'] = $productId;
+
+        return ProductDocument::query()
+            ->create($data)
+            ->load('media');
+    }
+
+    /**
+     * @param  array<string, mixed>  $data
+     */
+    public function updateDocument(ProductDocument $document, array $data): ProductDocument
+    {
+        $document->update($data);
+
+        return $document->fresh(['media']);
+    }
+
+    public function deleteDocument(ProductDocument $document): void
+    {
+        $document->delete();
+    }
+
+    // ── Questions ──
+
+    /**
+     * @return EloquentCollection<int, ProductQuestion>
+     */
+    public function getQuestions(Product $product): EloquentCollection
+    {
+        return $product->questions()->with('answeredBy')->get();
+    }
+
+    /**
+     * @param  array<string, mixed>  $data
+     */
+    public function answerQuestion(ProductQuestion $question, array $data): ProductQuestion
+    {
+        $question->update([
+            'answer' => $data['answer'],
+            'is_visible' => $data['is_visible'] ?? false,
+            'is_answered' => true,
+            'answered_by' => Auth::id(),
+            'answered_at' => now(),
+        ]);
+
+        return $question->fresh(['answeredBy']);
+    }
+
+    /**
+     * @param  array<string, mixed>  $data
+     */
+    public function updateQuestion(ProductQuestion $question, array $data): ProductQuestion
+    {
+        if (array_key_exists('answer', $data)) {
+            $data['is_answered'] = true;
+            $data['answered_by'] = Auth::id();
+            $data['answered_at'] = now();
+        }
+
+        $question->update($data);
+
+        return $question->fresh(['answeredBy']);
+    }
+
+    public function deleteQuestion(ProductQuestion $question): void
+    {
+        $question->delete();
+    }
+
+    // ── Reviews ──
+
+    /**
+     * @return EloquentCollection<int, ProductReview>
+     */
+    public function getReviews(Product $product): EloquentCollection
+    {
+        return $product->reviews()->latest()->get();
+    }
+
+    /**
+     * @param  array<string, mixed>  $data
+     */
+    public function updateReview(ProductReview $review, array $data): ProductReview
+    {
+        if (array_key_exists('admin_reply', $data) && $data['admin_reply'] !== null) {
+            $data['replied_at'] = now();
+        }
+
+        $review->update($data);
+
+        return $review->fresh();
+    }
+
+    public function deleteReview(ProductReview $review): void
+    {
+        $review->delete();
     }
 
     /**
@@ -839,9 +1170,9 @@ class ProductService
     /**
      * Get featured products for homepage.
      *
-     * @return \Illuminate\Database\Eloquent\Collection<int, Product>
+     * @return EloquentCollection<int, Product>
      */
-    public function getFeaturedProducts(int $limit = 8): \Illuminate\Database\Eloquent\Collection
+    public function getFeaturedProducts(int $limit = 8): EloquentCollection
     {
         return Product::query()
             ->with([
@@ -860,9 +1191,9 @@ class ProductService
     /**
      * Get related products for a product.
      *
-     * @return \Illuminate\Database\Eloquent\Collection<int, Product>
+     * @return EloquentCollection<int, Product>
      */
-    public function getRelatedProducts(Product $product, int $limit = 8): \Illuminate\Database\Eloquent\Collection
+    public function getRelatedProducts(Product $product, int $limit = 8): EloquentCollection
     {
         $related = $product->relatedProducts()
             ->with([
@@ -1384,7 +1715,7 @@ class ProductService
     /**
      * @param  list<array<string, mixed>>  $videos
      */
-    private function syncVideos(Product $product, array $videos): void
+    private function replaceProductVideos(Product $product, array $videos): void
     {
         $product->videos()->delete();
 
@@ -1536,8 +1867,9 @@ class ProductService
 
     /**
      * @param  array<string, mixed>  $service
+     * @param  list<array<string, mixed>>|null  $schedules
      */
-    private function syncService(Product $product, array $service): void
+    private function syncService(Product $product, array $service, ?array $schedules = null): void
     {
         ProductServiceConfig::query()->updateOrCreate(
             ['product_id' => $product->id],
@@ -1554,6 +1886,29 @@ class ProductService
                 'instructions' => $service['instructions'] ?? null,
             ],
         );
+
+        if ($schedules !== null) {
+            $this->syncServiceSchedules($product, $schedules);
+        }
+    }
+
+    /**
+     * @param  list<array<string, mixed>>  $schedules
+     */
+    private function syncServiceSchedules(Product $product, array $schedules): void
+    {
+        ProductServiceSchedule::query()->where('product_id', $product->id)->delete();
+
+        foreach ($schedules as $schedule) {
+            ProductServiceSchedule::query()->create([
+                'product_id' => $product->id,
+                'provider_id' => $schedule['provider_id'] ?? null,
+                'day_of_week' => $schedule['day_of_week'],
+                'start_time' => $schedule['start_time'],
+                'end_time' => $schedule['end_time'],
+                'is_available' => $schedule['is_available'] ?? true,
+            ]);
+        }
     }
 
     /**
@@ -1719,6 +2074,19 @@ class ProductService
 
         while (ProductVariant::query()->where('sku', $candidate)->exists()) {
             $candidate = "{$sku}-{$counter}";
+            $counter++;
+        }
+
+        return $candidate;
+    }
+
+    private function generateUniqueSku(string $baseSku): string
+    {
+        $candidate = $baseSku.'-COPY';
+        $counter = 1;
+
+        while (ProductVariant::query()->where('sku', $candidate)->exists()) {
+            $candidate = "{$baseSku}-COPY-{$counter}";
             $counter++;
         }
 

@@ -61,7 +61,8 @@ class MediaFolder extends Model
      */
     public function media(): HasMany
     {
-        return $this->hasMany(Media::class, 'folder_id');
+        return $this->hasMany(Media::class, 'folder_id')
+            ->where('collection_name', 'library');
     }
 
     /**

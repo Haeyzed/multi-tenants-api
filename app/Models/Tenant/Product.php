@@ -83,6 +83,9 @@ use Spatie\Sluggable\SlugOptions;
  * @property-read EloquentCollection<int, Collection> $collections
  * @property-read EloquentCollection<int, ProductAttributeValue> $attributeValues
  * @property-read EloquentCollection<int, ProductReview> $reviews
+ * @property-read EloquentCollection<int, ProductFaq> $faqs
+ * @property-read EloquentCollection<int, ProductDocument> $documents
+ * @property-read EloquentCollection<int, ProductQuestion> $questions
  * @property-read ProductSeo|null $seo
  * @property-read EloquentCollection<int, ProductVideo> $videos
  * @property-read EloquentCollection<int, ProductRelatedProduct> $relatedProducts
@@ -410,6 +413,36 @@ class Product extends Model
     public function reviews(): HasMany
     {
         return $this->hasMany(ProductReview::class);
+    }
+
+    /**
+     * Get FAQs for the product.
+     *
+     * @return HasMany<ProductFaq, $this>
+     */
+    public function faqs(): HasMany
+    {
+        return $this->hasMany(ProductFaq::class)->orderBy('sort_order');
+    }
+
+    /**
+     * Get documents attached to the product.
+     *
+     * @return HasMany<ProductDocument, $this>
+     */
+    public function documents(): HasMany
+    {
+        return $this->hasMany(ProductDocument::class)->orderBy('sort_order');
+    }
+
+    /**
+     * Get customer questions for the product.
+     *
+     * @return HasMany<ProductQuestion, $this>
+     */
+    public function questions(): HasMany
+    {
+        return $this->hasMany(ProductQuestion::class)->latest();
     }
 
     /**

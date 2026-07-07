@@ -12,8 +12,11 @@ use App\Exports\Tenant\ProductsImportSample;
 use App\Http\Controllers\ApiController;
 use App\Http\Controllers\Tenant\Concerns\ExportsSpreadsheets;
 use App\Http\Controllers\Tenant\Concerns\ImportsSpreadsheets;
+use App\Http\Requests\Tenant\AnswerProductQuestionRequest;
 use App\Http\Requests\Tenant\ExportResourceRequest;
 use App\Http\Requests\Tenant\GenerateProductVariantsRequest;
+use App\Http\Requests\Tenant\StoreProductDocumentRequest;
+use App\Http\Requests\Tenant\StoreProductFaqRequest;
 use App\Http\Requests\Tenant\StoreProductRequest;
 use App\Http\Requests\Tenant\StoreProductVariantRequest;
 use App\Http\Requests\Tenant\SyncProductBundleItemsRequest;
@@ -23,19 +26,31 @@ use App\Http\Requests\Tenant\SyncProductRelationsRequest;
 use App\Http\Requests\Tenant\SyncProductServiceRequest;
 use App\Http\Requests\Tenant\SyncProductSubscriptionRequest;
 use App\Http\Requests\Tenant\SyncProductSuppliersRequest;
+use App\Http\Requests\Tenant\SyncProductVideosRequest;
+use App\Http\Requests\Tenant\UpdateProductDocumentRequest;
+use App\Http\Requests\Tenant\UpdateProductFaqRequest;
 use App\Http\Requests\Tenant\UpdateProductRequest;
+use App\Http\Requests\Tenant\UpdateProductReviewRequest;
 use App\Http\Requests\Tenant\UpdateProductVariantRequest;
 use App\Http\Resources\Tenant\ProductBundleResource;
+use App\Http\Resources\Tenant\ProductDocumentResource;
 use App\Http\Resources\Tenant\ProductDownloadResource;
+use App\Http\Resources\Tenant\ProductFaqResource;
 use App\Http\Resources\Tenant\ProductOptionResource;
 use App\Http\Resources\Tenant\ProductProviderResource;
+use App\Http\Resources\Tenant\ProductQuestionResource;
 use App\Http\Resources\Tenant\ProductResource;
+use App\Http\Resources\Tenant\ProductReviewResource;
 use App\Http\Resources\Tenant\ProductServiceResource;
 use App\Http\Resources\Tenant\ProductSubscriptionResource;
 use App\Http\Resources\Tenant\ProductSupplierResource;
 use App\Http\Resources\Tenant\ProductVariantResource;
 use App\Imports\Tenant\ProductsImport;
 use App\Models\Tenant\Product;
+use App\Models\Tenant\ProductDocument;
+use App\Models\Tenant\ProductFaq;
+use App\Models\Tenant\ProductQuestion;
+use App\Models\Tenant\ProductReview;
 use App\Models\Tenant\ProductVariant;
 use App\Services\Tenant\ProductService;
 use Illuminate\Http\JsonResponse;
@@ -43,6 +58,7 @@ use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\Rules\Enum;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Throwable;
 
 /**
@@ -481,5 +497,250 @@ class ProductController extends ApiController
         $count = $this->productService->restoreMany($validated['ids']);
 
         return $this->success(null, "{$count} products restored successfully.");
+    }
+
+    /**
+     * @throws Throwable
+     */
+    public function duplicate(Product $product): JsonResponse
+    {
+        $this->authorize('update', $product);
+
+        $copy = $this->productService->duplicate($product);
+
+        return $this->created(
+            new ProductResource($copy),
+            'Product duplicated successfully.',
+        );
+    }
+
+    // ── FAQs ──
+
+    public function faqs(Product $product): JsonResponse
+    {
+        $this->authorize('view', $product);
+
+        return $this->success(
+            ProductFaqResource::collection($this->productService->getFaqs($product)),
+            'Product FAQs retrieved successfully.',
+        );
+    }
+
+    public function storeFaq(StoreProductFaqRequest $request, Product $product): JsonResponse
+    {
+        $this->authorize('update', $product);
+
+        $faq = $this->productService->addFaq($product->id, $request->validated());
+
+        return $this->created(
+            new ProductFaqResource($faq),
+            'Product FAQ created successfully.',
+        );
+    }
+
+    public function updateFaq(
+        UpdateProductFaqRequest $request,
+        Product $product,
+        ProductFaq $faq,
+    ): JsonResponse {
+        $this->authorize('update', $product);
+        $this->ensureFaqBelongsToProduct($product, $faq);
+
+        $faq = $this->productService->updateFaq($faq, $request->validated());
+
+        return $this->updated(
+            new ProductFaqResource($faq),
+            'Product FAQ updated successfully.',
+        );
+    }
+
+    public function destroyFaq(Product $product, ProductFaq $faq): JsonResponse
+    {
+        $this->authorize('update', $product);
+        $this->ensureFaqBelongsToProduct($product, $faq);
+
+        $this->productService->deleteFaq($faq);
+
+        return $this->deleted('Product FAQ deleted successfully.');
+    }
+
+    // ── Documents ──
+
+    public function documents(Product $product): JsonResponse
+    {
+        $this->authorize('view', $product);
+
+        return $this->success(
+            ProductDocumentResource::collection($this->productService->getDocuments($product)),
+            'Product documents retrieved successfully.',
+        );
+    }
+
+    public function storeDocument(StoreProductDocumentRequest $request, Product $product): JsonResponse
+    {
+        $this->authorize('update', $product);
+
+        $document = $this->productService->addDocument($product->id, $request->validated());
+
+        return $this->created(
+            new ProductDocumentResource($document),
+            'Product document created successfully.',
+        );
+    }
+
+    public function updateDocument(
+        UpdateProductDocumentRequest $request,
+        Product $product,
+        ProductDocument $document,
+    ): JsonResponse {
+        $this->authorize('update', $product);
+        $this->ensureDocumentBelongsToProduct($product, $document);
+
+        $document = $this->productService->updateDocument($document, $request->validated());
+
+        return $this->updated(
+            new ProductDocumentResource($document),
+            'Product document updated successfully.',
+        );
+    }
+
+    public function destroyDocument(Product $product, ProductDocument $document): JsonResponse
+    {
+        $this->authorize('update', $product);
+        $this->ensureDocumentBelongsToProduct($product, $document);
+
+        $this->productService->deleteDocument($document);
+
+        return $this->deleted('Product document deleted successfully.');
+    }
+
+    // ── Reviews ──
+
+    public function reviews(Product $product): JsonResponse
+    {
+        $this->authorize('view', $product);
+
+        return $this->success(
+            ProductReviewResource::collection($this->productService->getReviews($product)),
+            'Product reviews retrieved successfully.',
+        );
+    }
+
+    public function updateReview(
+        UpdateProductReviewRequest $request,
+        Product $product,
+        ProductReview $review,
+    ): JsonResponse {
+        $this->authorize('update', $product);
+        $this->ensureReviewBelongsToProduct($product, $review);
+
+        $review = $this->productService->updateReview($review, $request->validated());
+
+        return $this->updated(
+            new ProductReviewResource($review),
+            'Product review updated successfully.',
+        );
+    }
+
+    public function destroyReview(Product $product, ProductReview $review): JsonResponse
+    {
+        $this->authorize('update', $product);
+        $this->ensureReviewBelongsToProduct($product, $review);
+
+        $this->productService->deleteReview($review);
+
+        return $this->deleted('Product review deleted successfully.');
+    }
+
+    // ── Questions ──
+
+    public function questions(Product $product): JsonResponse
+    {
+        $this->authorize('view', $product);
+
+        return $this->success(
+            ProductQuestionResource::collection($this->productService->getQuestions($product)),
+            'Product questions retrieved successfully.',
+        );
+    }
+
+    public function updateQuestion(
+        AnswerProductQuestionRequest $request,
+        Product $product,
+        ProductQuestion $question,
+    ): JsonResponse {
+        $this->authorize('update', $product);
+        $this->ensureQuestionBelongsToProduct($product, $question);
+
+        $question = $this->productService->answerQuestion($question, $request->validated());
+
+        return $this->updated(
+            new ProductQuestionResource($question),
+            'Product question answered successfully.',
+        );
+    }
+
+    public function destroyQuestion(Product $product, ProductQuestion $question): JsonResponse
+    {
+        $this->authorize('update', $product);
+        $this->ensureQuestionBelongsToProduct($product, $question);
+
+        $this->productService->deleteQuestion($question);
+
+        return $this->deleted('Product question deleted successfully.');
+    }
+
+    /**
+     * @throws Throwable
+     */
+    public function syncVideos(SyncProductVideosRequest $request, Product $product): JsonResponse
+    {
+        $this->authorize('update', $product);
+
+        $product = $this->productService->syncVideos($product, $request->validated('videos'));
+
+        return $this->success(
+            $product->videos->map(fn ($video) => [
+                'id' => $video->id,
+                'video_id' => $video->video_id,
+                'video_url' => $video->video_url,
+                'embed_url' => $video->embedUrl(),
+                'thumbnail_url' => $video->thumbnailUrl(),
+                'watch_url' => $video->watchUrl(),
+                'title' => $video->title,
+                'description' => $video->description,
+                'sort_order' => $video->sort_order,
+                'is_primary' => $video->is_primary,
+            ]),
+            'Product videos synced successfully.',
+        );
+    }
+
+    private function ensureFaqBelongsToProduct(Product $product, ProductFaq $faq): void
+    {
+        if ($faq->product_id !== $product->id) {
+            throw new NotFoundHttpException('Product FAQ not found.');
+        }
+    }
+
+    private function ensureDocumentBelongsToProduct(Product $product, ProductDocument $document): void
+    {
+        if ($document->product_id !== $product->id) {
+            throw new NotFoundHttpException('Product document not found.');
+        }
+    }
+
+    private function ensureReviewBelongsToProduct(Product $product, ProductReview $review): void
+    {
+        if ($review->product_id !== $product->id) {
+            throw new NotFoundHttpException('Product review not found.');
+        }
+    }
+
+    private function ensureQuestionBelongsToProduct(Product $product, ProductQuestion $question): void
+    {
+        if ($question->product_id !== $product->id) {
+            throw new NotFoundHttpException('Product question not found.');
+        }
     }
 }

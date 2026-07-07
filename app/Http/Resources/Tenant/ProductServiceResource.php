@@ -32,6 +32,7 @@ class ProductServiceResource extends JsonResource
             'cancellation_hours' => $this->cancellation_hours,
             'instructions' => $this->instructions,
             'total_duration_minutes' => $this->total_duration_minutes,
+            'schedules' => ProductServiceScheduleResource::collection($this->whenLoaded('schedules')),
             'created_at' => $this->created_at?->toIso8601String(),
             'updated_at' => $this->updated_at?->toIso8601String(),
         ];
