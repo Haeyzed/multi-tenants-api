@@ -34,16 +34,26 @@ class SuppliersImportSample implements FromArray, WithHeadings
     public function array(): array
     {
         return [
-            ['Acme Industrial Supplies', 'SUP-ACME-001', 'Primary hardware and packaging supplier.', 'Jane Doe', 'jane.doe@acme-supplies.com', '+2348012345001', 'https://acme-supplies.com', 'TAX-NG-10001', 'RC-908712', true],
-            ['GreenField Agro Ltd', 'SUP-GFA-002', 'Organic raw materials and food ingredients.', 'Samuel Okon', 'sales@greenfieldagro.com', '+2348023456002', 'https://greenfieldagro.com', 'TAX-NG-10002', 'RC-774521', true],
-            ['Metro Textiles Nigeria', 'SUP-MTN-003', 'Fabric and apparel manufacturing partner.', 'Aisha Bello', 'orders@metrotextiles.ng', '+2348034567003', 'https://metrotextiles.ng', 'TAX-NG-10003', 'RC-661902', true],
-            ['TechParts Distribution', 'SUP-TPD-004', 'Electronics components and accessories.', 'David Chen', 'procurement@techparts.io', '+2348045678004', 'https://techparts.io', 'TAX-NG-10004', 'RC-552341', true],
-            ['Coastal Logistics Partners', 'SUP-CLP-005', 'Third-party freight and customs brokerage.', 'Grace Mensah', 'ops@coastallogistics.com', '+233201112233', 'https://coastallogistics.com', 'TAX-GH-20001', 'RC-GH-4412', true],
-            ['Summit Home Goods', 'SUP-SHG-006', 'Kitchenware, decor, and household products.', 'Michael Adeyemi', 'wholesale@summithome.com', '+2348056789005', 'https://summithome.com', 'TAX-NG-10005', 'RC-449812', true],
-            ['PureChem Industries', 'SUP-PCI-007', 'Cleaning and personal care formulations.', 'Ngozi Eze', 'supply@purechem.ng', '+2348067890006', 'https://purechem.ng', 'TAX-NG-10006', 'RC-338721', true],
-            ['Atlas Print & Label', 'SUP-APL-008', 'Product labels, barcodes, and packaging print.', 'Kunle Ajayi', 'hello@atlasprint.ng', '+2348078901007', 'https://atlasprint.ng', 'TAX-NG-10007', 'RC-227610', true],
-            ['Horizon Sports Wholesale', 'SUP-HSW-009', 'Sporting goods and fitness equipment.', 'Fatima Yusuf', 'b2b@horizonsports.com', '+2348089012008', 'https://horizonsports.com', 'TAX-NG-10008', 'RC-116509', true],
-            ['Legacy Furniture Makers', 'SUP-LFM-010', 'Custom furniture and office fittings.', 'Patrick Osei', 'projects@legacyfurniture.com', '+233209998877', 'https://legacyfurniture.com', 'TAX-GH-20002', 'RC-GH-5521', true],
+            ['Ingram Micro', 'SUP-INGRAM-001', 'Global distributor of IT hardware, software, and cloud services.', 'Sarah Mitchell', 'partners@ingrammicro.com', '+1-800-456-8000', 'https://www.ingrammicro.com', 'US-94-1234567', 'RC-ING-001', true],
+            ['Tech Data Corporation', 'SUP-TECHDATA-002', 'Wholesale distributor of technology products and solutions.', 'James Rodriguez', 'b2b@techdata.com', '+1-800-237-8282', 'https://www.techdata.com', 'US-59-2345678', 'RC-TD-002', true],
+            ['Foxconn Technology', 'SUP-FOXCONN-003', 'Electronics manufacturing and assembly partner.', 'Wei Chen', 'supply@foxconn.com', '+886-2-2268-3466', 'https://www.foxconn.com', 'TW-12345678', 'RC-FC-003', true],
+            ['Flex Ltd', 'SUP-FLEX-004', 'Design and manufacturing for consumer electronics.', 'Anita Kapoor', 'procurement@flex.com', '+65-6877-4883', 'https://www.flex.com', 'SG-201234567K', 'RC-FLX-004', true],
+            ['Nike Inc. Wholesale', 'SUP-NIKE-005', 'Official Nike footwear and apparel distribution.', 'Marcus Johnson', 'wholesale@nike.com', '+1-800-344-6453', 'https://www.nike.com', 'US-93-0584541', 'RC-NKE-005', true],
+            ['Samsung Electronics', 'SUP-SAMSUNG-006', 'Consumer electronics and mobile device supply.', 'Ji-hoon Park', 'b2b@samsung.com', '+82-2-2255-0114', 'https://www.samsung.com', 'KR-123-45-67890', 'RC-SSG-006', true],
+            ['IKEA Supply AG', 'SUP-IKEA-007', 'Flat-pack furniture and home furnishing wholesale.', 'Erik Lindstrom', 'trade@ikea.com', '+46-8-508-52-000', 'https://www.ikea.com', 'SE-5560747569', 'RC-IKEA-007', true],
+            ['Procter & Gamble', 'SUP-PG-008', 'Beauty, grooming, and household consumer goods.', 'Lisa Thompson', 'trade@pg.com', '+1-513-983-1100', 'https://www.pg.com', 'US-31-0411980', 'RC-PG-008', true],
+            ['Canon Inc.', 'SUP-CANON-009', 'Cameras, printers, and imaging equipment supply.', 'Yuki Tanaka', 'dealer@canon.com', '+81-3-5482-1111', 'https://www.canon.com', 'JP-1234567890123', 'RC-CAN-009', true],
+            ['Dyson Ltd', 'SUP-DYSON-010', 'Vacuum cleaners, air treatment, and personal care devices.', 'Oliver Hughes', 'trade@dyson.com', '+44-800-298-0298', 'https://www.dyson.com', 'GB-10870194', 'RC-DYS-010', true],
+            ['Levi Strauss & Co.', 'SUP-LEVIS-011', 'Denim and casual apparel wholesale.', 'Rachel Green', 'wholesale@levi.com', '+1-415-501-6000', 'https://www.levi.com', 'US-94-0495530', 'RC-LEV-011', true],
+            ['KitchenAid / Whirlpool', 'SUP-KITCHENAID-012', 'Kitchen appliances and small electrics.', 'Tom Baker', 'dealer@kitchenaid.com', '+1-800-422-1230', 'https://www.kitchenaid.com', 'US-38-1498030', 'RC-KA-012', true],
+            ['Bose Corporation', 'SUP-BOSE-013', 'Premium audio equipment and accessories.', 'Emily Carter', 'b2b@bose.com', '+1-800-379-2073', 'https://www.bose.com', 'US-04-2745157', 'RC-BOSE-013', true],
+            ['Patagonia Works', 'SUP-PATAGONIA-014', 'Outdoor apparel and gear distribution.', 'Chris Morales', 'trade@patagonia.com', '+1-800-638-6464', 'https://www.patagonia.com', 'US-95-3679620', 'RC-PAT-014', true],
+            ['HP Inc.', 'SUP-HP-015', 'Printers, PCs, and office technology supply.', 'David Okonkwo', 'partners@hp.com', '+1-650-857-1501', 'https://www.hp.com', 'US-94-1081436', 'RC-HP-015', true],
+            ['Dell Technologies', 'SUP-DELL-016', 'Computers, servers, and enterprise hardware.', 'Priya Sharma', 'channel@dell.com', '+1-800-999-3355', 'https://www.dell.com', 'US-75-1574680', 'RC-DELL-016', true],
+            ['LG Electronics', 'SUP-LG-017', 'TVs, appliances, and display products.', 'Min-jun Lee', 'b2b@lg.com', '+82-2-3777-1114', 'https://www.lg.com', 'KR-110-81-39970', 'RC-LG-017', true],
+            ['Adidas AG', 'SUP-ADIDAS-018', 'Sportswear and footwear wholesale partner.', 'Hans Mueller', 'trade@adidas.com', '+49-9132-84-0', 'https://www.adidas.com', 'DE-129274202', 'RC-ADI-018', true],
+            ['Sony Corporation', 'SUP-SONY-019', 'Consumer electronics, gaming, and audio supply.', 'Kenji Watanabe', 'dealer@sony.com', '+81-3-6748-2111', 'https://www.sony.com', 'JP-4988010001234', 'RC-SNY-019', true],
+            ['Uniqlo / Fast Retailing', 'SUP-UNIQLO-020', 'Casual apparel and basics wholesale.', 'Hana Sato', 'b2b@uniqlo.com', '+81-3-6885-5500', 'https://www.uniqlo.com', 'JP-2130001050000', 'RC-UNI-020', true],
         ];
     }
 }

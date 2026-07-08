@@ -40,6 +40,16 @@ class TagsImportSample implements FromArray, WithHeadings
             ['Gift Idea', 'gift-idea', '#14B8A6', 'gift', true, 8],
             ['Back In Stock', 'back-in-stock', '#10B981', 'package-check', true, 9],
             ['Online Exclusive', 'online-exclusive', '#6366F1', 'globe', true, 10],
+            ['Free Shipping', 'free-shipping', '#0EA5E9', 'truck', true, 11],
+            ['Apple Compatible', 'apple-compatible', '#64748B', 'smartphone', true, 12],
+            ['Wireless', 'wireless', '#A855F7', 'wifi', true, 13],
+            ['Waterproof', 'waterproof', '#0284C7', 'droplets', true, 14],
+            ['Organic', 'organic', '#84CC16', 'sprout', true, 15],
+            ['Made in USA', 'made-in-usa', '#DC2626', 'flag', true, 16],
+            ['Refurbished', 'refurbished', '#78716C', 'refresh-cw', true, 17],
+            ['Bundle Deal', 'bundle-deal', '#D97706', 'layers', true, 18],
+            ['Holiday Sale', 'holiday-sale', '#BE123C', 'party-popper', true, 19],
+            ['Members Only', 'members-only', '#4F46E5', 'lock', true, 20],
         ];
     }
 }

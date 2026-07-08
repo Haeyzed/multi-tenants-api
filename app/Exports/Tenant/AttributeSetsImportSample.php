@@ -29,16 +29,26 @@ class AttributeSetsImportSample implements FromArray, WithHeadings
     public function array(): array
     {
         return [
-            ['Apparel', 'apparel', 'Attributes for clothing and footwear products.', true, 1],
-            ['Electronics', 'electronics', 'Technical specs for devices and accessories.', true, 2],
-            ['Food & Beverage', 'food-beverage', 'Nutrition, ingredients, and shelf-life details.', true, 3],
-            ['Furniture', 'furniture', 'Dimensions, materials, and assembly information.', true, 4],
-            ['Beauty', 'beauty', 'Skin type, ingredients, and usage attributes.', true, 5],
-            ['Sports Equipment', 'sports-equipment', 'Performance and safety specifications.', true, 6],
-            ['Books', 'books', 'Author, format, and publication metadata.', true, 7],
-            ['Automotive Parts', 'automotive-parts', 'Compatibility and fitment attributes.', true, 8],
-            ['Home Appliances', 'home-appliances', 'Power, capacity, and installation details.', true, 9],
-            ['Jewelry', 'jewelry', 'Metal type, stone, and sizing attributes.', true, 10],
+            ['Smartphones', 'smartphones', 'Storage, color, screen size, and connectivity for mobile phones.', true, 1],
+            ['Laptops', 'laptops', 'RAM, storage, screen size, and OS for notebooks.', true, 2],
+            ['Televisions', 'televisions', 'Screen size, resolution, refresh rate, and smart features.', true, 3],
+            ['Footwear', 'footwear', 'Size, color, material, and fit for shoes.', true, 4],
+            ['Apparel', 'apparel', 'Size, color, fit, and fabric for clothing.', true, 5],
+            ['Audio', 'audio', 'Connectivity, battery life, and noise cancellation specs.', true, 6],
+            ['Cameras', 'cameras', 'Sensor type, megapixels, lens mount, and video resolution.', true, 7],
+            ['Kitchen Appliances', 'kitchen-appliances', 'Capacity, power, voltage, and material.', true, 8],
+            ['Furniture', 'furniture', 'Dimensions, material, color, and assembly requirements.', true, 9],
+            ['Beauty', 'beauty', 'Skin type, ingredients, volume, and usage instructions.', true, 10],
+            ['Sports Equipment', 'sports-equipment', 'Weight, size, material, and skill level.', true, 11],
+            ['Office Printers', 'office-printers', 'Print speed, connectivity, and toner compatibility.', true, 12],
+            ['Vacuum Cleaners', 'vacuum-cleaners', 'Suction power, battery runtime, and filtration.', true, 13],
+            ['Watches', 'watches', 'Case size, band material, water resistance, and movement.', true, 14],
+            ['Tablets', 'tablets', 'Storage, display size, stylus support, and cellular option.', true, 15],
+            ['Gaming Consoles', 'gaming-consoles', 'Storage, edition, region, and bundled accessories.', true, 16],
+            ['Baby Gear', 'baby-gear', 'Age range, weight limit, and safety certifications.', true, 17],
+            ['Automotive Accessories', 'automotive-accessories', 'Vehicle compatibility, fitment, and material.', true, 18],
+            ['Books & Media', 'books-media', 'Author, format, language, and publication year.', true, 19],
+            ['Food & Grocery', 'food-grocery', 'Weight, flavor, allergens, and shelf life.', true, 20],
         ];
     }
 }

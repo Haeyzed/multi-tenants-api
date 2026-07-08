@@ -38,6 +38,16 @@ class CustomerGroupsImportSample implements FromArray, WithHeadings
             ['Members', 'Paid membership program subscribers.', 7, true],
             ['First-Time Buyers', 'Welcome discount for new customers.', 5, true],
             ['Inactive Win-Back', 'Re-engagement offers for dormant accounts.', 10, true],
+            ['Seniors', 'Customers aged 65+ with senior discount.', 8, true],
+            ['Military & Veterans', 'Verified service members and veterans.', 12, true],
+            ['Healthcare Workers', 'Nurses, doctors, and hospital staff.', 10, true],
+            ['Teachers', 'Educators with verified school email.', 8, true],
+            ['Non-Profit', 'Registered charities and NGOs.', 15, true],
+            ['Resellers', 'Authorized resellers with tiered pricing.', 18, true],
+            ['Early Access', 'Pre-launch and beta product access group.', 5, true],
+            ['Birthday Club', 'Birthday month special offers.', 10, true],
+            ['Local Pickup', 'Customers who collect orders in-store.', 3, true],
+            ['International', 'Cross-border shoppers with export pricing.', 5, true],
         ];
     }
 }

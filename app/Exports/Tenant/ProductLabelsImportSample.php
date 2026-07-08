@@ -41,6 +41,16 @@ class ProductLabelsImportSample implements FromArray, WithHeadings
             ['Gift', 'gift', '#FFFFFF', '#14B8A6', 'gift', true, 8],
             ['Back In Stock', 'back-in-stock', '#FFFFFF', '#10B981', 'package-check', true, 9],
             ['Exclusive', 'exclusive', '#FFFFFF', '#6366F1', 'globe', true, 10],
+            ['Free Shipping', 'free-shipping', '#FFFFFF', '#0EA5E9', 'truck', true, 11],
+            ['Preorder', 'preorder', '#FFFFFF', '#7C3AED', 'clock', true, 12],
+            ['Refurbished', 'refurbished', '#FFFFFF', '#78716C', 'refresh-cw', true, 13],
+            ['Bundle', 'bundle', '#FFFFFF', '#D97706', 'layers', true, 14],
+            ['Top Rated', 'top-rated', '#FFFFFF', '#EAB308', 'award', true, 15],
+            ['Staff Pick', 'staff-pick', '#FFFFFF', '#0891B2', 'thumbs-up', true, 16],
+            ['Clearance', 'clearance', '#FFFFFF', '#BE123C', 'tag', true, 17],
+            ['Members Only', 'members-only', '#FFFFFF', '#4F46E5', 'lock', true, 18],
+            ['Low Stock', 'low-stock', '#FFFFFF', '#F97316', 'alert-triangle', true, 19],
+            ['New Season', 'new-season', '#FFFFFF', '#059669', 'sun', true, 20],
         ];
     }
 }

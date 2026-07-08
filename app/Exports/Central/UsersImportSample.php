@@ -29,16 +29,26 @@ class UsersImportSample implements FromArray, WithHeadings
     public function array(): array
     {
         return [
-            ['Jane Admin', 'jane.admin@example.com', '+2348012345001', 'ChangeMe123!', true],
-            ['Michael Ops', 'michael.ops@example.com', '+2348023456002', 'ChangeMe123!', true],
-            ['Aisha Support', 'aisha.support@example.com', '+2348034567003', 'ChangeMe123!', true],
-            ['David Finance', 'david.finance@example.com', '+2348045678004', 'ChangeMe123!', true],
-            ['Grace Marketing', 'grace.marketing@example.com', '+233201234567', 'ChangeMe123!', true],
-            ['Samuel Engineering', 'samuel.engineering@example.com', '+2348056789005', 'ChangeMe123!', true],
-            ['Fatima Compliance', 'fatima.compliance@example.com', '+2348067890006', 'ChangeMe123!', true],
-            ['Patrick Sales', 'patrick.sales@example.com', '+233209876543', 'ChangeMe123!', true],
-            ['Chinedu Product', 'chinedu.product@example.com', '+2348078901007', 'ChangeMe123!', true],
-            ['Amina Success', 'amina.success@example.com', '+254712345678', 'ChangeMe123!', true],
+            ['Sarah Mitchell', 'sarah.mitchell@platform.example.com', '+14155550201', 'ChangeMe123!', true],
+            ['James Rodriguez', 'james.rodriguez@platform.example.com', '+14155550202', 'ChangeMe123!', true],
+            ['Emily Carter', 'emily.carter@platform.example.com', '+14155550203', 'ChangeMe123!', true],
+            ['David Okonkwo', 'david.okonkwo@platform.example.com', '+2348012345001', 'ChangeMe123!', true],
+            ['Aisha Bello', 'aisha.bello@platform.example.com', '+2348023456002', 'ChangeMe123!', true],
+            ['Michael Adeyemi', 'michael.adeyemi@platform.example.com', '+2348034567003', 'ChangeMe123!', true],
+            ['Grace Mensah', 'grace.mensah@platform.example.com', '+233201234567', 'ChangeMe123!', true],
+            ['Oliver Hughes', 'oliver.hughes@platform.example.com', '+447911123456', 'ChangeMe123!', true],
+            ['Priya Sharma', 'priya.sharma@platform.example.com', '+919876543210', 'ChangeMe123!', true],
+            ['Kenji Tanaka', 'kenji.tanaka@platform.example.com', '+819012345678', 'ChangeMe123!', true],
+            ['Hans Mueller', 'hans.mueller@platform.example.com', '+4915123456789', 'ChangeMe123!', true],
+            ['Isabella Rossi', 'isabella.rossi@platform.example.com', '+393331234567', 'ChangeMe123!', true],
+            ['Carlos Silva', 'carlos.silva@platform.example.com', '+5511987654321', 'ChangeMe123!', true],
+            ['Amina Wanjiru', 'amina.wanjiru@platform.example.com', '+254712345678', 'ChangeMe123!', true],
+            ['Wei Chen', 'wei.chen@platform.example.com', '+8613812345678', 'ChangeMe123!', true],
+            ['Fatima Yusuf', 'fatima.yusuf@platform.example.com', '+2348067890006', 'ChangeMe123!', true],
+            ['Patrick Osei', 'patrick.osei@platform.example.com', '+233209876543', 'ChangeMe123!', true],
+            ['Lucas Dubois', 'lucas.dubois@platform.example.com', '+33612345678', 'ChangeMe123!', true],
+            ['Hannah Schmidt', 'hannah.schmidt@platform.example.com', '+491601234567', 'ChangeMe123!', true],
+            ['Marcus Johnson', 'marcus.johnson@platform.example.com', '+14155550220', 'ChangeMe123!', true],
         ];
     }
 }
