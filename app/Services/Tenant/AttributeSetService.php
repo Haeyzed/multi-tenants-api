@@ -13,7 +13,11 @@ use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
 
 /**
- * Manages attribute sets.
+ * Manages attribute sets, which group attributes for products.
+ *
+ * This service handles the CRUD operations for attribute sets, manages the
+ * relationship between attribute sets and attributes, and provides methods
+ * for syncing and reordering.
  */
 class AttributeSetService
 {

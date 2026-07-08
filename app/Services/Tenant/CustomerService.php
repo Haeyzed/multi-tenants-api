@@ -12,13 +12,17 @@ use Throwable;
 
 /**
  * Manages customers within a tenant store.
+ *
+ * This service handles the listing, CRUD operations, and soft-delete lifecycle
+ * for customers. It also provides functionality for exporting customer data,
+ * retrieving statistics, and generating options for select inputs.
  */
 class CustomerService
 {
     /**
      * Paginate customers.
      *
-     * @param array $filters
+     * @param array<string, mixed> $filters
      * @param int $perPage
      * @return LengthAwarePaginator
      */
@@ -47,7 +51,7 @@ class CustomerService
     /**
      * Create a new customer.
      *
-     * @param array $data
+     * @param array<string, mixed> $data
      * @return Customer
      * @throws Throwable
      */
@@ -71,7 +75,7 @@ class CustomerService
      * Update a customer.
      *
      * @param Customer $customer
-     * @param array $data
+     * @param array<string, mixed> $data
      * @return Customer
      * @throws Throwable
      */
@@ -105,7 +109,7 @@ class CustomerService
     /**
      * Delete multiple customers by ID.
      *
-     * @param array $ids
+     * @param array<string> $ids
      * @return int
      */
     public function deleteMany(array $ids): int
@@ -140,7 +144,7 @@ class CustomerService
     /**
      * Restore multiple soft-deleted customers by ID.
      *
-     * @param array $ids
+     * @param array<string> $ids
      * @return int
      */
     public function restoreMany(array $ids): int
@@ -151,7 +155,7 @@ class CustomerService
     /**
      * Build the export query for spreadsheet downloads.
      *
-     * @param array|null $ids
+     * @param array<string>|null $ids
      * @param string|null $startDate
      * @param string|null $endDate
      * @return Collection
@@ -181,7 +185,7 @@ class CustomerService
     /**
      * Return aggregate counts for the admin dashboard.
      *
-     * @return array
+     * @return array<string, int>
      */
     public function statistics(): array
     {

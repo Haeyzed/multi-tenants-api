@@ -15,6 +15,10 @@ use Illuminate\Support\Str;
 
 /**
  * Manages product collections within a tenant store.
+ *
+ * This service handles the CRUD operations for collections, manages the
+ * relationship between collections and products, and provides methods
+ * for syncing, reordering, and refreshing automated collections.
  */
 class CollectionService
 {

@@ -9,14 +9,15 @@ use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;
 
 /**
- * Manages customer groups.
+ * Manages customer groups, which can be used to segment customers and apply
+ * group-specific discounts or other rules.
  */
 class CustomerGroupService
 {
     /**
      * Paginate customer groups.
      *
-     * @param array $filters
+     * @param array<string, mixed> $filters
      * @param int $perPage
      * @return LengthAwarePaginator
      */
@@ -45,7 +46,7 @@ class CustomerGroupService
     /**
      * Create a new customer group.
      *
-     * @param array $data
+     * @param array<string, mixed> $data
      * @return CustomerGroup
      */
     public function create(array $data): CustomerGroup
@@ -59,7 +60,7 @@ class CustomerGroupService
      * Update a customer group.
      *
      * @param CustomerGroup $group
-     * @param array $data
+     * @param array<string, mixed> $data
      * @return CustomerGroup
      */
     public function update(CustomerGroup $group, array $data): CustomerGroup
@@ -83,7 +84,7 @@ class CustomerGroupService
     /**
      * Delete multiple customer groups by ID.
      *
-     * @param array $ids
+     * @param array<string> $ids
      * @return int
      */
     public function deleteMany(array $ids): int
@@ -118,7 +119,7 @@ class CustomerGroupService
     /**
      * Restore multiple soft-deleted customer groups by ID.
      *
-     * @param array $ids
+     * @param array<string> $ids
      * @return int
      */
     public function restoreMany(array $ids): int
@@ -129,7 +130,7 @@ class CustomerGroupService
     /**
      * Build the export query for spreadsheet downloads.
      *
-     * @param array|null $ids
+     * @param array<string>|null $ids
      * @param string|null $startDate
      * @param string|null $endDate
      * @return Collection
@@ -159,7 +160,7 @@ class CustomerGroupService
     /**
      * Return aggregate counts for the admin dashboard.
      *
-     * @return array
+     * @return array<string, int>
      */
     public function statistics(): array
     {

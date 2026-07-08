@@ -12,7 +12,8 @@ use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
 
 /**
- * Manages product attributes and their values.
+ * Manages product attributes and their values, which are used to define
+ * product specifications, variations, and filters.
  */
 class AttributeService
 {

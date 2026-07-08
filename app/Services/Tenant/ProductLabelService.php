@@ -9,7 +9,8 @@ use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;
 
 /**
- * Manages product labels.
+ * Manages product labels, which can be used to highlight products with
+ * special offers or characteristics (e.g., "New", "Sale", "Bestseller").
  */
 class ProductLabelService
 {
