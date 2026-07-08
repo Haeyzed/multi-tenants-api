@@ -55,6 +55,7 @@ class ProductService
      * Paginate the products.
      *
      * @param  array<string, mixed>  $filters
+     * @param int $perPage
      * @return LengthAwarePaginator<int, Product>
      */
     public function paginate(array $filters = [], int $perPage = 15): LengthAwarePaginator
@@ -76,6 +77,9 @@ class ProductService
 
     /**
      * Find a product by ID for admin detail.
+     *
+     * @param int $id
+     * @return Product
      */
     public function find(int $id): Product
     {
@@ -125,6 +129,9 @@ class ProductService
 
     /**
      * Find product by slug for storefront.
+     *
+     * @param string $slug
+     * @return Product
      */
     public function findBySlug(string $slug): Product
     {
@@ -169,6 +176,7 @@ class ProductService
      * Create a new product.
      *
      * @param  array<string, mixed>  $data
+     * @return Product
      *
      * @throws Throwable
      */
@@ -227,7 +235,9 @@ class ProductService
     /**
      * Update an existing product.
      *
+     * @param Product $product
      * @param  array<string, mixed>  $data
+     * @return Product
      *
      * @throws Throwable
      */
@@ -339,6 +349,9 @@ class ProductService
 
     /**
      * Delete a product.
+     *
+     * @param Product $product
+     * @return void
      */
     public function delete(Product $product): void
     {
@@ -349,6 +362,7 @@ class ProductService
      * Delete multiple products by ID.
      *
      * @param  list<int>  $ids
+     * @return int
      */
     public function deleteMany(array $ids): int
     {
@@ -360,6 +374,7 @@ class ProductService
      *
      * @param  list<int>  $ids
      * @param  array<string, mixed>  $data
+     * @return int
      */
     public function updateMany(array $ids, array $data): int
     {
@@ -377,6 +392,9 @@ class ProductService
 
     /**
      * Force delete a product permanently.
+     *
+     * @param Product $product
+     * @return void
      */
     public function forceDelete(Product $product): void
     {
@@ -385,6 +403,9 @@ class ProductService
 
     /**
      * Restore a soft-deleted product.
+     *
+     * @param Product $product
+     * @return Product
      */
     public function restore(Product $product): Product
     {
@@ -397,6 +418,7 @@ class ProductService
      * Restore multiple soft-deleted products by ID.
      *
      * @param  list<int>  $ids
+     * @return int
      */
     public function restoreMany(array $ids): int
     {
@@ -406,7 +428,9 @@ class ProductService
     /**
      * Create a variant for a product.
      *
+     * @param Product $product
      * @param  array<string, mixed>  $data
+     * @return ProductVariant
      *
      * @throws Throwable
      */
@@ -447,7 +471,9 @@ class ProductService
     /**
      * Update a product variant.
      *
+     * @param ProductVariant $variant
      * @param  array<string, mixed>  $data
+     * @return ProductVariant
      *
      * @throws Throwable
      */
@@ -503,6 +529,9 @@ class ProductService
 
     /**
      * Delete a product variant.
+     *
+     * @param ProductVariant $variant
+     * @return void
      */
     public function deleteVariant(ProductVariant $variant): void
     {
@@ -512,7 +541,9 @@ class ProductService
     /**
      * Sync product suppliers with commercial terms.
      *
+     * @param Product $product
      * @param  list<array<string, mixed>>  $suppliers
+     * @return Product
      *
      * @throws Throwable
      */
@@ -565,11 +596,13 @@ class ProductService
     /**
      * Sync related, cross-sell, and upsell product links.
      *
+     * @param Product $product
      * @param  array{
      *     related_product_ids?: list<int>,
      *     cross_sell_product_ids?: list<int>,
      *     up_sell_product_ids?: list<int>
      * }  $relations
+     * @return Product
      *
      * @throws Throwable
      */
@@ -609,7 +642,9 @@ class ProductService
     /**
      * Sync downloadable files for a digital product.
      *
+     * @param Product $product
      * @param  list<array<string, mixed>>  $downloads
+     * @return Product
      *
      * @throws Throwable
      */
@@ -625,7 +660,9 @@ class ProductService
     /**
      * Sync bundle component items.
      *
+     * @param Product $product
      * @param  list<array<string, mixed>>  $bundleItems
+     * @return Product
      *
      * @throws Throwable
      */
@@ -644,10 +681,12 @@ class ProductService
     /**
      * Sync service configuration and optional staff providers.
      *
+     * @param Product $product
      * @param  array{
      *     service: array<string, mixed>,
      *     providers?: list<array<string, mixed>|int>
      * }  $data
+     * @return Product
      *
      * @throws Throwable
      */
@@ -667,7 +706,9 @@ class ProductService
     /**
      * Sync product videos.
      *
+     * @param Product $product
      * @param  list<array<string, mixed>>  $videos
+     * @return Product
      *
      * @throws Throwable
      */
@@ -683,6 +724,8 @@ class ProductService
     /**
      * Duplicate a product as a draft copy.
      *
+     * @param Product $product
+     * @return Product
      * @throws Throwable
      */
     public function duplicate(Product $product): Product
@@ -832,6 +875,9 @@ class ProductService
     // ── FAQs ──
 
     /**
+     * Get FAQs for a product.
+     *
+     * @param Product $product
      * @return EloquentCollection<int, ProductFaq>
      */
     public function getFaqs(Product $product): EloquentCollection
@@ -840,7 +886,11 @@ class ProductService
     }
 
     /**
+     * Add a FAQ to a product.
+     *
+     * @param int $productId
      * @param  array<string, mixed>  $data
+     * @return ProductFaq
      */
     public function addFaq(int $productId, array $data): ProductFaq
     {
@@ -850,7 +900,11 @@ class ProductService
     }
 
     /**
+     * Update a FAQ.
+     *
+     * @param ProductFaq $faq
      * @param  array<string, mixed>  $data
+     * @return ProductFaq
      */
     public function updateFaq(ProductFaq $faq, array $data): ProductFaq
     {
@@ -859,6 +913,12 @@ class ProductService
         return $faq->fresh();
     }
 
+    /**
+     * Delete a FAQ.
+     *
+     * @param ProductFaq $faq
+     * @return void
+     */
     public function deleteFaq(ProductFaq $faq): void
     {
         $faq->delete();
@@ -867,6 +927,9 @@ class ProductService
     // ── Documents ──
 
     /**
+     * Get documents for a product.
+     *
+     * @param Product $product
      * @return EloquentCollection<int, ProductDocument>
      */
     public function getDocuments(Product $product): EloquentCollection
@@ -875,7 +938,11 @@ class ProductService
     }
 
     /**
+     * Add a document to a product.
+     *
+     * @param int $productId
      * @param  array<string, mixed>  $data
+     * @return ProductDocument
      */
     public function addDocument(int $productId, array $data): ProductDocument
     {
@@ -887,7 +954,11 @@ class ProductService
     }
 
     /**
+     * Update a document.
+     *
+     * @param ProductDocument $document
      * @param  array<string, mixed>  $data
+     * @return ProductDocument
      */
     public function updateDocument(ProductDocument $document, array $data): ProductDocument
     {
@@ -896,6 +967,12 @@ class ProductService
         return $document->fresh(['media']);
     }
 
+    /**
+     * Delete a document.
+     *
+     * @param ProductDocument $document
+     * @return void
+     */
     public function deleteDocument(ProductDocument $document): void
     {
         $document->delete();
@@ -904,6 +981,9 @@ class ProductService
     // ── Questions ──
 
     /**
+     * Get questions for a product.
+     *
+     * @param Product $product
      * @return EloquentCollection<int, ProductQuestion>
      */
     public function getQuestions(Product $product): EloquentCollection
@@ -912,7 +992,11 @@ class ProductService
     }
 
     /**
+     * Answer a question.
+     *
+     * @param ProductQuestion $question
      * @param  array<string, mixed>  $data
+     * @return ProductQuestion
      */
     public function answerQuestion(ProductQuestion $question, array $data): ProductQuestion
     {
@@ -928,7 +1012,11 @@ class ProductService
     }
 
     /**
+     * Update a question.
+     *
+     * @param ProductQuestion $question
      * @param  array<string, mixed>  $data
+     * @return ProductQuestion
      */
     public function updateQuestion(ProductQuestion $question, array $data): ProductQuestion
     {
@@ -943,6 +1031,12 @@ class ProductService
         return $question->fresh(['answeredBy']);
     }
 
+    /**
+     * Delete a question.
+     *
+     * @param ProductQuestion $question
+     * @return void
+     */
     public function deleteQuestion(ProductQuestion $question): void
     {
         $question->delete();
@@ -951,6 +1045,9 @@ class ProductService
     // ── Reviews ──
 
     /**
+     * Get reviews for a product.
+     *
+     * @param Product $product
      * @return EloquentCollection<int, ProductReview>
      */
     public function getReviews(Product $product): EloquentCollection
@@ -959,7 +1056,11 @@ class ProductService
     }
 
     /**
+     * Update a review.
+     *
+     * @param ProductReview $review
      * @param  array<string, mixed>  $data
+     * @return ProductReview
      */
     public function updateReview(ProductReview $review, array $data): ProductReview
     {
@@ -972,6 +1073,12 @@ class ProductService
         return $review->fresh();
     }
 
+    /**
+     * Delete a review.
+     *
+     * @param ProductReview $review
+     * @return void
+     */
     public function deleteReview(ProductReview $review): void
     {
         $review->delete();
@@ -980,7 +1087,9 @@ class ProductService
     /**
      * Sync subscription billing configuration.
      *
+     * @param Product $product
      * @param  array<string, mixed>  $subscription
+     * @return Product
      *
      * @throws Throwable
      */
@@ -996,7 +1105,9 @@ class ProductService
     /**
      * Sync variant-generating options and their values for a product.
      *
+     * @param Product $product
      * @param  list<array<string, mixed>>  $options
+     * @return Product
      *
      * @throws Throwable
      */
@@ -1081,6 +1192,7 @@ class ProductService
     /**
      * Generate variants from the cartesian product of option values.
      *
+     * @param Product $product
      * @param  array<string, mixed>  $defaults
      * @return Collection<int, ProductVariant>
      *
@@ -1149,6 +1261,7 @@ class ProductService
      * Get products for storefront with filtering.
      *
      * @param  array<string, mixed>  $filters
+     * @param int $perPage
      * @return LengthAwarePaginator<int, Product>
      */
     public function getStorefrontProducts(array $filters = [], int $perPage = 24): LengthAwarePaginator
@@ -1170,6 +1283,7 @@ class ProductService
     /**
      * Get featured products for homepage.
      *
+     * @param int $limit
      * @return EloquentCollection<int, Product>
      */
     public function getFeaturedProducts(int $limit = 8): EloquentCollection
@@ -1191,6 +1305,8 @@ class ProductService
     /**
      * Get related products for a product.
      *
+     * @param Product $product
+     * @param int $limit
      * @return EloquentCollection<int, Product>
      */
     public function getRelatedProducts(Product $product, int $limit = 8): EloquentCollection
@@ -1278,6 +1394,8 @@ class ProductService
 
     /**
      * @param  list<int>|null  $ids
+     * @param string|null $startDate
+     * @param string|null $endDate
      * @return Collection<int, Product>
      */
     public function exportQuery(
@@ -1306,6 +1424,7 @@ class ProductService
 
     /**
      * @param  array<string, mixed>  $data
+     * @param bool $isUpdate
      * @return array{0: array<string, mixed>, 1: array<string, mixed>}
      */
     private function extractProductPayload(array $data, bool $isUpdate = false): array
@@ -1461,6 +1580,8 @@ class ProductService
 
     /**
      * @param  list<int>  $categoryIds
+     * @param mixed $primaryCategoryId
+     * @return void
      */
     private function syncCategories(Product $product, array $categoryIds, mixed $primaryCategoryId = null): void
     {
@@ -1495,6 +1616,7 @@ class ProductService
 
     /**
      * @param  list<int>  $tagIds
+     * @return void
      */
     private function syncTags(Product $product, array $tagIds): void
     {
@@ -1503,6 +1625,7 @@ class ProductService
 
     /**
      * @param  list<int>  $labelIds
+     * @return void
      */
     private function syncLabels(Product $product, array $labelIds): void
     {
@@ -1518,6 +1641,7 @@ class ProductService
 
     /**
      * @param  list<int>  $collectionIds
+     * @return void
      */
     private function syncCollections(Product $product, array $collectionIds): void
     {
@@ -1533,6 +1657,8 @@ class ProductService
 
     /**
      * @param  list<array<string, mixed>>  $gallery
+     * @param mixed $primaryMediaId
+     * @param bool $applyPrimary
      * @return list<array<string, mixed>>
      */
     private function buildGalleryPayload(array $gallery, mixed $primaryMediaId, bool $applyPrimary): array
@@ -1559,6 +1685,7 @@ class ProductService
 
     /**
      * @param  list<array<string, mixed>>  $gallery
+     * @return void
      */
     private function syncGallery(Product $product, array $gallery): void
     {
@@ -1579,6 +1706,7 @@ class ProductService
 
     /**
      * @param  array<string, mixed>  $nested
+     * @return bool
      */
     private function shouldCreateDefaultVariant(ProductType $type, array $nested): bool
     {
@@ -1591,6 +1719,7 @@ class ProductService
 
     /**
      * @param  array<string, mixed>  $nested
+     * @return ProductVariant
      */
     private function createDefaultVariant(Product $product, array $nested): ProductVariant
     {
@@ -1633,6 +1762,7 @@ class ProductService
 
     /**
      * @param  list<array<string, mixed>>  $variants
+     * @return void
      */
     private function syncVariants(Product $product, array $variants): void
     {
@@ -1656,6 +1786,7 @@ class ProductService
 
     /**
      * @param  list<int>  $optionValueIds
+     * @return void
      */
     private function syncVariantOptionValues(ProductVariant $variant, array $optionValueIds): void
     {
@@ -1678,6 +1809,7 @@ class ProductService
 
     /**
      * @param  array<string, mixed>|list<array<string, mixed>>  $inventoryData
+     * @return void
      */
     private function syncVariantInventory(ProductVariant $variant, array $inventoryData): void
     {
@@ -1699,6 +1831,7 @@ class ProductService
 
     /**
      * @param  list<array<string, mixed>>  $tiers
+     * @return void
      */
     private function syncVariantPriceTiers(ProductVariant $variant, array $tiers): void
     {
@@ -1714,6 +1847,7 @@ class ProductService
 
     /**
      * @param  list<array<string, mixed>>  $videos
+     * @return void
      */
     private function replaceProductVideos(Product $product, array $videos): void
     {
@@ -1741,6 +1875,7 @@ class ProductService
 
     /**
      * @param  list<array<string, mixed>>  $attributeValues
+     * @return void
      */
     private function syncAttributeValues(Product $product, array $attributeValues): void
     {
@@ -1758,6 +1893,8 @@ class ProductService
 
     /**
      * @param  list<int>  $relatedIds
+     * @param string $relationType
+     * @return void
      */
     private function syncRelatedProducts(Product $product, array $relatedIds, string $relationType): void
     {
@@ -1778,6 +1915,7 @@ class ProductService
 
     /**
      * @param  list<array<string, mixed>>  $downloads
+     * @return void
      */
     private function syncDownloads(Product $product, array $downloads): void
     {
@@ -1804,6 +1942,7 @@ class ProductService
 
     /**
      * @param  list<array<string, mixed>>  $bundleItems
+     * @return void
      */
     private function syncBundleItems(Product $product, array $bundleItems): void
     {
@@ -1825,6 +1964,7 @@ class ProductService
 
     /**
      * @param  list<array<string, mixed>|int>  $providers
+     * @return void
      */
     private function syncProviders(Product $product, array $providers): void
     {
@@ -1868,6 +2008,7 @@ class ProductService
     /**
      * @param  array<string, mixed>  $service
      * @param  list<array<string, mixed>>|null  $schedules
+     * @return void
      */
     private function syncService(Product $product, array $service, ?array $schedules = null): void
     {
@@ -1894,6 +2035,7 @@ class ProductService
 
     /**
      * @param  list<array<string, mixed>>  $schedules
+     * @return void
      */
     private function syncServiceSchedules(Product $product, array $schedules): void
     {
@@ -1913,6 +2055,7 @@ class ProductService
 
     /**
      * @param  array<string, mixed>  $subscription
+     * @return void
      */
     private function syncSubscription(Product $product, array $subscription): void
     {
@@ -1933,6 +2076,7 @@ class ProductService
 
     /**
      * @param  array<string, mixed>  $data
+     * @param bool $isUpdate
      * @return list<array<string, mixed>>|null
      */
     private function normalizeProvidersPayload(array $data, bool $isUpdate): ?array
@@ -2009,6 +2153,7 @@ class ProductService
 
     /**
      * @param  array<string, mixed>  $inventoryData
+     * @return int
      */
     private function resolveWarehouseId(array $inventoryData): int
     {
@@ -2034,6 +2179,7 @@ class ProductService
 
     /**
      * @param  list<int>  $optionValueIds
+     * @return ProductVariant|null
      */
     private function findVariantByOptionValueIds(Product $product, array $optionValueIds): ?ProductVariant
     {
@@ -2059,6 +2205,7 @@ class ProductService
 
     /**
      * @param  list<ProductOptionValue>  $values
+     * @return string
      */
     private function generateVariantSku(Product $product, array $values): string
     {
@@ -2080,6 +2227,10 @@ class ProductService
         return $candidate;
     }
 
+    /**
+     * @param string $baseSku
+     * @return string
+     */
     private function generateUniqueSku(string $baseSku): string
     {
         $candidate = $baseSku.'-COPY';
@@ -2093,6 +2244,10 @@ class ProductService
         return $candidate;
     }
 
+    /**
+     * @param string $url
+     * @return string|null
+     */
     private function extractYouTubeId(string $url): ?string
     {
         $patterns = [

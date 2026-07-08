@@ -14,6 +14,13 @@ use Illuminate\Support\Facades\Notification as NotificationFacade;
  */
 class NotificationDispatchService
 {
+    /**
+     * Notify a user.
+     *
+     * @param TenantUser|null $user
+     * @param Notification $notification
+     * @return void
+     */
     public function notifyUser(?TenantUser $user, Notification $notification): void
     {
         if ($user === null) {
@@ -23,13 +30,24 @@ class NotificationDispatchService
         $user->notify($notification);
     }
 
+    /**
+     * Notify an email address.
+     *
+     * @param string $email
+     * @param Notification $notification
+     * @return void
+     */
     public function notifyMail(string $email, Notification $notification): void
     {
         NotificationFacade::route('mail', $email)->notify($notification);
     }
 
     /**
+     * Notify a collection of users.
+     *
      * @param  Collection<int, TenantUser>|iterable<int, TenantUser>  $users
+     * @param Notification $notification
+     * @return void
      */
     public function notifyUsers(iterable $users, Notification $notification): void
     {
@@ -39,6 +57,9 @@ class NotificationDispatchService
     }
 
     /**
+     * Get staff members with a specific permission.
+     *
+     * @param string $permission
      * @return Collection<int, TenantUser>
      */
     public function staffWithPermission(string $permission): Collection

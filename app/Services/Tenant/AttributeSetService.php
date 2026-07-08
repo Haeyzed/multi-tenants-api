@@ -12,10 +12,16 @@ use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
 
+/**
+ * Manages attribute sets.
+ */
 class AttributeSetService
 {
     /**
+     * Paginate attribute sets.
+     *
      * @param  array<string, mixed>  $filters
+     * @param int $perPage
      * @return LengthAwarePaginator<int, AttributeSet>
      */
     public function paginate(array $filters = [], int $perPage = 15): LengthAwarePaginator
@@ -28,6 +34,12 @@ class AttributeSetService
             ->paginate($perPage);
     }
 
+    /**
+     * Find an attribute set by ID.
+     *
+     * @param int $id
+     * @return AttributeSet
+     */
     public function find(int $id): AttributeSet
     {
         return AttributeSet::query()
@@ -35,6 +47,12 @@ class AttributeSetService
             ->findOrFail($id);
     }
 
+    /**
+     * Find an attribute set by slug.
+     *
+     * @param string $slug
+     * @return AttributeSet
+     */
     public function findBySlug(string $slug): AttributeSet
     {
         return AttributeSet::query()
@@ -44,7 +62,10 @@ class AttributeSetService
     }
 
     /**
+     * Create a new attribute set.
+     *
      * @param  array<string, mixed>  $data
+     * @return AttributeSet
      */
     public function create(array $data): AttributeSet
     {
@@ -65,7 +86,11 @@ class AttributeSetService
     }
 
     /**
+     * Update an attribute set.
+     *
+     * @param AttributeSet $set
      * @param  array<string, mixed>  $data
+     * @return AttributeSet
      */
     public function update(AttributeSet $set, array $data): AttributeSet
     {
@@ -81,13 +106,22 @@ class AttributeSetService
         return $set->fresh(['attributes', 'categories']);
     }
 
+    /**
+     * Delete an attribute set.
+     *
+     * @param AttributeSet $set
+     * @return void
+     */
     public function delete(AttributeSet $set): void
     {
         $set->delete();
     }
 
     /**
+     * Delete multiple attribute sets by ID.
+     *
      * @param  list<int>  $ids
+     * @return int
      */
     public function deleteMany(array $ids): int
     {
@@ -95,7 +129,11 @@ class AttributeSetService
     }
 
     /**
+     * Build the export query for spreadsheet downloads.
+     *
      * @param  list<int>|null  $ids
+     * @param string|null $startDate
+     * @param string|null $endDate
      * @return Collection<int, AttributeSet>
      */
     public function exportQuery(
@@ -121,6 +159,8 @@ class AttributeSetService
     }
 
     /**
+     * Return aggregate counts for the admin dashboard.
+     *
      * @return array{total: int, active: int, inactive: int}
      */
     public function statistics(): array
@@ -133,6 +173,8 @@ class AttributeSetService
     }
 
     /**
+     * Return attribute sets formatted for select inputs.
+     *
      * @return Collection<int, array{label: string, value: int}>
      */
     public function getOptions(): Collection
@@ -149,6 +191,9 @@ class AttributeSetService
     }
 
     /**
+     * Get attributes for an attribute set.
+     *
+     * @param AttributeSet $set
      * @return EloquentCollection<int, Attribute>
      */
     public function getAttributes(AttributeSet $set): EloquentCollection
@@ -157,7 +202,11 @@ class AttributeSetService
     }
 
     /**
+     * Sync attributes for an attribute set.
+     *
+     * @param AttributeSet $set
      * @param  list<int|array{id: int, is_required?: bool, sort_order?: int}>  $attributeIds
+     * @return void
      */
     public function syncAttributes(AttributeSet $set, array $attributeIds): void
     {
@@ -180,6 +229,14 @@ class AttributeSetService
         $set->attributes()->sync($syncData);
     }
 
+    /**
+     * Attach an attribute to an attribute set.
+     *
+     * @param AttributeSet $set
+     * @param int $attributeId
+     * @param bool $isRequired
+     * @return void
+     */
     public function attachAttribute(AttributeSet $set, int $attributeId, bool $isRequired = false): void
     {
         $set->attributes()->syncWithoutDetaching([
@@ -187,12 +244,22 @@ class AttributeSetService
         ]);
     }
 
+    /**
+     * Detach an attribute from an attribute set.
+     *
+     * @param AttributeSet $set
+     * @param int $attributeId
+     * @return void
+     */
     public function detachAttribute(AttributeSet $set, int $attributeId): void
     {
         $set->attributes()->detach($attributeId);
     }
 
     /**
+     * Get categories for an attribute set.
+     *
+     * @param AttributeSet $set
      * @return EloquentCollection<int, Category>
      */
     public function getCategories(AttributeSet $set): EloquentCollection
@@ -201,7 +268,11 @@ class AttributeSetService
     }
 
     /**
+     * Sync categories for an attribute set.
+     *
+     * @param AttributeSet $set
      * @param  list<int>  $categoryIds
+     * @return void
      */
     public function syncCategories(AttributeSet $set, array $categoryIds): void
     {
@@ -209,7 +280,10 @@ class AttributeSetService
     }
 
     /**
+     * Reorder attribute sets.
+     *
      * @param  list<int>  $orderedIds
+     * @return void
      */
     public function reorder(array $orderedIds): void
     {

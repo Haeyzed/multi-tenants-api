@@ -44,6 +44,9 @@ class MediaFolderService
 
     /**
      * Find folder by ID or fail.
+     *
+     * @param int $id
+     * @return MediaFolder
      */
     public function findOrFail(int $id): MediaFolder
     {
@@ -56,6 +59,7 @@ class MediaFolderService
      * Create a folder.
      *
      * @param  array<string, mixed>  $data
+     * @return MediaFolder
      */
     public function create(array $data): MediaFolder
     {
@@ -67,7 +71,9 @@ class MediaFolderService
     /**
      * Update folder.
      *
+     * @param MediaFolder $folder
      * @param  array<string, mixed>  $data
+     * @return MediaFolder
      */
     public function update(MediaFolder $folder, array $data): MediaFolder
     {
@@ -85,6 +91,9 @@ class MediaFolderService
 
     /**
      * Delete folder when empty.
+     *
+     * @param MediaFolder $folder
+     * @return bool
      */
     public function delete(MediaFolder $folder): bool
     {
@@ -99,6 +108,7 @@ class MediaFolderService
      * Delete multiple empty folders by ID.
      *
      * @param  list<int>  $ids
+     * @return int
      */
     public function deleteMany(array $ids): int
     {
@@ -118,6 +128,9 @@ class MediaFolderService
 
     /**
      * Force delete a folder permanently.
+     *
+     * @param MediaFolder $folder
+     * @return bool
      */
     public function forceDelete(MediaFolder $folder): bool
     {
@@ -128,6 +141,7 @@ class MediaFolderService
      * Force delete multiple folders by ID.
      *
      * @param  list<int>  $ids
+     * @return int
      */
     public function forceDeleteMany(array $ids): int
     {
@@ -136,6 +150,9 @@ class MediaFolderService
 
     /**
      * Restore a soft-deleted folder.
+     *
+     * @param MediaFolder $folder
+     * @return MediaFolder
      */
     public function restore(MediaFolder $folder): MediaFolder
     {
@@ -148,6 +165,7 @@ class MediaFolderService
      * Restore multiple soft-deleted folders by ID.
      *
      * @param  list<int>  $ids
+     * @return int
      */
     public function restoreMany(array $ids): int
     {
@@ -158,6 +176,7 @@ class MediaFolderService
      * Build a nested tree structure of folders.
      *
      * @param  Collection<int, MediaFolder>  $folders
+     * @param int|null $parentId
      * @return list<array<string, mixed>>
      */
     private function buildTree(Collection $folders, ?int $parentId = null): array
@@ -178,6 +197,10 @@ class MediaFolderService
 
     /**
      * Build the path for a folder based on its parent.
+     *
+     * @param string $name
+     * @param int|null $parentId
+     * @return string
      */
     private function buildPath(string $name, ?int $parentId): string
     {

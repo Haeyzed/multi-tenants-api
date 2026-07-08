@@ -13,12 +13,15 @@ use Illuminate\Support\Collection as SupportCollection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
+/**
+ * Manages product collections within a tenant store.
+ */
 class CollectionService
 {
     /**
      * @var list<string>
      */
-    private const MEDIA_RELATIONS = ['image', 'banner'];
+    private const array MEDIA_RELATIONS = ['image', 'banner'];
 
     /**
      * @param  array<string, mixed>  $filters
@@ -35,6 +38,12 @@ class CollectionService
             ->paginate($perPage);
     }
 
+    /**
+     * Find a collection by ID.
+     *
+     * @param int $id
+     * @return Collection
+     */
     public function find(int $id): Collection
     {
         return Collection::query()
@@ -42,6 +51,12 @@ class CollectionService
             ->findOrFail($id);
     }
 
+    /**
+     * Find a collection by slug.
+     *
+     * @param string $slug
+     * @return Collection
+     */
     public function findBySlug(string $slug): Collection
     {
         return Collection::query()
@@ -51,7 +66,10 @@ class CollectionService
     }
 
     /**
+     * Create a new collection.
+     *
      * @param  array<string, mixed>  $data
+     * @return Collection
      */
     public function create(array $data): Collection
     {
@@ -72,7 +90,11 @@ class CollectionService
     }
 
     /**
+     * Update a collection.
+     *
+     * @param Collection $collection
      * @param  array<string, mixed>  $data
+     * @return Collection
      */
     public function update(Collection $collection, array $data): Collection
     {
@@ -88,19 +110,34 @@ class CollectionService
         return $collection->fresh(['products', ...self::MEDIA_RELATIONS]);
     }
 
+    /**
+     * Delete a collection.
+     *
+     * @param Collection $collection
+     * @return void
+     */
     public function delete(Collection $collection): void
     {
         $collection->delete();
     }
 
     /**
+     * Delete multiple collections by ID.
+     *
      * @param  list<int>  $ids
+     * @return int
      */
     public function deleteMany(array $ids): int
     {
         return Collection::query()->whereIn('id', $ids)->delete();
     }
 
+    /**
+     * Restore a soft-deleted collection.
+     *
+     * @param Collection $collection
+     * @return Collection
+     */
     public function restore(Collection $collection): Collection
     {
         $collection->restore();
@@ -109,20 +146,33 @@ class CollectionService
     }
 
     /**
+     * Restore multiple soft-deleted collections by ID.
+     *
      * @param  list<int>  $ids
+     * @return int
      */
     public function restoreMany(array $ids): int
     {
         return Collection::query()->onlyTrashed()->whereIn('id', $ids)->restore();
     }
 
+    /**
+     * Force delete a collection permanently.
+     *
+     * @param Collection $collection
+     * @return void
+     */
     public function forceDelete(Collection $collection): void
     {
         $collection->forceDelete();
     }
 
     /**
+     * Build the export query for spreadsheet downloads.
+     *
      * @param  list<int>|null  $ids
+     * @param string|null $startDate
+     * @param string|null $endDate
      * @return SupportCollection<int, Collection>
      */
     public function exportQuery(
@@ -148,6 +198,8 @@ class CollectionService
     }
 
     /**
+     * Return aggregate counts for the admin dashboard.
+     *
      * @return array{total: int, visible: int, featured: int}
      */
     public function statistics(): array
@@ -160,6 +212,8 @@ class CollectionService
     }
 
     /**
+     * Return collections formatted for select inputs.
+     *
      * @return SupportCollection<int, array{label: string, value: int}>
      */
     public function getOptions(): SupportCollection
@@ -176,6 +230,9 @@ class CollectionService
     }
 
     /**
+     * Get products for a collection.
+     *
+     * @param Collection $collection
      * @return EloquentCollection<int, Product>
      */
     public function getProducts(Collection $collection): EloquentCollection
@@ -184,7 +241,11 @@ class CollectionService
     }
 
     /**
+     * Sync products for a collection.
+     *
+     * @param Collection $collection
      * @param  list<int>  $productIds
+     * @return void
      */
     public function syncProducts(Collection $collection, array $productIds): void
     {
@@ -197,18 +258,36 @@ class CollectionService
         $collection->products()->sync($syncData);
     }
 
+    /**
+     * Add a product to a collection.
+     *
+     * @param Collection $collection
+     * @param int $productId
+     * @return void
+     */
     public function addProduct(Collection $collection, int $productId): void
     {
         $collection->products()->syncWithoutDetaching([$productId]);
     }
 
+    /**
+     * Remove a product from a collection.
+     *
+     * @param Collection $collection
+     * @param int $productId
+     * @return void
+     */
     public function removeProduct(Collection $collection, int $productId): void
     {
         $collection->products()->detach($productId);
     }
 
     /**
+     * Reorder products within a collection.
+     *
+     * @param Collection $collection
      * @param  list<int>  $orderedIds
+     * @return void
      */
     public function reorderProducts(Collection $collection, array $orderedIds): void
     {
@@ -220,6 +299,12 @@ class CollectionService
         }
     }
 
+    /**
+     * Refresh automated collection products.
+     *
+     * @param Collection $collection
+     * @return void
+     */
     public function refreshAutomated(Collection $collection): void
     {
         if (! $collection->is_automated) {
@@ -237,6 +322,12 @@ class CollectionService
         $this->syncProducts($collection, $productIds);
     }
 
+    /**
+     * Toggle the visibility of a collection.
+     *
+     * @param Collection $collection
+     * @return Collection
+     */
     public function toggleVisibility(Collection $collection): Collection
     {
         $collection->update(['is_visible' => ! $collection->is_visible]);
@@ -244,6 +335,12 @@ class CollectionService
         return $collection->fresh(self::MEDIA_RELATIONS);
     }
 
+    /**
+     * Toggle the featured status of a collection.
+     *
+     * @param Collection $collection
+     * @return Collection
+     */
     public function toggleFeatured(Collection $collection): Collection
     {
         $collection->update(['is_featured' => ! $collection->is_featured]);
@@ -252,7 +349,10 @@ class CollectionService
     }
 
     /**
+     * Reorder collections.
+     *
      * @param  list<int>  $orderedIds
+     * @return void
      */
     public function reorder(array $orderedIds): void
     {
@@ -262,8 +362,11 @@ class CollectionService
     }
 
     /**
+     * Apply a condition to a product query.
+     *
      * @param  Builder<Product>  $query
      * @param  array<string, mixed>  $condition
+     * @return void
      */
     private function applyCondition($query, array $condition): void
     {

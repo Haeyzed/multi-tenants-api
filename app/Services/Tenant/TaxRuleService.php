@@ -23,12 +23,13 @@ class TaxRuleService
     /**
      * @var list<string>
      */
-    private const LIST_RELATIONS = ['taxRate.taxClass', 'taxRate.taxZone'];
+    private const array LIST_RELATIONS = ['taxRate.taxClass', 'taxRate.taxZone'];
 
     /**
      * Paginate tax rules.
      *
      * @param  array<string, mixed>  $filters
+     * @param int $perPage
      * @return LengthAwarePaginator<int, TaxRule>
      */
     public function paginate(array $filters = [], int $perPage = 15): LengthAwarePaginator
@@ -42,6 +43,9 @@ class TaxRuleService
 
     /**
      * Find a tax rule by ID.
+     *
+     * @param int $id
+     * @return TaxRule
      */
     public function find(int $id): TaxRule
     {
@@ -54,6 +58,7 @@ class TaxRuleService
      * Create a new tax rule.
      *
      * @param  array<string, mixed>  $data
+     * @return TaxRule
      */
     public function create(array $data): TaxRule
     {
@@ -69,7 +74,9 @@ class TaxRuleService
     /**
      * Update a tax rule.
      *
+     * @param TaxRule $rule
      * @param  array<string, mixed>  $data
+     * @return TaxRule
      */
     public function update(TaxRule $rule, array $data): TaxRule
     {
@@ -83,6 +90,9 @@ class TaxRuleService
 
     /**
      * Delete a tax rule.
+     *
+     * @param TaxRule $rule
+     * @return void
      */
     public function delete(TaxRule $rule): void
     {
@@ -96,6 +106,7 @@ class TaxRuleService
      * Delete multiple tax rules by ID.
      *
      * @param  list<int>  $ids
+     * @return int
      */
     public function deleteMany(array $ids): int
     {
@@ -114,6 +125,8 @@ class TaxRuleService
      * Build the export query for spreadsheet downloads.
      *
      * @param  list<int>|null  $ids
+     * @param string|null $startDate
+     * @param string|null $endDate
      * @return EloquentCollection<int, TaxRule>
      */
     public function exportQuery(
@@ -143,6 +156,7 @@ class TaxRuleService
     /**
      * Get rules for an applicable model.
      *
+     * @param Model $model
      * @return EloquentCollection<int, TaxRule>
      */
     public function getByApplicable(Model $model): EloquentCollection
@@ -157,6 +171,9 @@ class TaxRuleService
 
     /**
      * Toggle the active status of a tax rule.
+     *
+     * @param TaxRule $rule
+     * @return TaxRule
      */
     public function toggleActive(TaxRule $rule): TaxRule
     {
@@ -185,6 +202,7 @@ class TaxRuleService
      * Create a new tax region.
      *
      * @param  array<string, mixed>  $data
+     * @return TaxRegion
      */
     public function createRegion(array $data): TaxRegion
     {
@@ -211,6 +229,10 @@ class TaxRuleService
         return $payload;
     }
 
+    /**
+     * @param string $type
+     * @return string
+     */
     private function resolveApplicableType(string $type): string
     {
         return match ($type) {

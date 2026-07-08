@@ -40,6 +40,7 @@ class CategoryService
      * Paginate the categories.
      *
      * @param  array<string, mixed>  $filters
+     * @param int $perPage
      * @return LengthAwarePaginator<int, Category>
      */
     public function paginate(array $filters = [], int $perPage = 15): LengthAwarePaginator
@@ -54,6 +55,9 @@ class CategoryService
 
     /**
      * Find a category by ID.
+     *
+     * @param int $id
+     * @return Category
      */
     public function find(int $id): Category
     {
@@ -64,6 +68,9 @@ class CategoryService
 
     /**
      * Find a category by slug.
+     *
+     * @param string $slug
+     * @return Category
      */
     public function findBySlug(string $slug): Category
     {
@@ -77,6 +84,7 @@ class CategoryService
      * Create a new category.
      *
      * @param  array<string, mixed>  $data
+     * @return Category
      */
     public function create(array $data): Category
     {
@@ -94,7 +102,9 @@ class CategoryService
     /**
      * Update a category.
      *
+     * @param Category $category
      * @param  array<string, mixed>  $data
+     * @return Category
      */
     public function update(Category $category, array $data): Category
     {
@@ -122,6 +132,8 @@ class CategoryService
     /**
      * Delete a category.
      *
+     * @param Category $category
+     * @return void
      * @throws DomainException
      */
     public function delete(Category $category): void
@@ -137,6 +149,7 @@ class CategoryService
      * Delete multiple categories by ID.
      *
      * @param  list<int>  $ids
+     * @return int
      */
     public function deleteMany(array $ids): int
     {
@@ -148,6 +161,9 @@ class CategoryService
 
     /**
      * Force delete a category permanently.
+     *
+     * @param Category $category
+     * @return void
      */
     public function forceDelete(Category $category): void
     {
@@ -156,6 +172,9 @@ class CategoryService
 
     /**
      * Restore a soft-deleted category.
+     *
+     * @param Category $category
+     * @return Category
      */
     public function restore(Category $category): Category
     {
@@ -168,6 +187,7 @@ class CategoryService
      * Restore multiple soft-deleted categories by ID.
      *
      * @param  list<int>  $ids
+     * @return int
      */
     public function restoreMany(array $ids): int
     {
@@ -176,6 +196,8 @@ class CategoryService
 
     /**
      * @param  list<int>|null  $ids
+     * @param string|null $startDate
+     * @param string|null $endDate
      * @return Collection<int, Category>
      */
     public function exportQuery(
@@ -250,6 +272,7 @@ class CategoryService
     }
 
     /**
+     * @param Category $category
      * @return Collection<int, Category>
      */
     public function getBreadcrumbs(Category $category): Collection
@@ -266,6 +289,7 @@ class CategoryService
     }
 
     /**
+     * @param int $parentId
      * @return EloquentCollection<int, Category>
      */
     public function getChildren(int $parentId): EloquentCollection
@@ -278,6 +302,7 @@ class CategoryService
     }
 
     /**
+     * @param Category $category
      * @return Collection<int, Category>
      */
     public function getDescendants(Category $category): Collection
@@ -291,6 +316,10 @@ class CategoryService
 
     /**
      * Move a category under a new parent.
+     *
+     * @param Category $category
+     * @param int|null $parentId
+     * @return Category
      */
     public function move(Category $category, ?int $parentId): Category
     {
@@ -299,6 +328,7 @@ class CategoryService
 
     /**
      * @param  list<int>  $orderedIds
+     * @return void
      */
     public function reorder(array $orderedIds): void
     {
@@ -308,6 +338,7 @@ class CategoryService
     }
 
     /**
+     * @param Category $category
      * @param  array<string, mixed>  $filters
      * @return LengthAwarePaginator<int, Product>
      */
@@ -328,6 +359,10 @@ class CategoryService
 
     /**
      * Assign a single attribute set to the category without removing existing links.
+     *
+     * @param Category $category
+     * @param int $attributeSetId
+     * @return void
      */
     public function assignAttributeSet(Category $category, int $attributeSetId): void
     {
@@ -336,6 +371,10 @@ class CategoryService
 
     /**
      * Detach an attribute set from the category.
+     *
+     * @param Category $category
+     * @param int $attributeSetId
+     * @return void
      */
     public function removeAttributeSet(Category $category, int $attributeSetId): void
     {
@@ -345,7 +384,9 @@ class CategoryService
     /**
      * Replace all attribute set links for the category.
      *
+     * @param Category $category
      * @param  list<int>  $attributeSetIds
+     * @return void
      */
     public function syncAttributeSets(Category $category, array $attributeSetIds): void
     {
@@ -354,6 +395,9 @@ class CategoryService
 
     /**
      * Recalculate and persist the active product count for a category.
+     *
+     * @param Category $category
+     * @return void
      */
     public function updateProductsCount(Category $category): void
     {
@@ -366,6 +410,9 @@ class CategoryService
 
     /**
      * Flip the category visibility flag.
+     *
+     * @param Category $category
+     * @return Category
      */
     public function toggleVisibility(Category $category): Category
     {
@@ -376,6 +423,9 @@ class CategoryService
 
     /**
      * Flip the category featured flag.
+     *
+     * @param Category $category
+     * @return Category
      */
     public function toggleFeatured(Category $category): Category
     {
@@ -386,6 +436,9 @@ class CategoryService
 
     /**
      * Build the materialized path string for a category and its ancestors.
+     *
+     * @param Category $category
+     * @return void
      */
     private function updatePath(Category $category): void
     {
@@ -404,6 +457,9 @@ class CategoryService
 
     /**
      * Recursively update depth for all descendants after a parent move.
+     *
+     * @param Category $category
+     * @return void
      */
     private function updateChildrenDepth(Category $category): void
     {
@@ -417,6 +473,9 @@ class CategoryService
 
     /**
      * Recursively rebuild path values for all descendants after a parent move.
+     *
+     * @param Category $category
+     * @return void
      */
     private function updateDescendantPaths(Category $category): void
     {
@@ -430,6 +489,7 @@ class CategoryService
 
     /**
      * @param  EloquentCollection<int, Category>  $categories
+     * @param int|null $parentId
      * @return list<array{id: int, name: string, slug: string, children: list<mixed>}>
      */
     private function buildTree(EloquentCollection $categories, ?int $parentId = null): array
@@ -450,6 +510,8 @@ class CategoryService
 
     /**
      * @param  EloquentCollection<int, Category>  $categories
+     * @param int|null $parentId
+     * @param string $prefix
      * @return array<int, string>
      */
     private function buildTreeForSelect(EloquentCollection $categories, ?int $parentId = null, string $prefix = ''): array
@@ -465,7 +527,9 @@ class CategoryService
     }
 
     /**
+     * @param Category $category
      * @param  Collection<int, Category>  $descendants
+     * @return void
      */
     private function collectDescendants(Category $category, Collection $descendants): void
     {

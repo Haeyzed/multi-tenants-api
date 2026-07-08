@@ -27,6 +27,7 @@ class TaxClassService
      * Paginate tax classes.
      *
      * @param  array<string, mixed>  $filters
+     * @param int $perPage
      * @return LengthAwarePaginator<int, TaxClass>
      */
     public function paginate(array $filters = [], int $perPage = 15): LengthAwarePaginator
@@ -42,6 +43,9 @@ class TaxClassService
 
     /**
      * Find a tax class by ID.
+     *
+     * @param int $id
+     * @return TaxClass
      */
     public function find(int $id): TaxClass
     {
@@ -53,6 +57,9 @@ class TaxClassService
 
     /**
      * Find a tax class by code.
+     *
+     * @param string $code
+     * @return TaxClass
      */
     public function findByCode(string $code): TaxClass
     {
@@ -67,6 +74,7 @@ class TaxClassService
      * Create a new tax class.
      *
      * @param  array<string, mixed>  $data
+     * @return TaxClass
      */
     public function create(array $data): TaxClass
     {
@@ -85,7 +93,9 @@ class TaxClassService
     /**
      * Update a tax class.
      *
+     * @param TaxClass $taxClass
      * @param  array<string, mixed>  $data
+     * @return TaxClass
      */
     public function update(TaxClass $taxClass, array $data): TaxClass
     {
@@ -106,6 +116,9 @@ class TaxClassService
 
     /**
      * Soft delete a tax class.
+     *
+     * @param TaxClass $taxClass
+     * @return void
      */
     public function delete(TaxClass $taxClass): void
     {
@@ -123,6 +136,7 @@ class TaxClassService
      * Soft delete multiple tax classes by ID.
      *
      * @param  list<int>  $ids
+     * @return int
      */
     public function deleteMany(array $ids): int
     {
@@ -149,6 +163,9 @@ class TaxClassService
 
     /**
      * Permanently delete a tax class.
+     *
+     * @param TaxClass $taxClass
+     * @return void
      */
     public function forceDelete(TaxClass $taxClass): void
     {
@@ -164,6 +181,9 @@ class TaxClassService
 
     /**
      * Restore a soft-deleted tax class.
+     *
+     * @param TaxClass $taxClass
+     * @return TaxClass
      */
     public function restore(TaxClass $taxClass): TaxClass
     {
@@ -177,6 +197,7 @@ class TaxClassService
      * Restore multiple soft-deleted tax classes by ID.
      *
      * @param  list<int>  $ids
+     * @return int
      */
     public function restoreMany(array $ids): int
     {
@@ -193,6 +214,7 @@ class TaxClassService
      * Reorder tax classes by ID.
      *
      * @param  list<int>  $orderedIds
+     * @return void
      */
     public function reorder(array $orderedIds): void
     {
@@ -209,6 +231,8 @@ class TaxClassService
      * Build the export query for spreadsheet downloads.
      *
      * @param  list<int>|null  $ids
+     * @param string|null $startDate
+     * @param string|null $endDate
      * @return EloquentCollection<int, TaxClass>
      */
     public function exportQuery(
@@ -236,6 +260,7 @@ class TaxClassService
     /**
      * Get rates for a tax class.
      *
+     * @param TaxClass $taxClass
      * @return EloquentCollection<int, TaxRate>
      */
     public function getRates(TaxClass $taxClass): EloquentCollection
@@ -245,6 +270,9 @@ class TaxClassService
 
     /**
      * Set a tax class as the default.
+     *
+     * @param TaxClass $taxClass
+     * @return TaxClass
      */
     public function setDefault(TaxClass $taxClass): TaxClass
     {
@@ -259,6 +287,8 @@ class TaxClassService
 
     /**
      * Get the default tax class.
+     *
+     * @return TaxClass|null
      */
     public function getDefault(): ?TaxClass
     {
@@ -269,6 +299,9 @@ class TaxClassService
 
     /**
      * Toggle the active status of a tax class.
+     *
+     * @param TaxClass $taxClass
+     * @return TaxClass
      */
     public function toggleActive(TaxClass $taxClass): TaxClass
     {

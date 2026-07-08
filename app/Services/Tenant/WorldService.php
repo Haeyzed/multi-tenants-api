@@ -26,6 +26,9 @@ class WorldService
     ) {}
 
     /**
+     * Get country options.
+     *
+     * @param string|null $search
      * @return Collection<int, array{value: string, label: string}>
      */
     public function countryOptions(?string $search = null): Collection
@@ -46,6 +49,10 @@ class WorldService
     }
 
     /**
+     * Get state options.
+     *
+     * @param string|null $countryCode
+     * @param string|null $search
      * @return Collection<int, array{value: string, label: string}>
      */
     public function stateOptions(?string $countryCode = null, ?string $search = null): Collection
@@ -67,6 +74,11 @@ class WorldService
     }
 
     /**
+     * Get city options.
+     *
+     * @param string|null $countryCode
+     * @param string|null $stateCode
+     * @param string|null $search
      * @return Collection<int, array{value: int, label: string}>
      */
     public function cityOptions(?string $countryCode = null, ?string $stateCode = null, ?string $search = null): Collection
@@ -92,6 +104,9 @@ class WorldService
     }
 
     /**
+     * Get currency options.
+     *
+     * @param string|null $search
      * @return Collection<int, array{value: string, label: string}>
      */
     public function currencyOptions(?string $search = null): Collection
@@ -120,6 +135,9 @@ class WorldService
     }
 
     /**
+     * Get language options.
+     *
+     * @param string|null $search
      * @return Collection<int, array{value: string, label: string}>
      */
     public function languageOptions(?string $search = null): Collection
@@ -140,6 +158,10 @@ class WorldService
     }
 
     /**
+     * Get timezone options.
+     *
+     * @param string|null $countryCode
+     * @param string|null $search
      * @return Collection<int, array{value: string, label: string}>
      */
     public function timezoneOptions(?string $countryCode = null, ?string $search = null): Collection
@@ -165,6 +187,9 @@ class WorldService
     }
 
     /**
+     * Geolocate an IP address.
+     *
+     * @param string|null $ip
      * @return array<string, mixed>|null
      */
     public function geolocate(?string $ip = null): ?array
@@ -181,6 +206,8 @@ class WorldService
     }
 
     /**
+     * Build a geolocation result.
+     *
      * @param  array<string, mixed>  $geoData
      * @return array<string, mixed>
      */
@@ -232,7 +259,10 @@ class WorldService
     }
 
     /**
+     * Resolve a country from geodata.
+     *
      * @param  array<string, mixed>  $geoData
+     * @return Country|null
      */
     private function resolveCountryFromGeodata(array $geoData): ?Country
     {
@@ -244,7 +274,11 @@ class WorldService
     }
 
     /**
+     * Resolve a state from geodata.
+     *
      * @param  array<string, mixed>  $geoData
+     * @param Country|null $country
+     * @return State|null
      */
     private function resolveStateFromGeodata(array $geoData, ?Country $country): ?State
     {
@@ -271,7 +305,12 @@ class WorldService
     }
 
     /**
+     * Resolve a city from geodata.
+     *
      * @param  array<string, mixed>  $geoData
+     * @param Country|null $country
+     * @param State|null $state
+     * @return City|null
      */
     private function resolveCityFromGeodata(array $geoData, ?Country $country, ?State $state): ?City
     {
@@ -291,7 +330,11 @@ class WorldService
     }
 
     /**
+     * Resolve a timezone from geodata.
+     *
      * @param  array<string, mixed>  $geoData
+     * @param Country|null $country
+     * @return Timezone|null
      */
     private function resolveTimezoneFromGeodata(array $geoData, ?Country $country): ?Timezone
     {

@@ -12,6 +12,7 @@ use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
+use Throwable;
 
 /**
  * Manages tax zones within a tenant store.
@@ -21,12 +22,13 @@ class TaxZoneService
     /**
      * @var list<string>
      */
-    private const LIST_RELATIONS = ['rates'];
+    private const array LIST_RELATIONS = ['rates'];
 
     /**
      * Paginate tax zones.
      *
      * @param  array<string, mixed>  $filters
+     * @param int $perPage
      * @return LengthAwarePaginator<int, TaxZone>
      */
     public function paginate(array $filters = [], int $perPage = 15): LengthAwarePaginator
@@ -41,6 +43,9 @@ class TaxZoneService
 
     /**
      * Find a tax zone by ID.
+     *
+     * @param int $id
+     * @return TaxZone
      */
     public function find(int $id): TaxZone
     {
@@ -53,7 +58,9 @@ class TaxZoneService
     /**
      * Create a new tax zone.
      *
-     * @param  array<string, mixed>  $data
+     * @param array<string, mixed> $data
+     * @return TaxZone
+     * @throws Throwable
      */
     public function create(array $data): TaxZone
     {
@@ -72,7 +79,10 @@ class TaxZoneService
     /**
      * Update a tax zone.
      *
-     * @param  array<string, mixed>  $data
+     * @param TaxZone $taxZone
+     * @param array<string, mixed> $data
+     * @return TaxZone
+     * @throws Throwable
      */
     public function update(TaxZone $taxZone, array $data): TaxZone
     {
@@ -93,6 +103,9 @@ class TaxZoneService
 
     /**
      * Soft delete a tax zone.
+     *
+     * @param TaxZone $taxZone
+     * @return void
      */
     public function delete(TaxZone $taxZone): void
     {
@@ -110,6 +123,7 @@ class TaxZoneService
      * Soft delete multiple tax zones by ID.
      *
      * @param  list<int>  $ids
+     * @return int
      */
     public function deleteMany(array $ids): int
     {
@@ -136,6 +150,9 @@ class TaxZoneService
 
     /**
      * Permanently delete a tax zone.
+     *
+     * @param TaxZone $taxZone
+     * @return void
      */
     public function forceDelete(TaxZone $taxZone): void
     {
@@ -151,6 +168,9 @@ class TaxZoneService
 
     /**
      * Restore a soft-deleted tax zone.
+     *
+     * @param TaxZone $taxZone
+     * @return TaxZone
      */
     public function restore(TaxZone $taxZone): TaxZone
     {
@@ -164,6 +184,7 @@ class TaxZoneService
      * Restore multiple soft-deleted tax zones by ID.
      *
      * @param  list<int>  $ids
+     * @return int
      */
     public function restoreMany(array $ids): int
     {
@@ -180,6 +201,7 @@ class TaxZoneService
      * Reorder tax zones by ID.
      *
      * @param  list<int>  $orderedIds
+     * @return void
      */
     public function reorder(array $orderedIds): void
     {
@@ -196,6 +218,8 @@ class TaxZoneService
      * Build the export query for spreadsheet downloads.
      *
      * @param  list<int>|null  $ids
+     * @param string|null $startDate
+     * @param string|null $endDate
      * @return EloquentCollection<int, TaxZone>
      */
     public function exportQuery(
@@ -223,6 +247,7 @@ class TaxZoneService
     /**
      * Get rates for a tax zone.
      *
+     * @param TaxZone $taxZone
      * @return EloquentCollection<int, TaxRate>
      */
     public function getRates(TaxZone $taxZone): EloquentCollection
@@ -232,6 +257,9 @@ class TaxZoneService
 
     /**
      * Set a tax zone as the default.
+     *
+     * @param TaxZone $taxZone
+     * @return TaxZone
      */
     public function setDefault(TaxZone $taxZone): TaxZone
     {
@@ -246,6 +274,8 @@ class TaxZoneService
 
     /**
      * Get the default tax zone.
+     *
+     * @return TaxZone|null
      */
     public function getDefault(): ?TaxZone
     {
@@ -256,6 +286,9 @@ class TaxZoneService
 
     /**
      * Toggle the active status of a tax zone.
+     *
+     * @param TaxZone $taxZone
+     * @return TaxZone
      */
     public function toggleActive(TaxZone $taxZone): TaxZone
     {
@@ -300,6 +333,12 @@ class TaxZoneService
 
     /**
      * Find the best matching tax zone for an address.
+     *
+     * @param string $country
+     * @param string|null $state
+     * @param string|null $city
+     * @param string|null $postal
+     * @return TaxZone|null
      */
     public function findByAddress(
         string $country,
@@ -348,6 +387,10 @@ class TaxZoneService
 
     /**
      * Find a tax zone by geographic coordinates.
+     *
+     * @param float $lat
+     * @param float $lng
+     * @return TaxZone|null
      */
     public function findByCoordinates(float $lat, float $lng): ?TaxZone
     {

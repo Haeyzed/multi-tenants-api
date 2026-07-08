@@ -22,7 +22,7 @@ class BrandService
     /**
      * @var list<string>
      */
-    private const MEDIA_RELATIONS = ['logoMedia', 'bannerMedia'];
+    private const array MEDIA_RELATIONS = ['logoMedia', 'bannerMedia'];
 
     /**
      * Paginate the brands.
@@ -42,6 +42,9 @@ class BrandService
 
     /**
      * Find a brand by ID.
+     *
+     * @param int $id
+     * @return Brand
      */
     public function find(int $id): Brand
     {
@@ -52,6 +55,9 @@ class BrandService
 
     /**
      * Find a brand by slug.
+     *
+     * @param string $slug
+     * @return Brand
      */
     public function findBySlug(string $slug): Brand
     {
@@ -65,6 +71,7 @@ class BrandService
      * Create a new brand.
      *
      * @param  array<string, mixed>  $data
+     * @return Brand
      */
     public function create(array $data): Brand
     {
@@ -76,7 +83,9 @@ class BrandService
     /**
      * Update a brand.
      *
+     * @param Brand $brand
      * @param  array<string, mixed>  $data
+     * @return Brand
      */
     public function update(Brand $brand, array $data): Brand
     {
@@ -87,6 +96,9 @@ class BrandService
 
     /**
      * Delete a brand.
+     *
+     * @param Brand $brand
+     * @return void
      */
     public function delete(Brand $brand): void
     {
@@ -97,6 +109,7 @@ class BrandService
      * Delete multiple brands by ID.
      *
      * @param  list<int>  $ids
+     * @return int
      */
     public function deleteMany(array $ids): int
     {
@@ -105,6 +118,9 @@ class BrandService
 
     /**
      * Force delete a brand permanently.
+     *
+     * @param Brand $brand
+     * @return void
      */
     public function forceDelete(Brand $brand): void
     {
@@ -113,6 +129,9 @@ class BrandService
 
     /**
      * Restore a soft-deleted brand.
+     *
+     * @param Brand $brand
+     * @return Brand
      */
     public function restore(Brand $brand): Brand
     {
@@ -125,6 +144,7 @@ class BrandService
      * Restore multiple soft-deleted brands by ID.
      *
      * @param  list<int>  $ids
+     * @return int
      */
     public function restoreMany(array $ids): int
     {
@@ -135,6 +155,8 @@ class BrandService
      * Build the export query for spreadsheet downloads.
      *
      * @param  list<int>|null  $ids
+     * @param string|null $startDate
+     * @param string|null $endDate
      * @return Collection<int, Brand>
      */
     public function exportQuery(
@@ -194,6 +216,7 @@ class BrandService
     /**
      * Paginate products assigned to the brand.
      *
+     * @param Brand $brand
      * @param  array<string, mixed>  $filters
      * @return LengthAwarePaginator<int, Product>
      */
@@ -214,6 +237,9 @@ class BrandService
 
     /**
      * Flip the brand visibility flag.
+     *
+     * @param Brand $brand
+     * @return Brand
      */
     public function toggleVisibility(Brand $brand): Brand
     {
@@ -224,6 +250,9 @@ class BrandService
 
     /**
      * Flip the brand featured flag.
+     *
+     * @param Brand $brand
+     * @return Brand
      */
     public function toggleFeatured(Brand $brand): Brand
     {
@@ -234,6 +263,9 @@ class BrandService
 
     /**
      * Recalculate and persist the active product count for a brand.
+     *
+     * @param Brand $brand
+     * @return void
      */
     public function updateProductsCount(Brand $brand): void
     {
@@ -248,6 +280,7 @@ class BrandService
      * Persist sort order values from an ordered ID list.
      *
      * @param  list<int>  $orderedIds
+     * @return void
      */
     public function reorder(array $orderedIds): void
     {

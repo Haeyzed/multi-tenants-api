@@ -26,6 +26,7 @@ class WarehouseService
      * Paginate warehouses.
      *
      * @param  array<string, mixed>  $filters
+     * @param int $perPage
      * @return LengthAwarePaginator<int, Warehouse>
      */
     public function paginate(array $filters = [], int $perPage = 15): LengthAwarePaginator
@@ -40,6 +41,9 @@ class WarehouseService
 
     /**
      * Find a warehouse by ID.
+     *
+     * @param int $id
+     * @return Warehouse
      */
     public function find(int $id): Warehouse
     {
@@ -51,6 +55,9 @@ class WarehouseService
 
     /**
      * Find a warehouse by code.
+     *
+     * @param string $code
+     * @return Warehouse
      */
     public function findByCode(string $code): Warehouse
     {
@@ -65,6 +72,7 @@ class WarehouseService
      * Create a warehouse.
      *
      * @param  array<string, mixed>  $data
+     * @return Warehouse
      */
     public function create(array $data): Warehouse
     {
@@ -80,7 +88,9 @@ class WarehouseService
     /**
      * Update a warehouse.
      *
+     * @param Warehouse $warehouse
      * @param  array<string, mixed>  $data
+     * @return Warehouse
      */
     public function update(Warehouse $warehouse, array $data): Warehouse
     {
@@ -95,6 +105,9 @@ class WarehouseService
 
     /**
      * Soft delete a warehouse.
+     *
+     * @param Warehouse $warehouse
+     * @return void
      */
     public function delete(Warehouse $warehouse): void
     {
@@ -113,6 +126,7 @@ class WarehouseService
      * Soft delete multiple warehouses.
      *
      * @param  list<int>  $ids
+     * @return int
      */
     public function deleteMany(array $ids): int
     {
@@ -124,6 +138,9 @@ class WarehouseService
 
     /**
      * Restore a soft-deleted warehouse.
+     *
+     * @param Warehouse $warehouse
+     * @return Warehouse
      */
     public function restore(Warehouse $warehouse): Warehouse
     {
@@ -134,6 +151,9 @@ class WarehouseService
 
     /**
      * Permanently delete a warehouse.
+     *
+     * @param Warehouse $warehouse
+     * @return void
      */
     public function forceDelete(Warehouse $warehouse): void
     {
@@ -183,6 +203,8 @@ class WarehouseService
      * Build the export query for spreadsheet downloads.
      *
      * @param  list<int>|null  $ids
+     * @param string|null $startDate
+     * @param string|null $endDate
      * @return Collection<int, Warehouse>
      */
     public function exportQuery(
@@ -209,6 +231,9 @@ class WarehouseService
 
     /**
      * Toggle warehouse active status.
+     *
+     * @param Warehouse $warehouse
+     * @return Warehouse
      */
     public function toggleActive(Warehouse $warehouse): Warehouse
     {
@@ -219,6 +244,9 @@ class WarehouseService
 
     /**
      * Set a warehouse as primary.
+     *
+     * @param Warehouse $warehouse
+     * @return Warehouse
      */
     public function setPrimary(Warehouse $warehouse): Warehouse
     {
@@ -230,6 +258,8 @@ class WarehouseService
 
     /**
      * Get the primary warehouse.
+     *
+     * @return Warehouse|null
      */
     public function getPrimary(): ?Warehouse
     {
@@ -241,6 +271,7 @@ class WarehouseService
     // ── Zones ──
 
     /**
+     * @param Warehouse $warehouse
      * @return Collection<int, WarehouseZone>
      */
     public function getZones(Warehouse $warehouse): Collection
@@ -249,7 +280,9 @@ class WarehouseService
     }
 
     /**
+     * @param int $warehouseId
      * @param  array<string, mixed>  $data
+     * @return WarehouseZone
      */
     public function createZone(int $warehouseId, array $data): WarehouseZone
     {
@@ -259,7 +292,9 @@ class WarehouseService
     }
 
     /**
+     * @param WarehouseZone $zone
      * @param  array<string, mixed>  $data
+     * @return WarehouseZone
      */
     public function updateZone(WarehouseZone $zone, array $data): WarehouseZone
     {
@@ -268,6 +303,10 @@ class WarehouseService
         return $zone->fresh()->loadCount('locations');
     }
 
+    /**
+     * @param WarehouseZone $zone
+     * @return void
+     */
     public function deleteZone(WarehouseZone $zone): void
     {
         $zone->delete();
@@ -276,6 +315,7 @@ class WarehouseService
     // ── Locations ──
 
     /**
+     * @param Warehouse $warehouse
      * @return Collection<int, WarehouseLocation>
      */
     public function getLocations(Warehouse $warehouse): Collection
@@ -284,6 +324,7 @@ class WarehouseService
     }
 
     /**
+     * @param WarehouseZone $zone
      * @return Collection<int, WarehouseLocation>
      */
     public function getLocationsByZone(WarehouseZone $zone): Collection
@@ -292,7 +333,9 @@ class WarehouseService
     }
 
     /**
+     * @param int $warehouseId
      * @param  array<string, mixed>  $data
+     * @return WarehouseLocation
      */
     public function createLocation(int $warehouseId, array $data): WarehouseLocation
     {
@@ -302,7 +345,9 @@ class WarehouseService
     }
 
     /**
+     * @param WarehouseLocation $location
      * @param  array<string, mixed>  $data
+     * @return WarehouseLocation
      */
     public function updateLocation(WarehouseLocation $location, array $data): WarehouseLocation
     {
@@ -311,6 +356,10 @@ class WarehouseService
         return $location->fresh()->load('zone');
     }
 
+    /**
+     * @param WarehouseLocation $location
+     * @return void
+     */
     public function deleteLocation(WarehouseLocation $location): void
     {
         $location->delete();

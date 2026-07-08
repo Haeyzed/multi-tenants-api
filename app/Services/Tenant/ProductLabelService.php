@@ -8,10 +8,16 @@ use App\Models\Tenant\ProductLabel;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;
 
+/**
+ * Manages product labels.
+ */
 class ProductLabelService
 {
     /**
+     * Paginate product labels.
+     *
      * @param  array<string, mixed>  $filters
+     * @param int $perPage
      * @return LengthAwarePaginator<int, ProductLabel>
      */
     public function paginate(array $filters = [], int $perPage = 15): LengthAwarePaginator
@@ -23,13 +29,22 @@ class ProductLabelService
             ->paginate($perPage);
     }
 
+    /**
+     * Find a product label by ID.
+     *
+     * @param int $id
+     * @return ProductLabel
+     */
     public function find(int $id): ProductLabel
     {
         return ProductLabel::query()->findOrFail($id);
     }
 
     /**
+     * Create a new product label.
+     *
      * @param  array<string, mixed>  $data
+     * @return ProductLabel
      */
     public function create(array $data): ProductLabel
     {
@@ -37,7 +52,11 @@ class ProductLabelService
     }
 
     /**
+     * Update a product label.
+     *
+     * @param ProductLabel $productLabel
      * @param  array<string, mixed>  $data
+     * @return ProductLabel
      */
     public function update(ProductLabel $productLabel, array $data): ProductLabel
     {
@@ -46,13 +65,22 @@ class ProductLabelService
         return $productLabel->fresh();
     }
 
+    /**
+     * Delete a product label.
+     *
+     * @param ProductLabel $productLabel
+     * @return void
+     */
     public function delete(ProductLabel $productLabel): void
     {
         $productLabel->delete();
     }
 
     /**
+     * Delete multiple product labels by ID.
+     *
      * @param  list<int>  $ids
+     * @return int
      */
     public function deleteMany(array $ids): int
     {
@@ -60,7 +88,11 @@ class ProductLabelService
     }
 
     /**
+     * Build the export query for spreadsheet downloads.
+     *
      * @param  list<int>|null  $ids
+     * @param string|null $startDate
+     * @param string|null $endDate
      * @return Collection<int, ProductLabel>
      */
     public function exportQuery(
@@ -86,6 +118,8 @@ class ProductLabelService
     }
 
     /**
+     * Return aggregate counts for the admin dashboard.
+     *
      * @return array{total: int, active: int, inactive: int}
      */
     public function statistics(): array
@@ -98,6 +132,8 @@ class ProductLabelService
     }
 
     /**
+     * Return active product labels formatted for select inputs.
+     *
      * @return Collection<int, array{label: string, value: int}>
      */
     public function getOptions(): Collection
@@ -113,6 +149,12 @@ class ProductLabelService
             ]);
     }
 
+    /**
+     * Toggle the active status of a product label.
+     *
+     * @param ProductLabel $productLabel
+     * @return ProductLabel
+     */
     public function toggleActive(ProductLabel $productLabel): ProductLabel
     {
         $productLabel->update(['is_active' => ! $productLabel->is_active]);

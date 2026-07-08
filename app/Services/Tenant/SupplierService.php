@@ -28,6 +28,7 @@ class SupplierService
      * Paginate suppliers.
      *
      * @param  array<string, mixed>  $filters
+     * @param int $perPage
      * @return LengthAwarePaginator<int, Supplier>
      */
     public function paginate(array $filters = [], int $perPage = 15): LengthAwarePaginator
@@ -41,6 +42,9 @@ class SupplierService
 
     /**
      * Find a supplier by ID with nested relations.
+     *
+     * @param int $id
+     * @return Supplier
      */
     public function find(int $id): Supplier
     {
@@ -52,6 +56,9 @@ class SupplierService
 
     /**
      * Find a supplier by slug.
+     *
+     * @param string $slug
+     * @return Supplier
      */
     public function findBySlug(string $slug): Supplier
     {
@@ -64,6 +71,9 @@ class SupplierService
 
     /**
      * Find a supplier by code.
+     *
+     * @param string $code
+     * @return Supplier
      */
     public function findByCode(string $code): Supplier
     {
@@ -78,6 +88,7 @@ class SupplierService
      * Create a supplier.
      *
      * @param  array<string, mixed>  $data
+     * @return Supplier
      */
     public function create(array $data): Supplier
     {
@@ -107,7 +118,9 @@ class SupplierService
     /**
      * Update a supplier.
      *
+     * @param Supplier $supplier
      * @param  array<string, mixed>  $data
+     * @return Supplier
      */
     public function update(Supplier $supplier, array $data): Supplier
     {
@@ -118,6 +131,9 @@ class SupplierService
 
     /**
      * Soft delete a supplier.
+     *
+     * @param Supplier $supplier
+     * @return void
      */
     public function delete(Supplier $supplier): void
     {
@@ -128,6 +144,7 @@ class SupplierService
      * Soft delete multiple suppliers.
      *
      * @param  list<int>  $ids
+     * @return int
      */
     public function deleteMany(array $ids): int
     {
@@ -136,6 +153,9 @@ class SupplierService
 
     /**
      * Restore a soft-deleted supplier.
+     *
+     * @param Supplier $supplier
+     * @return Supplier
      */
     public function restore(Supplier $supplier): Supplier
     {
@@ -146,6 +166,9 @@ class SupplierService
 
     /**
      * Permanently delete a supplier.
+     *
+     * @param Supplier $supplier
+     * @return void
      */
     public function forceDelete(Supplier $supplier): void
     {
@@ -189,6 +212,8 @@ class SupplierService
      * Build the export query for spreadsheet downloads.
      *
      * @param  list<int>|null  $ids
+     * @param string|null $startDate
+     * @param string|null $endDate
      * @return Collection<int, Supplier>
      */
     public function exportQuery(
@@ -215,6 +240,9 @@ class SupplierService
 
     /**
      * Toggle supplier active status.
+     *
+     * @param Supplier $supplier
+     * @return Supplier
      */
     public function toggleActive(Supplier $supplier): Supplier
     {
@@ -225,6 +253,9 @@ class SupplierService
 
     /**
      * Update cached products count for a supplier.
+     *
+     * @param Supplier $supplier
+     * @return Supplier
      */
     public function updateProductsCount(Supplier $supplier): Supplier
     {
@@ -237,6 +268,7 @@ class SupplierService
     /**
      * Get products for a supplier.
      *
+     * @param Supplier $supplier
      * @return Collection<int, Product>
      */
     public function getProducts(Supplier $supplier): Collection
@@ -247,6 +279,7 @@ class SupplierService
     // ── Addresses ──
 
     /**
+     * @param Supplier $supplier
      * @return Collection<int, SupplierAddress>
      */
     public function getAddresses(Supplier $supplier): Collection
@@ -255,7 +288,9 @@ class SupplierService
     }
 
     /**
+     * @param int $supplierId
      * @param  array<string, mixed>  $data
+     * @return SupplierAddress
      */
     public function addAddress(int $supplierId, array $data): SupplierAddress
     {
@@ -271,7 +306,9 @@ class SupplierService
     }
 
     /**
+     * @param SupplierAddress $address
      * @param  array<string, mixed>  $data
+     * @return SupplierAddress
      */
     public function updateAddress(SupplierAddress $address, array $data): SupplierAddress
     {
@@ -286,11 +323,19 @@ class SupplierService
         return $address->fresh();
     }
 
+    /**
+     * @param SupplierAddress $address
+     * @return void
+     */
     public function deleteAddress(SupplierAddress $address): void
     {
         $address->delete();
     }
 
+    /**
+     * @param SupplierAddress $address
+     * @return SupplierAddress
+     */
     public function setDefaultAddress(SupplierAddress $address): SupplierAddress
     {
         SupplierAddress::query()
@@ -305,6 +350,7 @@ class SupplierService
     // ── Bank Accounts ──
 
     /**
+     * @param Supplier $supplier
      * @return Collection<int, SupplierBankAccount>
      */
     public function getBankAccounts(Supplier $supplier): Collection
@@ -313,7 +359,9 @@ class SupplierService
     }
 
     /**
+     * @param int $supplierId
      * @param  array<string, mixed>  $data
+     * @return SupplierBankAccount
      */
     public function addBankAccount(int $supplierId, array $data): SupplierBankAccount
     {
@@ -329,7 +377,9 @@ class SupplierService
     }
 
     /**
+     * @param SupplierBankAccount $account
      * @param  array<string, mixed>  $data
+     * @return SupplierBankAccount
      */
     public function updateBankAccount(SupplierBankAccount $account, array $data): SupplierBankAccount
     {
@@ -344,11 +394,19 @@ class SupplierService
         return $account->fresh();
     }
 
+    /**
+     * @param SupplierBankAccount $account
+     * @return void
+     */
     public function deleteBankAccount(SupplierBankAccount $account): void
     {
         $account->delete();
     }
 
+    /**
+     * @param SupplierBankAccount $account
+     * @return SupplierBankAccount
+     */
     public function setDefaultBankAccount(SupplierBankAccount $account): SupplierBankAccount
     {
         SupplierBankAccount::query()
@@ -363,6 +421,7 @@ class SupplierService
     // ── Contacts ──
 
     /**
+     * @param Supplier $supplier
      * @return Collection<int, SupplierContact>
      */
     public function getContacts(Supplier $supplier): Collection
@@ -371,7 +430,9 @@ class SupplierService
     }
 
     /**
+     * @param int $supplierId
      * @param  array<string, mixed>  $data
+     * @return SupplierContact
      */
     public function addContact(int $supplierId, array $data): SupplierContact
     {
@@ -387,7 +448,9 @@ class SupplierService
     }
 
     /**
+     * @param SupplierContact $contact
      * @param  array<string, mixed>  $data
+     * @return SupplierContact
      */
     public function updateContact(SupplierContact $contact, array $data): SupplierContact
     {
@@ -402,11 +465,19 @@ class SupplierService
         return $contact->fresh();
     }
 
+    /**
+     * @param SupplierContact $contact
+     * @return void
+     */
     public function deleteContact(SupplierContact $contact): void
     {
         $contact->delete();
     }
 
+    /**
+     * @param SupplierContact $contact
+     * @return SupplierContact
+     */
     public function setPrimaryContact(SupplierContact $contact): SupplierContact
     {
         SupplierContact::query()

@@ -22,12 +22,13 @@ class TaxRateService
     /**
      * @var list<string>
      */
-    private const LIST_RELATIONS = ['taxClass', 'taxZone', 'rules'];
+    private const array LIST_RELATIONS = ['taxClass', 'taxZone', 'rules'];
 
     /**
      * Paginate tax rates.
      *
      * @param  array<string, mixed>  $filters
+     * @param int $perPage
      * @return LengthAwarePaginator<int, TaxRate>
      */
     public function paginate(array $filters = [], int $perPage = 15): LengthAwarePaginator
@@ -42,6 +43,9 @@ class TaxRateService
 
     /**
      * Find a tax rate by ID.
+     *
+     * @param int $id
+     * @return TaxRate
      */
     public function find(int $id): TaxRate
     {
@@ -54,6 +58,7 @@ class TaxRateService
      * Create a new tax rate.
      *
      * @param  array<string, mixed>  $data
+     * @return TaxRate
      */
     public function create(array $data): TaxRate
     {
@@ -68,7 +73,9 @@ class TaxRateService
     /**
      * Update a tax rate.
      *
+     * @param TaxRate $taxRate
      * @param  array<string, mixed>  $data
+     * @return TaxRate
      */
     public function update(TaxRate $taxRate, array $data): TaxRate
     {
@@ -82,6 +89,9 @@ class TaxRateService
 
     /**
      * Soft delete a tax rate.
+     *
+     * @param TaxRate $taxRate
+     * @return void
      */
     public function delete(TaxRate $taxRate): void
     {
@@ -95,6 +105,7 @@ class TaxRateService
      * Soft delete multiple tax rates by ID.
      *
      * @param  list<int>  $ids
+     * @return int
      */
     public function deleteMany(array $ids): int
     {
@@ -117,6 +128,9 @@ class TaxRateService
 
     /**
      * Permanently delete a tax rate.
+     *
+     * @param TaxRate $taxRate
+     * @return void
      */
     public function forceDelete(TaxRate $taxRate): void
     {
@@ -132,6 +146,9 @@ class TaxRateService
 
     /**
      * Restore a soft-deleted tax rate.
+     *
+     * @param TaxRate $taxRate
+     * @return TaxRate
      */
     public function restore(TaxRate $taxRate): TaxRate
     {
@@ -145,6 +162,7 @@ class TaxRateService
      * Restore multiple soft-deleted tax rates by ID.
      *
      * @param  list<int>  $ids
+     * @return int
      */
     public function restoreMany(array $ids): int
     {
@@ -161,6 +179,8 @@ class TaxRateService
      * Build the export query for spreadsheet downloads.
      *
      * @param  list<int>|null  $ids
+     * @param string|null $startDate
+     * @param string|null $endDate
      * @return EloquentCollection<int, TaxRate>
      */
     public function exportQuery(
@@ -205,6 +225,8 @@ class TaxRateService
     /**
      * Get active rates for a class and zone combination.
      *
+     * @param int $taxClassId
+     * @param int $taxZoneId
      * @return EloquentCollection<int, TaxRate>
      */
     public function getByClassAndZone(int $taxClassId, int $taxZoneId): EloquentCollection
@@ -219,6 +241,11 @@ class TaxRateService
 
     /**
      * Calculate tax for an amount using class and zone.
+     *
+     * @param float $amount
+     * @param int $taxClassId
+     * @param int $taxZoneId
+     * @return float
      */
     public function calculateTax(float $amount, int $taxClassId, int $taxZoneId): float
     {
@@ -243,6 +270,11 @@ class TaxRateService
 
     /**
      * Calculate tax for a product in a zone, applying product-specific rules when present.
+     *
+     * @param Product $product
+     * @param float $amount
+     * @param int $taxZoneId
+     * @return float
      */
     public function calculateTaxForProduct(Product $product, float $amount, int $taxZoneId): float
     {
@@ -292,6 +324,9 @@ class TaxRateService
 
     /**
      * Toggle the active status of a tax rate.
+     *
+     * @param TaxRate $taxRate
+     * @return TaxRate
      */
     public function toggleActive(TaxRate $taxRate): TaxRate
     {
@@ -304,6 +339,7 @@ class TaxRateService
     /**
      * Get rules for a tax rate.
      *
+     * @param TaxRate $taxRate
      * @return EloquentCollection<int, TaxRule>
      */
     public function getRules(TaxRate $taxRate): EloquentCollection
@@ -350,6 +386,11 @@ class TaxRateService
         ];
     }
 
+    /**
+     * @param float $rate
+     * @param TaxRule $rule
+     * @return float
+     */
     private function applyRuleAdjustment(float $rate, TaxRule $rule): float
     {
         return match ($rule->rule_type) {

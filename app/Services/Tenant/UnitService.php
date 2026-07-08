@@ -11,6 +11,7 @@ use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
+use Throwable;
 
 /**
  * Manages measurement units within a tenant store.
@@ -21,6 +22,7 @@ class UnitService
      * Paginate units.
      *
      * @param  array<string, mixed>  $filters
+     * @param int $perPage
      * @return LengthAwarePaginator<int, Unit>
      */
     public function paginate(array $filters = [], int $perPage = 15): LengthAwarePaginator
@@ -34,6 +36,9 @@ class UnitService
 
     /**
      * Find a unit by ID.
+     *
+     * @param int $id
+     * @return Unit
      */
     public function find(int $id): Unit
     {
@@ -42,6 +47,9 @@ class UnitService
 
     /**
      * Find a unit by code.
+     *
+     * @param string $code
+     * @return Unit
      */
     public function findByCode(string $code): Unit
     {
@@ -51,7 +59,9 @@ class UnitService
     /**
      * Create a new unit.
      *
-     * @param  array<string, mixed>  $data
+     * @param array<string, mixed> $data
+     * @return Unit
+     * @throws Throwable
      */
     public function create(array $data): Unit
     {
@@ -67,7 +77,10 @@ class UnitService
     /**
      * Update a unit.
      *
-     * @param  array<string, mixed>  $data
+     * @param Unit $unit
+     * @param array<string, mixed> $data
+     * @return Unit
+     * @throws Throwable
      */
     public function update(Unit $unit, array $data): Unit
     {
@@ -86,6 +99,9 @@ class UnitService
 
     /**
      * Delete a unit.
+     *
+     * @param Unit $unit
+     * @return void
      */
     public function delete(Unit $unit): void
     {
@@ -96,6 +112,7 @@ class UnitService
      * Delete multiple units by ID.
      *
      * @param  list<int>  $ids
+     * @return int
      */
     public function deleteMany(array $ids): int
     {
@@ -106,6 +123,8 @@ class UnitService
      * Build the export query for spreadsheet downloads.
      *
      * @param  list<int>|null  $ids
+     * @param string|null $startDate
+     * @param string|null $endDate
      * @return Collection<int, Unit>
      */
     public function exportQuery(
@@ -153,6 +172,7 @@ class UnitService
     /**
      * Return units formatted for select inputs.
      *
+     * @param string|null $type
      * @return Collection<int, array{label: string, value: int, type: string, symbol: string}>
      */
     public function getOptions(?string $type = null): Collection
@@ -173,6 +193,7 @@ class UnitService
     /**
      * Get units by type.
      *
+     * @param string $type
      * @return EloquentCollection<int, Unit>
      */
     public function getByType(string $type): EloquentCollection
@@ -186,6 +207,9 @@ class UnitService
 
     /**
      * Get the base unit for a type.
+     *
+     * @param string $type
+     * @return Unit|null
      */
     public function getBaseUnit(string $type): ?Unit
     {
@@ -197,6 +221,9 @@ class UnitService
 
     /**
      * Set a unit as the base unit for its type.
+     *
+     * @param Unit $unit
+     * @return Unit
      */
     public function setBase(Unit $unit): Unit
     {
@@ -210,6 +237,11 @@ class UnitService
 
     /**
      * Convert a value between unit codes.
+     *
+     * @param float $value
+     * @param string $fromCode
+     * @param string $toCode
+     * @return float
      */
     public function convert(float $value, string $fromCode, string $toCode): float
     {
@@ -229,6 +261,7 @@ class UnitService
      * Persist sort order values from an ordered ID list.
      *
      * @param  list<int>  $orderedIds
+     * @return void
      */
     public function reorder(array $orderedIds): void
     {
@@ -252,6 +285,10 @@ class UnitService
 
     /**
      * Clear the base flag for all units of a type except the given ID.
+     *
+     * @param string $type
+     * @param int|null $exceptId
+     * @return void
      */
     private function clearBaseUnitForType(string $type, ?int $exceptId = null): void
     {

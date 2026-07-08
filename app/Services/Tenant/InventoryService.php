@@ -24,7 +24,10 @@ use Throwable;
 class InventoryService
 {
     /**
+     * Paginate inventory records.
+     *
      * @param  array<string, mixed>  $filters
+     * @param int $perPage
      * @return LengthAwarePaginator<int, Inventory>
      */
     public function paginate(array $filters = [], int $perPage = 15): LengthAwarePaginator
@@ -36,6 +39,12 @@ class InventoryService
             ->paginate($perPage);
     }
 
+    /**
+     * Find an inventory record by ID.
+     *
+     * @param int $id
+     * @return Inventory
+     */
     public function find(int $id): Inventory
     {
         return Inventory::query()
@@ -44,7 +53,11 @@ class InventoryService
     }
 
     /**
+     * Update an inventory record.
+     *
+     * @param Inventory $inventory
      * @param  array<string, mixed>  $data
+     * @return Inventory
      */
     public function update(Inventory $inventory, array $data): Inventory
     {
@@ -64,7 +77,10 @@ class InventoryService
     /**
      * Upsert inventory for a variant at a warehouse.
      *
+     * @param ProductVariant $variant
+     * @param int $warehouseId
      * @param  array<string, mixed>  $data
+     * @return Inventory
      */
     public function upsertForVariant(ProductVariant $variant, int $warehouseId, array $data): Inventory
     {
@@ -123,6 +139,13 @@ class InventoryService
     /**
      * Adjust inventory quantity and record a movement.
      *
+     * @param Inventory $inventory
+     * @param int $quantityDelta
+     * @param string $type
+     * @param string|null $referenceType
+     * @param int|null $referenceId
+     * @param string|null $reason
+     * @return Inventory
      * @throws Throwable
      */
     public function adjust(
@@ -155,6 +178,11 @@ class InventoryService
     /**
      * Transfer stock between warehouses for the same variant.
      *
+     * @param Inventory $source
+     * @param int $destinationWarehouseId
+     * @param int $quantity
+     * @param string|null $reason
+     * @return array
      * @throws Throwable
      */
     public function transfer(
@@ -212,6 +240,9 @@ class InventoryService
     /**
      * Reserve inventory quantity.
      *
+     * @param Inventory $inventory
+     * @param int $quantity
+     * @return Inventory
      * @throws RuntimeException|Throwable
      */
     public function reserve(Inventory $inventory, int $quantity): Inventory
@@ -239,6 +270,9 @@ class InventoryService
     /**
      * Release reserved inventory quantity.
      *
+     * @param Inventory $inventory
+     * @param int $quantity
+     * @return Inventory
      * @throws Throwable
      */
     public function release(Inventory $inventory, int $quantity): Inventory
@@ -261,7 +295,10 @@ class InventoryService
     }
 
     /**
+     * Paginate inventory movements.
+     *
      * @param  array<string, mixed>  $filters
+     * @param int $perPage
      * @return LengthAwarePaginator<int, InventoryMovement>
      */
     public function paginateMovements(array $filters = [], int $perPage = 15): LengthAwarePaginator
@@ -284,6 +321,8 @@ class InventoryService
     }
 
     /**
+     * Get inventory statistics.
+     *
      * @return array<string, int>
      */
     public function statistics(): array
@@ -297,7 +336,10 @@ class InventoryService
     }
 
     /**
+     * Paginate stock alerts.
+     *
      * @param  array<string, mixed>  $filters
+     * @param int $perPage
      * @return LengthAwarePaginator<int, ProductStockAlert>
      */
     public function paginateStockAlerts(array $filters = [], int $perPage = 15): LengthAwarePaginator
@@ -310,6 +352,9 @@ class InventoryService
     }
 
     /**
+     * Get inventories for a variant.
+     *
+     * @param ProductVariant $variant
      * @return Collection<int, Inventory>
      */
     public function inventoriesForVariant(ProductVariant $variant): Collection
@@ -323,6 +368,10 @@ class InventoryService
 
     /**
      * Dispatch inventory threshold events after a quantity change.
+     *
+     * @param Inventory $inventory
+     * @param int $availableBefore
+     * @return void
      */
     private function evaluateStockChanges(Inventory $inventory, int $availableBefore): void
     {

@@ -44,6 +44,7 @@ class MediaService
      * Get paginated media library items.
      *
      * @param  array<string, mixed>  $filters
+     * @param int $perPage
      * @return LengthAwarePaginator<int, Media>
      */
     public function paginate(array $filters = [], int $perPage = 24): LengthAwarePaginator
@@ -57,6 +58,9 @@ class MediaService
 
     /**
      * Find media by ID or fail.
+     *
+     * @param int $id
+     * @return Media
      */
     public function findOrFail(int $id): Media
     {
@@ -66,7 +70,9 @@ class MediaService
     /**
      * Upload a file into the media library.
      *
+     * @param UploadedFile $file
      * @param  array<string, mixed>  $meta
+     * @return Media
      */
     public function upload(UploadedFile $file, array $meta = []): Media
     {
@@ -125,7 +131,9 @@ class MediaService
     /**
      * Download a remote file and store it in the media library.
      *
+     * @param string $url
      * @param  array<string, mixed>  $meta
+     * @return Media
      */
     public function importFromUrl(string $url, array $meta = []): Media
     {
@@ -189,7 +197,9 @@ class MediaService
     /**
      * Update media metadata and relocate the file when the folder changes.
      *
+     * @param Media $media
      * @param  array<string, mixed>  $data
+     * @return Media
      *
      * @throws Throwable
      */
@@ -220,6 +230,7 @@ class MediaService
      * Move multiple library files into a folder.
      *
      * @param  list<int>  $ids
+     * @param int|null $folderId
      * @return list<Media>
      */
     public function moveMany(array $ids, ?int $folderId): array
@@ -237,6 +248,7 @@ class MediaService
      * Copy multiple library files into a folder.
      *
      * @param  list<int>  $ids
+     * @param int|null $folderId
      * @return list<Media>
      */
     public function copyMany(array $ids, ?int $folderId): array
@@ -277,6 +289,9 @@ class MediaService
 
     /**
      * Delete media and remove the underlying file from storage.
+     *
+     * @param Media $media
+     * @return bool
      */
     public function delete(Media $media): bool
     {
@@ -296,6 +311,7 @@ class MediaService
      * Delete multiple media items by ID.
      *
      * @param  list<int>  $ids
+     * @return int
      */
     public function deleteMany(array $ids): int
     {
@@ -312,6 +328,9 @@ class MediaService
 
     /**
      * Force delete a media item permanently.
+     *
+     * @param Media $media
+     * @return bool
      */
     public function forceDelete(Media $media): bool
     {
@@ -331,6 +350,7 @@ class MediaService
      * Force delete multiple media items by ID.
      *
      * @param  list<int>  $ids
+     * @return int
      */
     public function forceDeleteMany(array $ids): int
     {
@@ -347,6 +367,9 @@ class MediaService
 
     /**
      * Restore a soft-deleted media item.
+     *
+     * @param Media $media
+     * @return Media
      */
     public function restore(Media $media): Media
     {
@@ -359,6 +382,7 @@ class MediaService
      * Restore multiple soft-deleted media items by ID.
      *
      * @param  list<int>  $ids
+     * @return int
      */
     public function restoreMany(array $ids): int
     {
@@ -388,6 +412,10 @@ class MediaService
 
     /**
      * Move a single library file into a folder.
+     *
+     * @param Media $media
+     * @param int|null $folderId
+     * @return Media
      */
     public function moveOne(Media $media, ?int $folderId): Media
     {
@@ -396,6 +424,10 @@ class MediaService
 
     /**
      * Copy a single library file into a folder.
+     *
+     * @param Media $media
+     * @param int|null $folderId
+     * @return Media
      */
     public function copyOne(Media $media, ?int $folderId): Media
     {
@@ -404,6 +436,10 @@ class MediaService
 
     /**
      * Remove the background from an image and store a new PNG in the same folder.
+     *
+     * @param Media $media
+     * @param int|string|null $uploadedBy
+     * @return Media
      */
     public function removeBackground(Media $media, int|string|null $uploadedBy = null): Media
     {
@@ -501,6 +537,9 @@ class MediaService
 
     /**
      * Delete a temp file without masking the original exception on Windows file locks.
+     *
+     * @param string $path
+     * @return void
      */
     private function deleteTempFileIfExists(string $path): void
     {
@@ -519,6 +558,10 @@ class MediaService
 
     /**
      * Downscale very large images before rembg to reduce processing time on CPU.
+     *
+     * @param string $inputPath
+     * @param string $tempDirectory
+     * @return string
      */
     private function optimizeImageForBackgroundRemoval(string $inputPath, string $tempDirectory): string
     {
@@ -567,6 +610,10 @@ class MediaService
 
     /**
      * Copy a single library file into a folder.
+     *
+     * @param Media $media
+     * @param int|null $folderId
+     * @return Media
      */
     private function copy(Media $media, ?int $folderId): Media
     {
@@ -610,6 +657,10 @@ class MediaService
 
     /**
      * Relocate a library file to a new folder on the disk.
+     *
+     * @param Media $media
+     * @param int|null $folderId
+     * @return void
      */
     private function relocateLibraryFile(Media $media, ?int $folderId): void
     {
@@ -633,6 +684,9 @@ class MediaService
 
     /**
      * Get the directory path for a library folder.
+     *
+     * @param int|null $folderId
+     * @return string
      */
     private function libraryDirectory(?int $folderId): string
     {
@@ -641,6 +695,10 @@ class MediaService
 
     /**
      * Get the full path for a file within a library folder.
+     *
+     * @param int|null $folderId
+     * @param string $fileName
+     * @return string
      */
     private function libraryPath(?int $folderId, string $fileName): string
     {
@@ -666,6 +724,9 @@ class MediaService
 
     /**
      * Ensure the given media belongs to the library collection.
+     *
+     * @param Media $media
+     * @return void
      */
     private function assertLibraryMedia(Media $media): void
     {
@@ -674,6 +735,11 @@ class MediaService
         }
     }
 
+    /**
+     * @param string $url
+     * @param string|null $contentDisposition
+     * @return string
+     */
     private function resolveImportFilename(string $url, ?string $contentDisposition): string
     {
         if ($contentDisposition && preg_match('/filename\*?=(?:UTF-8\'\')?"?([^";]+)"?/i', $contentDisposition, $matches)) {
@@ -693,6 +759,10 @@ class MediaService
         return 'imported-file';
     }
 
+    /**
+     * @param string $mimeType
+     * @return string|null
+     */
     private function extensionFromMimeType(string $mimeType): ?string
     {
         return match ($mimeType) {
