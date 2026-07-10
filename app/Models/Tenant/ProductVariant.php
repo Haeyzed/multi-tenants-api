@@ -30,6 +30,10 @@ use Illuminate\Support\Carbon;
  * @property string $price
  * @property string|null $compare_at_price
  * @property string|null $cost_price
+ * @property string|null $sale_price
+ * @property Carbon|null $sale_starts_at
+ * @property Carbon|null $sale_ends_at
+ * @property bool $use_warehouse_pricing
  * @property string|null $weight
  * @property string|null $length
  * @property string|null $width
@@ -80,6 +84,10 @@ class ProductVariant extends Model
         'price',
         'compare_at_price',
         'cost_price',
+        'sale_price',
+        'sale_starts_at',
+        'sale_ends_at',
+        'use_warehouse_pricing',
         'weight',
         'length',
         'width',
@@ -112,6 +120,10 @@ class ProductVariant extends Model
             'price' => 'decimal:4',
             'compare_at_price' => 'decimal:4',
             'cost_price' => 'decimal:4',
+            'sale_price' => 'decimal:4',
+            'sale_starts_at' => 'datetime',
+            'sale_ends_at' => 'datetime',
+            'use_warehouse_pricing' => 'boolean',
             'weight' => 'decimal:4',
             'length' => 'decimal:4',
             'width' => 'decimal:4',
@@ -198,6 +210,16 @@ class ProductVariant extends Model
     }
 
     /**
+     * Branch-specific selling prices when use_warehouse_pricing is enabled.
+     *
+     * @return HasMany<VariantWarehousePrice, $this>
+     */
+    public function warehousePrices(): HasMany
+    {
+        return $this->hasMany(VariantWarehousePrice::class, 'product_variant_id');
+    }
+
+    /**
      * Get inventory for an optional warehouse.
      */
     public function inventory(?int $warehouseId = null): ?Inventory
@@ -260,35 +282,153 @@ class ProductVariant extends Model
     }
 
     /**
-     * Calculate discount percentage against compare-at price.
+     * Determine if a scheduled sale is currently active.
      */
-    public function discountPercentage(): ?float
+    public function isSaleActive(?Carbon $at = null): bool
     {
-        if ($this->compare_at_price === null || (float) $this->compare_at_price <= 0) {
+        if ($this->sale_price === null) {
+            return false;
+        }
+
+        $moment = $at ?? now();
+
+        if ($this->sale_starts_at !== null && $moment->lt($this->sale_starts_at)) {
+            return false;
+        }
+
+        if ($this->sale_ends_at !== null && $moment->gt($this->sale_ends_at)) {
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
+     * Base retail price before warehouse override (sale or regular).
+     */
+    public function baseSellingPrice(?Carbon $at = null): float
+    {
+        if ($this->isSaleActive($at)) {
+            return (float) $this->sale_price;
+        }
+
+        return (float) $this->price;
+    }
+
+    /**
+     * Resolve selling price for optional warehouse, quantity, and customer group.
+     *
+     * Priority: active tier (qty + group + schedule) → warehouse price → sale/regular.
+     */
+    public function resolveSellingPrice(
+        ?int $warehouseId = null,
+        int $quantity = 1,
+        ?int $customerGroupId = null,
+        ?Carbon $at = null
+    ): float {
+        $tierPrice = $this->resolveTierPrice($quantity, $customerGroupId, $at);
+        if ($tierPrice !== null) {
+            return $tierPrice;
+        }
+
+        if ($this->use_warehouse_pricing && $warehouseId !== null) {
+            $warehousePrice = $this->warehousePrices()
+                ->where('warehouse_id', $warehouseId)
+                ->value('price');
+
+            if ($warehousePrice !== null) {
+                return (float) $warehousePrice;
+            }
+        }
+
+        return $this->baseSellingPrice($at);
+    }
+
+    /**
+     * Effective selling price (default resolution without warehouse context).
+     */
+    public function sellingPrice(?Carbon $at = null): float
+    {
+        return $this->baseSellingPrice($at);
+    }
+
+    /**
+     * Resolve best matching quantity/customer-group tier price.
+     */
+    public function resolveTierPrice(
+        int $quantity = 1,
+        ?int $customerGroupId = null,
+        ?Carbon $at = null
+    ): ?float {
+        if (! $this->relationLoaded('priceTiers')) {
+            $this->load('priceTiers');
+        }
+
+        $moment = $at ?? now();
+
+        $match = $this->priceTiers
+            ->filter(function (ProductPriceTier $tier) use ($quantity, $customerGroupId, $moment): bool {
+                if ($tier->customer_group_id !== null && $tier->customer_group_id !== $customerGroupId) {
+                    return false;
+                }
+
+                if ($quantity < $tier->min_quantity) {
+                    return false;
+                }
+
+                if ($tier->max_quantity !== null && $quantity > $tier->max_quantity) {
+                    return false;
+                }
+
+                if ($tier->starts_at !== null && $moment->lt($tier->starts_at)) {
+                    return false;
+                }
+
+                if ($tier->ends_at !== null && $moment->gt($tier->ends_at)) {
+                    return false;
+                }
+
+                return true;
+            })
+            ->sortByDesc('min_quantity')
+            ->first();
+
+        return $match ? (float) $match->price : null;
+    }
+
+    /**
+     * Determine if the variant is on sale (scheduled sale or compare-at merchandising).
+     */
+    public function isOnSale(?Carbon $at = null): bool
+    {
+        if ($this->isSaleActive($at)) {
+            return true;
+        }
+
+        return $this->compare_at_price !== null
+            && (float) $this->compare_at_price > $this->baseSellingPrice($at);
+    }
+
+    /**
+     * Calculate discount percentage against compare-at or regular price.
+     */
+    public function discountPercentage(?Carbon $at = null): ?float
+    {
+        $reference = $this->compare_at_price !== null
+            ? (float) $this->compare_at_price
+            : (float) $this->price;
+
+        if ($reference <= 0) {
             return null;
         }
 
-        return round(
-            (((float) $this->compare_at_price - (float) $this->price) / (float) $this->compare_at_price) * 100,
-            2
-        );
-    }
+        $selling = $this->baseSellingPrice($at);
 
-    /**
-     * Determine if the variant is on sale.
-     */
-    public function isOnSale(): bool
-    {
-        return $this->compare_at_price !== null
-            && (float) $this->compare_at_price > (float) $this->price;
-    }
+        if ($selling >= $reference) {
+            return null;
+        }
 
-    /**
-     * Effective selling price.
-     */
-    public function sellingPrice(): float
-    {
-        return (float) $this->price;
+        return round((($reference - $selling) / $reference) * 100, 2);
     }
 
     /**

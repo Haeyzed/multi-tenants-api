@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Services\Tenant;
 
+use App\Enums\Tenant\UnitConversionOperator;
 use App\Enums\Tenant\UnitType;
 use App\Models\Tenant\Unit;
 use DomainException;
@@ -22,7 +23,6 @@ class UnitService
      * Paginate units.
      *
      * @param  array<string, mixed>  $filters
-     * @param int $perPage
      * @return LengthAwarePaginator<int, Unit>
      */
     public function paginate(array $filters = [], int $perPage = 15): LengthAwarePaginator
@@ -36,9 +36,6 @@ class UnitService
 
     /**
      * Find a unit by ID.
-     *
-     * @param int $id
-     * @return Unit
      */
     public function find(int $id): Unit
     {
@@ -47,9 +44,6 @@ class UnitService
 
     /**
      * Find a unit by code.
-     *
-     * @param string $code
-     * @return Unit
      */
     public function findByCode(string $code): Unit
     {
@@ -59,13 +53,15 @@ class UnitService
     /**
      * Create a new unit.
      *
-     * @param array<string, mixed> $data
-     * @return Unit
+     * @param  array<string, mixed>  $data
+     *
      * @throws Throwable
      */
     public function create(array $data): Unit
     {
         return DB::transaction(function () use ($data): Unit {
+            $data = $this->normalizeConversionFields($data);
+
             if (! empty($data['is_base'])) {
                 $this->clearBaseUnitForType((string) $data['type']);
             }
@@ -77,14 +73,14 @@ class UnitService
     /**
      * Update a unit.
      *
-     * @param Unit $unit
-     * @param array<string, mixed> $data
-     * @return Unit
+     * @param  array<string, mixed>  $data
+     *
      * @throws Throwable
      */
     public function update(Unit $unit, array $data): Unit
     {
         return DB::transaction(function () use ($unit, $data): Unit {
+            $data = $this->normalizeConversionFields($data, $unit);
             $type = (string) ($data['type'] ?? $unit->type);
 
             if (! empty($data['is_base'])) {
@@ -99,9 +95,6 @@ class UnitService
 
     /**
      * Delete a unit.
-     *
-     * @param Unit $unit
-     * @return void
      */
     public function delete(Unit $unit): void
     {
@@ -112,7 +105,6 @@ class UnitService
      * Delete multiple units by ID.
      *
      * @param  list<int>  $ids
-     * @return int
      */
     public function deleteMany(array $ids): int
     {
@@ -123,8 +115,6 @@ class UnitService
      * Build the export query for spreadsheet downloads.
      *
      * @param  list<int>|null  $ids
-     * @param string|null $startDate
-     * @param string|null $endDate
      * @return Collection<int, Unit>
      */
     public function exportQuery(
@@ -172,7 +162,6 @@ class UnitService
     /**
      * Return units formatted for select inputs.
      *
-     * @param string|null $type
      * @return Collection<int, array{label: string, value: int, type: string, symbol: string}>
      */
     public function getOptions(?string $type = null): Collection
@@ -193,7 +182,6 @@ class UnitService
     /**
      * Get units by type.
      *
-     * @param string $type
      * @return EloquentCollection<int, Unit>
      */
     public function getByType(string $type): EloquentCollection
@@ -207,9 +195,6 @@ class UnitService
 
     /**
      * Get the base unit for a type.
-     *
-     * @param string $type
-     * @return Unit|null
      */
     public function getBaseUnit(string $type): ?Unit
     {
@@ -221,9 +206,6 @@ class UnitService
 
     /**
      * Set a unit as the base unit for its type.
-     *
-     * @param Unit $unit
-     * @return Unit
      */
     public function setBase(Unit $unit): Unit
     {
@@ -237,11 +219,6 @@ class UnitService
 
     /**
      * Convert a value between unit codes.
-     *
-     * @param float $value
-     * @param string $fromCode
-     * @param string $toCode
-     * @return float
      */
     public function convert(float $value, string $fromCode, string $toCode): float
     {
@@ -261,7 +238,6 @@ class UnitService
      * Persist sort order values from an ordered ID list.
      *
      * @param  list<int>  $orderedIds
-     * @return void
      */
     public function reorder(array $orderedIds): void
     {
@@ -284,11 +260,111 @@ class UnitService
     }
 
     /**
-     * Clear the base flag for all units of a type except the given ID.
+     * Derive canonical conversion_factor from operator + value (both map to the same factor).
      *
-     * @param string $type
-     * @param int|null $exceptId
-     * @return void
+     * Multiply: 1 unit = N base units (e.g. 1 Carton = 24 Pieces).
+     * Divide: N base units = 1 unit (e.g. 1000 Grams = 1 Kilogram).
+     */
+    public function deriveConversionFactor(
+        ?UnitConversionOperator $operator,
+        ?float $value,
+        bool $isBase = false
+    ): float {
+        if ($isBase) {
+            return 1.0;
+        }
+
+        if ($value === null || $value <= 0) {
+            throw new DomainException('Conversion value must be greater than zero for non-base units.');
+        }
+
+        if ($operator === null) {
+            throw new DomainException('Conversion operator is required for non-base units.');
+        }
+
+        return $value;
+    }
+
+    /**
+     * Human-readable conversion example for API consumers.
+     *
+     * @return array{operator: string|null, value: float|null, factor: float, example: string|null}
+     */
+    public function conversionExample(Unit $unit): array
+    {
+        if ($unit->is_base) {
+            return [
+                'operator' => null,
+                'value' => null,
+                'factor' => 1.0,
+                'example' => 'Base unit — inventory is stored in this unit.',
+            ];
+        }
+
+        $operator = $unit->conversion_operator?->value;
+        $value = $unit->conversion_value !== null ? (float) $unit->conversion_value : null;
+        $factor = (float) $unit->conversion_factor;
+
+        $example = match ($unit->conversion_operator) {
+            UnitConversionOperator::Multiply => "1 {$unit->name} = {$factor} base units",
+            UnitConversionOperator::Divide => "{$factor} base units = 1 {$unit->name}",
+            default => "1 {$unit->name} = {$factor} base units",
+        };
+
+        return [
+            'operator' => $operator,
+            'value' => $value,
+            'factor' => $factor,
+            'example' => $example,
+        ];
+    }
+
+    /**
+     * @param  array<string, mixed>  $data
+     * @return array<string, mixed>
+     */
+    private function normalizeConversionFields(array $data, ?Unit $existing = null): array
+    {
+        $isBase = ! empty($data['is_base']) || ($existing?->is_base ?? false);
+
+        if ($isBase) {
+            $data['conversion_factor'] = 1;
+            $data['conversion_operator'] = null;
+            $data['conversion_value'] = null;
+
+            return $data;
+        }
+
+        $operator = $data['conversion_operator'] ?? $existing?->conversion_operator?->value;
+        $value = array_key_exists('conversion_value', $data)
+            ? $data['conversion_value']
+            : $existing?->conversion_value;
+
+        if ($operator !== null && $value !== null) {
+            $enum = $operator instanceof UnitConversionOperator
+                ? $operator
+                : UnitConversionOperator::from((string) $operator);
+
+            $data['conversion_operator'] = $enum->value;
+            $data['conversion_value'] = $value;
+            $data['conversion_factor'] = $this->deriveConversionFactor(
+                $enum,
+                (float) $value,
+                false
+            );
+
+            return $data;
+        }
+
+        if (isset($data['conversion_factor'])) {
+            $data['conversion_factor'] = (float) $data['conversion_factor'];
+        }
+
+        return $data;
+    }
+
+    /**
+     * Clear the base flag for all units of a type except the given ID.
      */
     private function clearBaseUnitForType(string $type, ?int $exceptId = null): void
     {

@@ -16,7 +16,9 @@ use App\Http\Controllers\Tenant\CustomerGroupController;
 use App\Http\Controllers\Tenant\DepartmentController;
 use App\Http\Controllers\Tenant\FlashSaleController;
 use App\Http\Controllers\Tenant\HrController;
+use App\Http\Controllers\Tenant\InventoryAdjustmentController;
 use App\Http\Controllers\Tenant\InventoryController;
+use App\Http\Controllers\Tenant\InventoryTransferController;
 use App\Http\Controllers\Tenant\MediaController;
 use App\Http\Controllers\Tenant\MediaFolderController;
 use App\Http\Controllers\Tenant\NotificationController;
@@ -121,7 +123,7 @@ Route::prefix('v1/tenant')->group(function (): void {
         Route::apiResource('team/invitations', TeamInvitationController::class)->except(['update']);
         Route::post('team/invitations/{invitation}/resend', [TeamInvitationController::class, 'resend']);
 
-        Route::bind('team', fn(string $value) => TenantUser::query()->findOrFail($value));
+        Route::bind('team', fn (string $value) => TenantUser::query()->findOrFail($value));
 
         Route::apiResource('team', TeamController::class);
         Route::post('team/{team}/suspend', [TeamController::class, 'suspend']);
@@ -543,6 +545,22 @@ Route::prefix('v1/tenant')->group(function (): void {
             Route::post('{inventory}/transfer', [InventoryController::class, 'transfer']);
         });
         Route::apiResource('inventories', InventoryController::class)->only(['index', 'show', 'update']);
+
+        Route::prefix('inventory-adjustments')->group(function (): void {
+            Route::get('statistics', [InventoryAdjustmentController::class, 'statistics']);
+            Route::get('search-products', [InventoryAdjustmentController::class, 'searchProducts']);
+            Route::delete('bulk', [InventoryAdjustmentController::class, 'bulkDestroy']);
+        });
+        Route::apiResource('inventory-adjustments', InventoryAdjustmentController::class)
+            ->only(['index', 'store', 'show', 'destroy']);
+
+        Route::prefix('inventory-transfers')->group(function (): void {
+            Route::get('statistics', [InventoryTransferController::class, 'statistics']);
+            Route::get('search-products', [InventoryTransferController::class, 'searchProducts']);
+            Route::delete('bulk', [InventoryTransferController::class, 'bulkDestroy']);
+        });
+        Route::apiResource('inventory-transfers', InventoryTransferController::class)
+            ->only(['index', 'store', 'show', 'destroy']);
 
         // -----------------------------------------------------------------------------
 

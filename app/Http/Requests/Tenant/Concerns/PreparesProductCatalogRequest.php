@@ -140,6 +140,10 @@ trait PreparesProductCatalogRequest
             'default_variant.price' => [$isUpdate ? 'sometimes' : 'required_without:variants', 'nullable', 'numeric', 'min:0'],
             'default_variant.compare_at_price' => ['nullable', 'numeric', 'min:0'],
             'default_variant.cost_price' => ['nullable', 'numeric', 'min:0'],
+            'default_variant.sale_price' => ['nullable', 'numeric', 'min:0'],
+            'default_variant.sale_starts_at' => ['nullable', 'date'],
+            'default_variant.sale_ends_at' => ['nullable', 'date', 'after_or_equal:default_variant.sale_starts_at'],
+            'default_variant.use_warehouse_pricing' => ['nullable', 'boolean'],
             'default_variant.barcode' => ['nullable', 'string', 'max:100'],
             'default_variant.gtin' => ['nullable', 'string', 'max:100'],
             'default_variant.mpn' => ['nullable', 'string', 'max:100'],
@@ -160,7 +164,41 @@ trait PreparesProductCatalogRequest
             'default_variant.inventory.location_code' => ['nullable', 'string', 'max:100'],
             'default_variant.inventory.batch_number' => ['nullable', 'string', 'max:100'],
             'default_variant.inventory.expiry_date' => ['nullable', 'date'],
+            ...$this->variantInventoryListRules('default_variant.inventories'),
+            ...$this->variantWarehousePriceRules('default_variant.warehouse_prices'),
             ...$this->variantPriceTierRules('default_variant.price_tiers'),
+        ];
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    protected function variantInventoryListRules(string $prefix): array
+    {
+        return [
+            $prefix => ['nullable', 'array'],
+            "{$prefix}.*.warehouse_id" => ['required_with:'.$prefix, 'integer', Rule::exists('warehouses', 'id')],
+            "{$prefix}.*.quantity" => ['nullable', 'integer', 'min:0'],
+            "{$prefix}.*.reorder_level" => ['nullable', 'integer', 'min:0'],
+            "{$prefix}.*.reserved_quantity" => ['nullable', 'integer', 'min:0'],
+            "{$prefix}.*.incoming_quantity" => ['nullable', 'integer', 'min:0'],
+            "{$prefix}.*.damaged_quantity" => ['nullable', 'integer', 'min:0'],
+            "{$prefix}.*.reorder_quantity" => ['nullable', 'integer', 'min:0'],
+            "{$prefix}.*.location_code" => ['nullable', 'string', 'max:100'],
+            "{$prefix}.*.batch_number" => ['nullable', 'string', 'max:100'],
+            "{$prefix}.*.expiry_date" => ['nullable', 'date'],
+        ];
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    protected function variantWarehousePriceRules(string $prefix): array
+    {
+        return [
+            $prefix => ['nullable', 'array'],
+            "{$prefix}.*.warehouse_id" => ['required_with:'.$prefix, 'integer', Rule::exists('warehouses', 'id')],
+            "{$prefix}.*.price" => ['required_with:'.$prefix, 'numeric', 'min:0'],
         ];
     }
 
@@ -193,6 +231,10 @@ trait PreparesProductCatalogRequest
             'variants.*.price' => ['required_with:variants', 'numeric', 'min:0'],
             'variants.*.compare_at_price' => ['nullable', 'numeric', 'min:0'],
             'variants.*.cost_price' => ['nullable', 'numeric', 'min:0'],
+            'variants.*.sale_price' => ['nullable', 'numeric', 'min:0'],
+            'variants.*.sale_starts_at' => ['nullable', 'date'],
+            'variants.*.sale_ends_at' => ['nullable', 'date'],
+            'variants.*.use_warehouse_pricing' => ['nullable', 'boolean'],
             'variants.*.barcode' => ['nullable', 'string', 'max:100'],
             'variants.*.gtin' => ['nullable', 'string', 'max:100'],
             'variants.*.mpn' => ['nullable', 'string', 'max:100'],
@@ -219,6 +261,8 @@ trait PreparesProductCatalogRequest
             'variants.*.inventory.location_code' => ['nullable', 'string', 'max:100'],
             'variants.*.inventory.batch_number' => ['nullable', 'string', 'max:100'],
             'variants.*.inventory.expiry_date' => ['nullable', 'date'],
+            ...$this->variantInventoryListRules('variants.*.inventories'),
+            ...$this->variantWarehousePriceRules('variants.*.warehouse_prices'),
             ...$this->variantPriceTierRules('variants.*.price_tiers'),
         ];
     }
@@ -393,7 +437,7 @@ trait PreparesProductCatalogRequest
             $defaultVariant = [];
         }
 
-        foreach (['sku', 'price', 'compare_at_price', 'cost_price', 'barcode', 'gtin', 'mpn'] as $field) {
+        foreach (['sku', 'price', 'compare_at_price', 'cost_price', 'sale_price', 'sale_starts_at', 'sale_ends_at', 'use_warehouse_pricing', 'barcode', 'gtin', 'mpn'] as $field) {
             if ($this->has($field) && ! array_key_exists($field, $defaultVariant)) {
                 $defaultVariant[$field] = $this->input($field);
             }

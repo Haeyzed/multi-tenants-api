@@ -31,6 +31,8 @@ class TenantRolePermissionSeeder extends Seeder
             'warehouses.view', 'warehouses.create', 'warehouses.update', 'warehouses.delete',
             'units.view', 'units.create', 'units.update', 'units.delete',
             'inventory.view', 'inventory.manage',
+            'inventory-adjustments.view', 'inventory-adjustments.create', 'inventory-adjustments.delete',
+            'inventory-transfers.view', 'inventory-transfers.create', 'inventory-transfers.delete',
             'orders.view', 'orders.manage', 'orders.create',
             'flash-sales.view', 'flash-sales.create', 'flash-sales.update', 'flash-sales.delete', 'flash-sales.manage',
             'checkout.join',
@@ -48,7 +50,7 @@ class TenantRolePermissionSeeder extends Seeder
         ];
 
         $permissionModels = collect($permissions)
-            ->mapWithKeys(fn(string $name): array => [
+            ->mapWithKeys(fn (string $name): array => [
                 $name => Permission::findOrCreate($name, 'web'),
             ]);
 
@@ -65,6 +67,8 @@ class TenantRolePermissionSeeder extends Seeder
             'warehouses.view', 'warehouses.create', 'warehouses.update', 'warehouses.delete',
             'units.view', 'units.create', 'units.update', 'units.delete',
             'inventory.view', 'inventory.manage',
+            'inventory-adjustments.view', 'inventory-adjustments.create', 'inventory-adjustments.delete',
+            'inventory-transfers.view', 'inventory-transfers.create', 'inventory-transfers.delete',
         ];
 
         $flashSalePerms = [
@@ -96,7 +100,10 @@ class TenantRolePermissionSeeder extends Seeder
                 'customers.view', 'customers.create', 'customers.update',
             ],
             'inventory-manager' => [
-                'products.view', 'inventory.view', 'inventory.manage', 'flash-sales.view',
+                'products.view', 'inventory.view', 'inventory.manage',
+                'inventory-adjustments.view', 'inventory-adjustments.create',
+                'inventory-transfers.view', 'inventory-transfers.create',
+                'flash-sales.view',
             ],
             'hr-manager' => [
                 'staff.view', 'staff.create', 'staff.update', 'staff.delete',
@@ -129,7 +136,7 @@ class TenantRolePermissionSeeder extends Seeder
         foreach ($rolePermissions as $roleName => $rolePerms) {
             $role = Role::findOrCreate($roleName, 'web');
             $role->syncPermissions(
-                collect($rolePerms)->map(fn(string $name) => $permissionModels[$name])->all()
+                collect($rolePerms)->map(fn (string $name) => $permissionModels[$name])->all()
             );
         }
 

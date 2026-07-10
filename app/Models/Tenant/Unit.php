@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Models\Tenant;
 
+use App\Enums\Tenant\UnitConversionOperator;
 use Database\Factories\Tenant\UnitFactory;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -19,6 +20,8 @@ use Illuminate\Support\Carbon;
  * @property string $symbol
  * @property string $type
  * @property string $conversion_factor
+ * @property UnitConversionOperator|null $conversion_operator
+ * @property string|null $conversion_value
  * @property bool $is_base
  * @property int $sort_order
  * @property Carbon|null $created_at
@@ -40,6 +43,8 @@ class Unit extends Model
         'symbol',
         'type',
         'conversion_factor',
+        'conversion_operator',
+        'conversion_value',
         'is_base',
         'sort_order',
     ];
@@ -50,25 +55,25 @@ class Unit extends Model
     }
 
     /**
-     * @param Builder<Unit> $query
-     * @param array<string, mixed> $filters
+     * @param  Builder<Unit>  $query
+     * @param  array<string, mixed>  $filters
      * @return Builder<Unit>
      */
     public function scopeFilter(Builder $query, array $filters): Builder
     {
         return $query
-            ->when(!empty($filters['search']), function (Builder $q) use ($filters): void {
-                $search = (string)$filters['search'];
+            ->when(! empty($filters['search']), function (Builder $q) use ($filters): void {
+                $search = (string) $filters['search'];
                 $q->where(function (Builder $builder) use ($search): void {
                     $builder->where('name', 'like', "%{$search}%")
                         ->orWhere('code', 'like', "%{$search}%")
                         ->orWhere('symbol', 'like', "%{$search}%");
                 });
             })
-            ->when(!empty($filters['type']), function (Builder $q) use ($filters): void {
+            ->when(! empty($filters['type']), function (Builder $q) use ($filters): void {
                 $types = is_array($filters['type'])
                     ? $filters['type']
-                    : explode(',', (string)$filters['type']);
+                    : explode(',', (string) $filters['type']);
 
                 $q->whereIn('type', $types);
             })
@@ -84,6 +89,8 @@ class Unit extends Model
     {
         return [
             'conversion_factor' => 'decimal:8',
+            'conversion_operator' => UnitConversionOperator::class,
+            'conversion_value' => 'decimal:8',
             'is_base' => 'boolean',
             'sort_order' => 'integer',
         ];
