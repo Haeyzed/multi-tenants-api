@@ -125,4 +125,6 @@ return [
 
     'tenant_base_domain' => env('TENANT_BASE_DOMAIN', 'multi-tenants-api.test'),
 
+    'per_page' => env('PER_PAGE', 15),
+
 ];

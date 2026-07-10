@@ -53,7 +53,7 @@ class BrandController extends ApiController
 
         $brands = $this->brandService->paginate(
             $filters,
-            $request->integer('per_page', 15),
+            $request->integer('per_page', config('app.per_page')),
         );
 
         return $this->paginated($brands, BrandResource::collection($brands), 'Brands retrieved successfully.');

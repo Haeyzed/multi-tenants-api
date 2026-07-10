@@ -50,7 +50,7 @@ class TagController extends ApiController
 
         $tags = $this->tagService->paginate(
             $filters,
-            $request->integer('per_page', 15),
+            $request->integer('per_page', config('app.per_page')),
         );
 
         return $this->paginated($tags, TagResource::collection($tags), 'Tags retrieved successfully.');

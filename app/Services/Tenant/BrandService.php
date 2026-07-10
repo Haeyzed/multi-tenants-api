@@ -203,13 +203,15 @@ class BrandService
     public function getOptions(): Collection
     {
         return Brand::query()
+            ->with('logoMedia')
             ->where('is_visible', true)
             ->orderBy('sort_order')
             ->orderBy('name')
-            ->get(['id', 'name'])
+            ->get(['id', 'name', 'logo_media_id'])
             ->map(fn (Brand $brand) => [
                 'label' => $brand->name,
                 'value' => $brand->id,
+                'image_url' => $brand->logoMedia?->getUrl(),
             ]);
     }
 

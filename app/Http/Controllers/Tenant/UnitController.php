@@ -51,7 +51,7 @@ class UnitController extends ApiController
 
         $units = $this->unitService->paginate(
             $filters,
-            $request->integer('per_page', 15),
+            $request->integer('per_page', config('app.per_page')),
         );
 
         return $this->paginated($units, UnitResource::collection($units), 'Units retrieved successfully.');

@@ -42,7 +42,7 @@ class TeamController extends ApiController
 
         $members = $this->teamService->paginate(
             $filters,
-            $request->integer('per_page', 15),
+            $request->integer('per_page', config('app.per_page')),
         );
 
         return $this->paginated($members, TenantUserResource::collection($members), 'Team members retrieved successfully.');
